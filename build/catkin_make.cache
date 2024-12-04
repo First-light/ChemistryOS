@@ -1,0 +1,2 @@
+chemistry_os
+-DCATKIN_DEVEL_PREFIX=/home/xiaoxiao/Projects/ChemistryOS_DEMO/devel -DCMAKE_INSTALL_PREFIX=/home/xiaoxiao/Projects/ChemistryOS_DEMO/install -G Unix Makefiles
