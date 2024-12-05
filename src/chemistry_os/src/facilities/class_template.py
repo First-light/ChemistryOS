@@ -56,22 +56,6 @@ class facility_temp(facility):
         print("name:",self.name)
         print("new_param_1:",self.new_param_1)
         print("new_param_2:",self.new_param_2)
-"""
-设备类模版
-class facility_temp:
-
-    public_param_1 = 0
-    public_param_2 = 0
-
-    def __init__(self,name:str,type:str,new_param_1,new_param_2 ......):
-        super().__init__(name,type)
-        ......
-
-    def func_1(self):
-    
-    def func_2(self):
-
-"""
 
 
 
