@@ -1,13 +1,12 @@
 import sys
-sys.path.append('src/chemistry_os/src')
+sys.path.append('src/chemistry_os/src/facilities')
 import time
 import Robot # type: ignore # 根目录在src下
 import math
 import numpy
-from facilities.class_template import facility
-from facilities.class_template import facility_state
-from abc import ABC, abstractmethod
-import cmd_parser
+from class_template import facility
+from class_template import facility_state
+from pkgcmd import PkgCmdParser
 
 class fr5robot(facility):
     
@@ -15,11 +14,9 @@ class fr5robot(facility):
     default_acc = 60.0
     default_circle_speed = 5.0
     default_circle_acc = 40.0
-    type = "fr5arm"
 
     def __init__(self,name:str,ip:str):   
         super().__init__(name,self.type)
-
         self.robot = Robot.RPC(ip)
         self.initial_offset = [0,0,0,0,0,0] # 机械臂初始位置与世界坐标系原点的偏差
         self.message_start()
