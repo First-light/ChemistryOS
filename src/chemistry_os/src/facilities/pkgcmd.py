@@ -1,9 +1,11 @@
+import sys
+sys.path.append('src/chemistry_os/src/facilities')
 import shlex
 
 class PkgCmdParser:
-    def __init__(self, pkg_name: str):
+    def __init__(self, obj_name: str):
         self.commands = {}
-        self.pkg_name = pkg_name
+        self.obj_name = obj_name
 
     def register(self, name, func, params=None, description=""):
         if name in self.commands:
@@ -11,6 +13,7 @@ class PkgCmdParser:
         if params is None:
             params = {}
         self.commands[name] = {
+            "cmd": self.cmd,
             "function": func,
             "params": params,
             "description": description
@@ -19,6 +22,7 @@ class PkgCmdParser:
     def cmd(self, command_line):
         tokens = shlex.split(command_line)
         if len(tokens) < 1:
+            self.cmd_print(f"Command shouldn't be empty")
             return
         # 解析指令名称
         command_name = tokens[0]
@@ -61,56 +65,4 @@ class PkgCmdParser:
         print("+" + "-"*78 + "+")
 
     def cmd_print(self,message):
-        print(f"{self.pkg_name}: {message}")
-
-
-# class CommandParser:
-#     def __init__(self):
-#         self.commands = {}
-
-#     def register_command(self, name, handler, description=""):
-#         self.commands[name] = {
-#             "handler": handler,
-#             "description": description
-#         }
-
-#     def parse(self, command_line):
-#         tokens = shlex.split(command_line)
-#         if not tokens:
-#             return
-
-#         # 解析对象和指令
-#         object_command = tokens[0].split(':')
-#         if len(object_command) != 2:
-#             print("Invalid command format. Expected format: object:command")
-#             return
-
-#         object_name, command_name = object_command
-#         args = tokens[1:]
-
-#         if command_name in self.commands:
-#             handler = self.commands[command_name]["handler"]
-#             handler(object_name, args)
-#         else:
-#             print(f"Unknown command: {command_name}")
-
-#     def list_commands(self):
-#         for name, info in self.commands.items():
-#             print(f"{name}: {info['description']}")
-
-# # 示例命令处理函数
-# def move_command(object_name, args):
-#     print(f"Moving {object_name} with args: {args}")
-
-# def stop_command(object_name, args):
-#     print(f"Stopping {object_name} with args: {args}")
-
-# # 创建命令解析器实例并注册命令
-# parser = CommandParser()
-# parser.register_command("move", move_command, "Move the robot")
-# parser.register_command("stop", stop_command, "Stop the robot")
-
-# # 示例命令行输入
-# parser.parse("robot1:move x=1 y=2 -s")
-# parser.parse("robot1:stop -f")
-# parser.list_commands()
+        print(f"{self.obj_name}: {message}")
