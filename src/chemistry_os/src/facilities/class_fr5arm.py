@@ -6,7 +6,6 @@ import math
 import numpy
 from class_template import facility
 from class_template import facility_state
-from pkgcmd import PkgCmdParser
 
 class fr5robot(facility):
     
