@@ -8,14 +8,13 @@ from class_template import facility
 from class_template import facility_state
 
 class fr5robot(facility):
-    
     default_speed = 50.0
     default_acc = 60.0
     default_circle_speed = 5.0
     default_circle_acc = 40.0
 
     def __init__(self,name:str,ip:str):   
-        super().__init__(name,self.type)
+        super().__init__(name)
         self.robot = Robot.RPC(ip)
         self.initial_offset = [0,0,0,0,0,0] # 机械臂初始位置与世界坐标系原点的偏差
         self.message_start()

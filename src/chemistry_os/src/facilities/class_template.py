@@ -1,9 +1,5 @@
 import sys
 sys.path.append('src/chemistry_os/src/facilities')
-import time
-import Robot # type: ignore # 根目录在src下
-import math
-import numpy
 from abc import ABC, abstractmethod
 from enum import Enum, auto
 from pkgcmd import PkgCmdParser
@@ -28,7 +24,7 @@ class facility(ABC):
             raise ValueError(f"Duplicate name pair: {name}")
         # 存储 name 和 type 参数对
         facility.CMDlist.append((name,self.parser.cmd))
-        
+
     @abstractmethod
     def cmd_init(self):
         pass
