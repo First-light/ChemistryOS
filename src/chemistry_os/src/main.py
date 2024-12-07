@@ -4,7 +4,9 @@ import threading
 import time
 from parser import CommandParser 
 from facilities.class_template import facility_temp
+from facilities.
 from facilities.class_fr5arm import fr5robot
+
 
 if __name__ == '__main__':
     
@@ -13,7 +15,8 @@ if __name__ == '__main__':
 
     fr5_A = facility_temp("fr5A",1,2)
     fr5_B = facility_temp("fr5B",30,40)
-
+    
+    main_system = system()
     main_parser = CommandParser()
     main_parser.start()
 
