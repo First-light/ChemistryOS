@@ -60,7 +60,10 @@ class CommandParser:
         objectname = tokens[0]
         command = " ".join(tokens[1:])  # 将命令和参数列表转换为字符串
         matched_CMD = None
-        for name, cmd in facility.CMDlist:
+        
+        for tuple_t in facility.TupleList:
+            name = tuple_t[0]
+            cmd = tuple_t[1]
             if name == objectname:
                 matched_CMD = cmd
                 break

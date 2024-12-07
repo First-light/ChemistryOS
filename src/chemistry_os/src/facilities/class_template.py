@@ -13,17 +13,22 @@ class facility_state(Enum):
     ERROR = auto()  # 错误
 
 class facility(ABC):
-    CMDlist = []
+    TupleList = []
     def __init__(self,name:str):
         self.name = name
         self.state = facility_state.INIT
         self.parser = PkgCmdParser(self.name)
         self.cmd_init()
         # 检查是否存在重复的 name 和 type 参数对
-        if any(name == pair[0] for pair in facility.CMDlist):
+        if any(name == pair[0] for pair in facility.TupleList):
             raise ValueError(f"Duplicate name pair: {name}")
         # 存储 name 和 type 参数对
-        facility.CMDlist.append((name,self.parser.cmd))
+        facility.TupleList.append((name,self.parser.cmd,self))
+        # self.facility_init()
+
+    # def facility_init(self):
+
+        
 
     @abstractmethod
     def cmd_init(self):
@@ -52,6 +57,13 @@ class facility_temp(facility):
         print("name:",self.name)
         print("new_param_1:",self.new_param_1)
         print("new_param_2:",self.new_param_2)
+
+
+
+
+        
+
+
 
 
 
