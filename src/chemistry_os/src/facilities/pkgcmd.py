@@ -1,6 +1,7 @@
 import sys
 sys.path.append('src/chemistry_os/src')
 import shlex
+from prettytable import PrettyTable
 
 class PkgCmdParser:
     def __init__(self, obj_name: str):
@@ -55,14 +56,15 @@ class PkgCmdParser:
             handler(**params)  # 执行函数
 
     def list(self):
-        self.cmd_print(f"Commands list:")
-        print("+" + "-"*78 + "+")
-        print(f"| {'Command':<20} | {'Description':<30} | {'Params':<20} |")
-        print("+" + "-"*78 + "+")
+        table = PrettyTable()
+        table.field_names = ["Command", "Description", "Params"]
+
         for name, info in self.commands.items():
             params = ', '.join([f"{k}={v}" for k, v in info['params'].items()])
-            print(f"| {name:<20} | {info['description']:<30} | {params:<20} |")
-        print("+" + "-"*78 + "+")
+            table.add_row([name, info['description'], params])
+
+        self.cmd_print("Commands list:")
+        print(table)
 
     def cmd_print(self,message):
         print(f"{self.obj_name}: {message}")
