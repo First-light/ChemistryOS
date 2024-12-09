@@ -9,15 +9,15 @@ class system(facility):
 
     def __init__(self,name:str = "os"):
         super().__init__(name)
-        self.objects = []  # 用于存储创建的 fr5robot 实例
+        self.objects = []  # 用于存储创建的实例
 
     def cmd_init(self):
         self.parser.register("create-fr5", self.create_fr5robot, {"name":'', "ip":''}, "create fr5robot")
-        self.parser.register("delete", self.destroy, {"name":''}, "delete fr5robot")
-        self.parser.register("list", self.list,{}, "list all facility")
+        self.parser.register("delete", self.destroy, {"name":''}, "delete object")
+        self.parser.register("check", self.list,{}, "list all objects")
 
     def list(self):
-        print("list all facility:")
+        print("check all objects:")
         table = PrettyTable()
         table.field_names = ["Index", "Object Name", "Robot"]
 
@@ -39,7 +39,7 @@ class system(facility):
 
     def destroy(self, name: str):
         if name == '':
-            print("failed to delete facility:",name)
+            print("failed to delete object:",name)
             return
 
         for i, tuple_t in enumerate(facility.TupleList):
