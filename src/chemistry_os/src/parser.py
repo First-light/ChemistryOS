@@ -3,7 +3,7 @@ sys.path.append('src/chemistry_os/src')
 import shlex
 import threading
 import time
-from facilities.class_template import facility
+from facility import facility
 
 class CommandParser:
     """
