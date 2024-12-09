@@ -1,11 +1,11 @@
 import sys
-sys.path.append('src/chemistry_os/src/facilities')
+sys.path.append('src/chemistry_os/src')
 import time
 import Robot # type: ignore # 根目录在src下
 import math
 import numpy
-from class_template import facility
-from class_template import facility_state
+from facility import facility
+from facility import facility_state
 
 class fr5robot(facility):
     default_speed = 50.0

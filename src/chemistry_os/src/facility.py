@@ -1,8 +1,8 @@
 import sys
-sys.path.append('src/chemistry_os/src/facilities')
+sys.path.append('src/chemistry_os/src')
 from abc import ABC, abstractmethod
 from enum import Enum, auto
-from pkgcmd import PkgCmdParser
+from facilities.pkgcmd import PkgCmdParser
 
 class facility_state(Enum):
     IDLE = auto() # 空闲
@@ -27,8 +27,6 @@ class facility(ABC):
         # self.facility_init()
 
     # def facility_init(self):
-
-        
 
     @abstractmethod
     def cmd_init(self):
@@ -57,6 +55,7 @@ class facility_temp(facility):
         print("name:",self.name)
         print("new_param_1:",self.new_param_1)
         print("new_param_2:",self.new_param_2)
+
 
 
 

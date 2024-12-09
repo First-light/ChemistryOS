@@ -1,5 +1,5 @@
 import sys
-sys.path.append('src/chemistry_os/src/facilities')
+sys.path.append('src/chemistry_os/src')
 import shlex
 
 class PkgCmdParser:
