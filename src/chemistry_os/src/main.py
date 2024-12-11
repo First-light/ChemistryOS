@@ -4,8 +4,8 @@ import threading
 import time
 from parser import CommandParser 
 from facility import facility_temp
-from facilities.class_fr5arm import fr5robot
-from facilities.class_system import system
+from facilities.facility_fr5arm import fr5robot
+from facilities.facility_system import system
 
 
 if __name__ == '__main__':
@@ -15,7 +15,9 @@ if __name__ == '__main__':
     # main_system = instantiator("sys")
     main_sys = system("sys")
 
+
     main_parser = CommandParser()
+    main_parser.parse("sys project name=pro file=test")
     main_parser.start()
 
     # 保持主线程运行
