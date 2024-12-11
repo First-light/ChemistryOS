@@ -1,7 +1,7 @@
 import sys
 sys.path.append('src/chemistry_os/src')
 from parser import CommandParser 
-from facility import facility_temp
+from facility import FacilityTemp
 
 if __name__ == '__main__':
     # fr5A = fr5robot("fr5A","192.168.58.6")
@@ -25,7 +25,7 @@ if __name__ == '__main__':
     # test.parser.cmd("output param1= param2=4")
 
     #全局指令系统测试
-    test = facility_temp("temp",1,2)
+    test = FacilityTemp("temp",1,2)
     main_parser = CommandParser()
     main_parser.parse("temp output param1=3 param2=4")
     main_parser.parse("temp")

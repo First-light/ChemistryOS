@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from enum import Enum, auto
 from facilities.pkgcmd import PkgCmdParser
 
-class facility_state(Enum):
+class FacilityState(Enum):
     IDLE = auto() # 空闲
     INIT = auto() # 初始化
     WAIT = auto() # 等待
@@ -12,18 +12,18 @@ class facility_state(Enum):
     STOP = auto() # 停止
     ERROR = auto()  # 错误
 
-class facility(ABC):
-    TupleList = []
+class Facility(ABC):
+    tupleList = []
     def __init__(self,name:str):
         self.name = name
-        self.state = facility_state.INIT
+        self.state = FacilityState.INIT
         self.parser = PkgCmdParser(self.name)
         self.cmd_init()
         # 检查是否存在重复的 name 和 type 参数对
-        if any(name == pair[0] for pair in facility.TupleList):
+        if any(name == pair[0] for pair in Facility.tupleList):
             raise ValueError(f"Duplicate name pair: {name}")
         # 存储 name 和 type 参数对
-        facility.TupleList.append((name,self.parser.cmd,self))
+        Facility.tupleList.append((name,self.parser.cmd,self))
         # self.facility_init()
 
     # def facility_init(self):
@@ -39,7 +39,7 @@ class facility(ABC):
         pass
     
 
-class facility_temp(facility):
+class FacilityTemp(Facility):
     public_param_1 = 0
     public_param_2 = 1
 
