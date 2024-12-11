@@ -1,7 +1,7 @@
 import sys
 sys.path.append('src/chemistry_os/src')
 from parser import CommandParser 
-from chemistry_os.src.facility import facility_temp
+from facility import facility_temp
 
 if __name__ == '__main__':
     # fr5A = fr5robot("fr5A","192.168.58.6")

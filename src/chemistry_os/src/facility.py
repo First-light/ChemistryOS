@@ -28,6 +28,12 @@ class facility(ABC):
 
     # def facility_init(self):
 
+    def cmd_print(self,message):
+        print(f"{self.name}: {message}")
+
+    def cmd_print_head(self):
+        print(f"{self.name}: ",end='')
+
     @abstractmethod
     def cmd_init(self):
         pass
@@ -37,10 +43,10 @@ class facility_temp(facility):
     public_param_1 = 0
     public_param_2 = 1
 
-    def __init__(self,name:str,new_param_1,new_param_2):
+    def __init__(self,name:str,param1,param2):
         super().__init__(name)
-        self.new_param_1 = new_param_1
-        self.new_param_2 = new_param_2
+        self.param1 = param1
+        self.param2 = param2
         
 
     def output(self,param1,param2):
@@ -53,8 +59,10 @@ class facility_temp(facility):
     def message(self):
         print("This is a temp facility")
         print("name:",self.name)
-        print("new_param_1:",self.new_param_1)
-        print("new_param_2:",self.new_param_2)
+        print("new_param_1:",self.param1)
+        print("new_param_2:",self.param2)
+
+        
 
 
 

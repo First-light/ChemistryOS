@@ -1,0 +1,49 @@
+{
+    "objects": {
+        "fr5A": {
+            "type": "temp",
+            "param1": 1,
+            "param2": 2
+        },
+        "fr5B": {
+            "type": "temp",
+            "param1": 3,
+            "param2": 4
+        },
+        "fr5C": {
+            "type": "temp",
+            "param1": 5,
+            "param2": 6
+        }
+    },
+    "configs": {
+        "sequence": [
+            "step1",
+            "step2",
+            "step1",
+            "step3"
+        ],
+        "startStep": 1,
+        "endCondition": "completion"
+    },
+    "process": {
+        "step1": {
+            "object": "fr5A",
+            "command": "output",
+            "parameters": {
+                "param1": 8,
+                "param2": 9
+            }
+        },
+        "step2": {
+            "object": "fr5B",
+            "command": "message",
+            "parameters": {}
+        },
+        "step3": {
+            "object": "fr5C",
+            "command": "message",
+            "parameters": {}
+        }
+    }
+}
