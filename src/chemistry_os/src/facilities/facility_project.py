@@ -1,10 +1,10 @@
 import sys
 sys.path.append('src/chemistry_os/src')
-from facility import facility
+from facility import Facility
 import os
 import json
 
-class project(facility):
+class Project(Facility):
 
     def __init__(self,name:str,file:str):
         super().__init__(name)

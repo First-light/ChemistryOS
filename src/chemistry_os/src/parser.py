@@ -3,7 +3,7 @@ sys.path.append('src/chemistry_os/src')
 import shlex
 import threading
 import time
-from facility import facility
+from facility import Facility
 
 class CommandParser:
     """
@@ -61,7 +61,7 @@ class CommandParser:
         command = " ".join(tokens[1:])  # 将命令和参数列表转换为字符串
         matched_CMD = None
         
-        for tuple_t in facility.TupleList:
+        for tuple_t in Facility.tupleList:
             name = tuple_t[0]
             cmd = tuple_t[1]
             if name == objectname:

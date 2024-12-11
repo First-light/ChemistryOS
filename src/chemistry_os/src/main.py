@@ -3,9 +3,9 @@ sys.path.append('src/chemistry_os/src')
 import threading
 import time
 from parser import CommandParser 
-from facility import facility_temp
-from facilities.facility_fr5arm import fr5robot
-from facilities.facility_system import system
+from facility import FacilityTemp
+from facilities.facility_fr5arm import Fr5Arm
+from facilities.facility_system import System
 
 
 if __name__ == '__main__':
@@ -13,7 +13,7 @@ if __name__ == '__main__':
     # fr5_A = fr5robot("fr5A","192.168.58.6")
     # fr5_B = fr5robot("fr5A","192.168.59.6")
     # main_system = instantiator("sys")
-    main_sys = system("sys")
+    main_sys = System("sys")
 
 
     main_parser = CommandParser()

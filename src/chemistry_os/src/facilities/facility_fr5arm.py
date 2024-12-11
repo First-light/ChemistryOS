@@ -4,10 +4,10 @@ import time
 import Robot # type: ignore # 根目录在src下
 import math
 import numpy
-from facility import facility
-from facility import facility_state
+from facility import Facility
+from facility import FacilityState
 
-class fr5robot(facility):
+class Fr5Arm(Facility):
     default_speed = 50.0
     default_acc = 60.0
     default_circle_speed = 5.0
@@ -41,7 +41,7 @@ class fr5robot(facility):
         ret = self.robot.RobotEnable(1)   #机器人上使能
         print(name,"","FR5机器人上使能", ret)    
         self.message_end()
-        self.type = facility_state.IDLE
+        self.type = FacilityState.IDLE
 
     def offset_init(self,x,y,z,r1,r2,r3):
         self.initial_offset = [x,y,z,r1,r2,r3]
