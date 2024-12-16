@@ -26,6 +26,8 @@ class CommandParser:
             self.input_thread = threading.Thread(target=self.shell_input)
             self.input_thread.daemon = True
             self.input_thread.start()
+        elif input_mode == "none":
+            pass
         else:
             raise ValueError(f"Unknown input mode: {input_mode}")
 
@@ -44,13 +46,13 @@ class CommandParser:
                 self.buffer.clear()
                 # 调用命令解析器
                 self.parse(command_line)
-            time.sleep(1)  # 模拟读取间隔
+            time.sleep(0.01)  # 模拟读取间隔
 
     def shell_input(self):
         while self.running:
             user_input = input(">")
             self.buffer.extend(user_input)
-            time.sleep(1)
+            time.sleep(0.01)
 
     def parse(self, command_line):
         tokens = shlex.split(command_line)
@@ -61,7 +63,7 @@ class CommandParser:
         command = " ".join(tokens[1:])  # 将命令和参数列表转换为字符串
         matched_CMD = None
         
-        for tuple_t in Facility.tupleList:
+        for tuple_t in Facility.tuple_list:
             name = tuple_t[0]
             cmd = tuple_t[1]
             if name == objectname:

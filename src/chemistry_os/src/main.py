@@ -7,11 +7,13 @@ from facility import FacilityTemp
 from facilities.facility_fr5arm import Fr5Arm
 from facilities.facility_system import System
 
-
 if __name__ == '__main__':
     
-    # fr5_A = fr5robot("fr5A","192.168.58.6")
-    # fr5_B = fr5robot("fr5A","192.168.59.6")
+    # fr5_A = Fr5Arm("fr5A","192.168.58.6")
+    # fr5_B = Fr5Arm("fr5A","192.168.59.6")
+    fr5_A = FacilityTemp("fr5A",0,1)
+    fr5_B = FacilityTemp("fr5B",2,3)
+    fr5_C = FacilityTemp("fr5C",4,5)
     # main_system = instantiator("sys")
     main_sys = System("sys")
 
@@ -23,7 +25,7 @@ if __name__ == '__main__':
     # 保持主线程运行
     try:
         while True:
-            time.sleep(1)
+            time.sleep(0.1)
     except KeyboardInterrupt:
         main_parser.end()
 
