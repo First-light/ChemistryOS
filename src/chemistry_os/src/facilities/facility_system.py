@@ -24,7 +24,7 @@ class System(Facility):
         table = PrettyTable()
         table.field_names = ["Index", "Object Name", "Robot"]
 
-        for i, tuple_t in enumerate(Facility.tupleList):
+        for i, tuple_t in enumerate(Facility.tuple_list):
             objectname = tuple_t[0]
             obj = tuple_t[2]
             table.add_row([i+1, objectname, obj])
@@ -37,14 +37,14 @@ class System(Facility):
             print("failed to delete object:",name)
             return
 
-        for i, tuple_t in enumerate(Facility.tupleList):
+        for i, tuple_t in enumerate(Facility.tuple_list):
             objectname = tuple_t[0]
             obj = tuple_t[2]
             if name == objectname:
                 # 删除对象 robot
                 del obj
                 # 删除元组
-                del Facility.tupleList[i]
+                del Facility.tuple_list[i]
                 self.cmd_print_head
                 print(f"object {name} destroyed successfully.")
                 return
