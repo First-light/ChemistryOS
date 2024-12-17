@@ -74,4 +74,5 @@ class CommandParser:
             print(f"Unknown facility: {objectname}")
             return
         else:
+            print(f"command: {command}")
             matched_CMD(command)

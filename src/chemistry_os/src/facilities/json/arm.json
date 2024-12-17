@@ -1,0 +1,38 @@
+{
+    "objects": {
+        "fr5A": {
+            "type": "fr5arm",
+            "ip": "192.168.58.6"
+        }
+    },
+    "configs": {
+        "sequence": [
+            "reset-fr5A",
+            "forward100",
+            "back100"
+        ],
+        "startStep": 1,
+        "endCondition": "completion"
+    },
+    "process": {
+        "reset-fr5A": {
+            "object": "fr5A",
+            "command": "reset",
+            "parameters": {}
+        },
+        "forward100": {
+            "object": "fr5A",
+            "command": "moveby",
+            "parameters": {
+                "y": -100
+            }
+        },
+        "back100": {
+            "object": "fr5A",
+            "command": "moveby",
+            "parameters": {
+                "y": 100
+            }
+        }
+    }
+}
