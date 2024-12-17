@@ -8,8 +8,8 @@ from facility import Facility
 from facility import FacilityState
 
 class Fr5Arm(Facility):
-    default_speed = 50.0
-    default_acc = 60.0
+    default_speed = 20.0
+    default_acc = 10.0
     default_circle_speed = 5.0
     default_circle_acc = 40.0
 
@@ -47,38 +47,36 @@ class Fr5Arm(Facility):
         self.initial_offset = [x,y,z,r1,r2,r3]
 
     def cmd_init(self):
-        self.parser.register(
-            "moveto",
-            self.MoveTo,
-            {
-            "x": 0, # 世界坐标系x
-            "y": 0, # 世界坐标系y
-            "z": 0, # 世界坐标系z
-            "r1": 0, # 末端姿态角度
-            "r2": 0, # 末端姿态角度
-            "r3": 0, # 末端姿态角度
-            "type": "MoveL", # 运动类型
-            "vel": self.default_speed, # 速度
-            "acc": self.default_acc # 加速度
-            },
-            "Move to a specified position"
-        )
-        self.parser.register(
-            "moveby",
-            self.MoveBy,
-            {
-            "x": 0, # 世界坐标系x
-            "y": 0, # 世界坐标系y
-            "z": 0, # 世界坐标系z
-            "r1": 0, # 末端姿态角度
-            "r2": 0, # 末端姿态角度
-            "r3": 0, # 末端姿态角度
-            "type": "MoveL", # 运动类型
-            "vel": self.default_speed, # 速度
-            "acc": self.default_acc # 加速度
-            },
-            "Move by a specified distance"
-        )
+        self.parser.register("moveto",self.MoveTo,
+                            {
+                            "x": 0, # 世界坐标系x
+                            "y": 0, # 世界坐标系y
+                            "z": 0, # 世界坐标系z
+                            "r1": 0, # 末端姿态角度
+                            "r2": 0, # 末端姿态角度
+                            "r3": 0, # 末端姿态角度
+                            "type": "MoveL", # 运动类型
+                            "vel": self.default_speed, # 速度
+                            "acc": self.default_acc # 加速度
+                            },
+                            "Move to a specified position")
+        self.parser.register("moveby",self.MoveBy,
+                            {
+                            "x": 0, # 世界坐标系x
+                            "y": 0, # 世界坐标系y
+                            "z": 0, # 世界坐标系z
+                            "r1": 0, # 末端姿态角度
+                            "r2": 0, # 末端姿态角度
+                            "r3": 0, # 末端姿态角度
+                            "type": "MoveL", # 运动类型
+                            "vel": self.default_speed, # 速度
+                            "acc": self.default_acc # 加速度
+                            },
+                            "Move by a specified distance")
+        
+        self.parser.register("reset",self.reset_all,
+                            {},
+                            "Reset position and gripper")
 
     # def ShowData(self):
     #     self.message_start()
@@ -93,10 +91,21 @@ class Fr5Arm(Facility):
             if ret != 0:
                 self.message_head()
                 print("笛卡尔空间直线运动:错误码", ret)
-                self.ShutDown()
+                self.shut_down()
                 sys.exit(1)
-            while(self.robot.GetRobotMotionDone()[1] == 0):
-                time.sleep(0.2)
+            while True:
+                ret = self.robot.GetRobotMotionDone()    #查询机器人运动完成状态
+                if isinstance(ret, (list, tuple)):
+                    if ret[1] != 0:
+                        break
+                else:
+                    if ret != -4:
+                        print("状态查询错误：错误码： ",ret)
+                        self.shut_down()
+                        sys.exit(1)
+                    else:
+                        break
+                time.sleep(0.02)
 
         elif type == "MoveJ":
             inverse_kin_result = self.robot.GetInverseKin(0, new_pose, -1)
@@ -105,16 +114,29 @@ class Fr5Arm(Facility):
                 ret = self.robot.MoveJ(new_joint, 0, 0, new_pose, vel=vel_t, acc=acc_t, blendT=0.0)  # 关节空间直线运动
                 if ret != 0:
                     self.message_head()
-                    print("关节空间直线运动:错误码", ret)
-                    self.ShutDown()
+                    print("关节空间直线运动:错误码: ", ret)
+                    self.shut_down()
                     sys.exit(1)
-                while self.robot.GetRobotMotionDone()[1] == 0:
-                    time.sleep(0.2)
+                while True:
+                    ret = self.robot.GetRobotMotionDone()    #查询机器人运动完成状态
+                    if isinstance(ret, (list, tuple)):
+                        if ret[1] != 0:
+                            break
+                    else:
+                        if ret != -4:
+                            print("状态查询错误：错误码： ",ret)
+                            self.shut_down()
+                            sys.exit(1)
+                        else:
+                            break
             else:
                 self.message_head()
-                print("逆运动学计算失败，错误码： ",inverse_kin_result)
-                self.ShutDown()
-                sys.exit(1)
+                if inverse_kin_result == -4:
+                    print("逆运动学计算失败，已到达目标位置")
+                else:
+                    print("逆运动学计算失败，错误码： ",inverse_kin_result)
+                    self.shut_down()
+                    sys.exit(1)
 
 
     def MoveBy(self,x=0, y=0, z=0, r1=0, r2=0, r3=0,type = "MoveL",vel=default_speed,acc=default_acc):
@@ -419,9 +441,12 @@ class Fr5Arm(Facility):
     #     # time.sleep(1)
     #     # self.Go_to_start_zone(open=False)
     #     print("动作完成")
+    def reset_all(self):
+        self.reset_pose()
+        self.reset_gripper()
 
 
-    def Reset_Pose(self):
+    def reset_pose(self):
         self.message_head()
         print("机械臂位置初始化")
         # new_joint = [-47.157,-48.142,-126.999,-184.859,-47.157, 0.0]
@@ -439,7 +464,7 @@ class Fr5Arm(Facility):
         print("完成")
 
 
-    def Reset_Gripper(self):
+    def reset_gripper(self):
         self.message_head()
         print("夹爪初始化")
         self.robot.SetGripperConfig(4, 0, 0, 1)
@@ -465,7 +490,7 @@ class Fr5Arm(Facility):
     #     self.robot.MoveGripper(1, 100, 50, 10, 10000, 1)   
     #     time.sleep(2.0)
         
-    def ShutDown(self):
+    def shut_down(self):
         ret = self.robot.RobotEnable(0)   #机器人下使能
         self.message_head()
         print("机器人下使能", ret)

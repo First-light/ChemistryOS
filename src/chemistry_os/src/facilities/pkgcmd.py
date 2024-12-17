@@ -42,10 +42,17 @@ class PkgCmdParser:
             for arg in args:
                 if '=' in arg:
                     key, value = arg.split('=', 1)
+                    try:
+                        # 尝试将 value 转换为浮点数
+                        value = float(value)
+                    except ValueError:
+                        # 如果转换失败，则保持为字符串
+                        pass
                 else:
                     self.cmd_print(f"Invalid param syntax,pleace input:'param=value'")
                     return
                 if key in params:
+                    # print(f"key:{key},value:{value},value type:{type(value)}") 用于调试出现-100无法解析的问题
                     params[key] = value
                 else:
                     self.cmd_print(f"Unknown param: {key}")
