@@ -4,12 +4,13 @@ from facility import Facility
 from facilities.facility_fr5arm import Fr5Arm
 from facilities.facility_project import Project
 from prettytable import PrettyTable
-from facility import FacilityTemp
+from facilities.facility_temp import FacilityTemp
 
 class System(Facility):
+    type = "system"
 
     def __init__(self,name:str = "os"):
-        super().__init__(name)
+        super().__init__(name, System.type)
         self.objects = []  # 用于存储创建的实例
 
     def cmd_init(self):
@@ -22,12 +23,13 @@ class System(Facility):
     def list(self):
         self.cmd_print("check all objects:")
         table = PrettyTable()
-        table.field_names = ["Index", "Object Name", "Robot"]
+        table.field_names = ["Index", "Object Name", "Object Type", "Object Data"]
 
         for i, tuple_t in enumerate(Facility.tuple_list):
-            objectname = tuple_t[0]
-            obj = tuple_t[2]
-            table.add_row([i+1, objectname, obj])
+            name = tuple_t[0]
+            type = tuple_t[1]
+            data = tuple_t[3]
+            table.add_row([i+1, name, type,data])
 
         print(table)
 
