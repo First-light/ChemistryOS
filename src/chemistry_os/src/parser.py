@@ -4,6 +4,7 @@ import shlex
 import threading
 import time
 from facility import Facility
+from facility import FacilityState
 
 class CommandParser:
     """
@@ -57,22 +58,37 @@ class CommandParser:
     def parse(self, command_line):
         tokens = shlex.split(command_line)
         if len(tokens) < 1:#检查是否有输入，如果没有则直接忽略
-            return
+            return 0
 
         objectname = tokens[0]
         command = " ".join(tokens[1:])  # 将命令和参数列表转换为字符串
-        matched_CMD = None
+        name = None
+        type = None
+        cmd = None
+        data = None
         
         for tuple_t in Facility.tuple_list:
             name = tuple_t[0]
-            cmd = tuple_t[1]
             if name == objectname:
-                matched_CMD = cmd
+                type = tuple_t[1]
+                cmd = tuple_t[2]
+                data = tuple_t[3]
                 break
 
-        if matched_CMD is None:
+        if cmd is None:
             print(f"Unknown facility: {objectname}")
-            return
+            return 1
         else:
-            print(f"command: {command}")
-            matched_CMD(command)
+            ret = self.execute(name,cmd,command,data)
+            return ret
+            
+
+    def execute(self,name,cmd,command,data):
+        if data['state'] == FacilityState.BUSY:
+            print(f"{name} is busy.")
+            return 2
+        data['state'] = FacilityState.BUSY
+        cmd(command)
+        data['state'] = FacilityState.IDLE
+        return 0
+

@@ -3,20 +3,21 @@ sys.path.append('src/chemistry_os/src')
 import time
 import Robot # type: ignore # 根目录在src下
 import math
-import numpy
+import numpy as np
 from facility import Facility
 from facility import FacilityState
 
 class Fr5Arm(Facility):
+    type = "fr5arm"
     default_speed = 20.0
     default_acc = 10.0
     default_circle_speed = 5.0
     default_circle_acc = 40.0
-
+    default_start_pose = [0,-250,400,90,0,0]
     def __init__(self,name:str,ip:str):   
-        super().__init__(name)
+        super().__init__(name, Fr5Arm.type)
         self.robot = Robot.RPC(ip)
-        self.initial_offset = [0,0,0,0,0,0] # 机械臂初始位置与世界坐标系原点的偏差
+        self.initial_offset = [0,0,0,0,0,-2.5] # 机械臂初始位置与世界坐标系原点的偏差
         self.message_start()
         ret,version  = self.robot.GetSDKVersion()    #查询SDK版本号
         if ret == 0:
@@ -77,6 +78,12 @@ class Fr5Arm(Facility):
         self.parser.register("reset",self.reset_all,
                             {},
                             "Reset position and gripper")
+        self.parser.register("catch",self.catch,
+                            {},
+                            "Catch")
+        self.parser.register("put",self.put,
+                            {},
+                            "Put")
 
     # def ShowData(self):
     #     self.message_start()
@@ -459,7 +466,8 @@ class Fr5Arm(Facility):
         #     sys.exit(1)
         # while self.robot.GetRobotMotionDone()[1] == 0:
         #     time.sleep(0.1)
-        self.MoveTo(0.0, -250.0, 400.0, 90.0, 0.0, 0.0,type="MoveJ")
+        pose = [self.default_start_pose[i] + self.initial_offset[i] for i in range(len(self.default_start_pose))]
+        self.MoveTo(pose[0],pose[1],pose[2],pose[3],pose[4],pose[5],type="MoveJ")
         self.message_head()
         print("完成")
 
@@ -483,12 +491,12 @@ class Fr5Arm(Facility):
     #     self.robot.MoveGripper(1, 0, 20, 10, 10000, 1)
     #     time.sleep(2.0)
 
-    # def Catch(self):
-    #     self.robot.MoveGripper(1, 0, 50, 5, 10000, 1)
-    #     time.sleep(2.0)
-    # def Put(self):
-    #     self.robot.MoveGripper(1, 100, 50, 10, 10000, 1)   
-    #     time.sleep(2.0)
+    def catch(self):
+        self.robot.MoveGripper(1, 0, 50, 5, 10000, 1)
+        time.sleep(2.0)
+    def put(self):
+        self.robot.MoveGripper(1, 100, 50, 10, 10000, 1)   
+        time.sleep(2.0)
         
     def shut_down(self):
         ret = self.robot.RobotEnable(0)   #机器人下使能

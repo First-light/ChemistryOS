@@ -17,14 +17,17 @@ class ProjectState(Enum):
     ERROR = 5    # 错误
 
 class Project(Facility):
-
+    type = "project"
 
     def __init__(self, name: str, file: str):
-        super().__init__(name)
-        self.state = ProjectState.NO_FILE
+        super().__init__(name, Project.type)
+        self.project_state = ProjectState.NO_FILE
         self.cmd_load(file)
         self.sub_parser = CommandParser()
-
+        self.executor_thread = threading.Thread(target=self.executor)
+        self.executor_thread.daemon = True
+        self.executor_thread.start()
+        self.step = 0
 
     def __del__(self):
         # 停止线程
@@ -32,26 +35,28 @@ class Project(Facility):
 
 
     def executor(self):
-        self.executor_check_all()
-        step = self.data['configs']['startStep']
         while True:
-            if self.state == ProjectState.READY:
+            if self.project_state == ProjectState.READY:
                 # 等待命令
                 time.sleep(0.1)
-            elif self.state == ProjectState.RUNNING:
+
+            elif self.project_state == ProjectState.RUNNING:
                 # 执行任务
-                self.executor_run_step(step)
-                step += 1
-                if step > len(self.data['configs']['sequence']):
-                    self.state = ProjectState.QUIT
+                self.executor_run_step(self.step)
                 time.sleep(0.1)
-            elif self.state == ProjectState.PAUSE:
-                print("pause")
+
+            elif self.project_state == ProjectState.PAUSE:
                 time.sleep(0.1)
-            elif self.state == ProjectState.QUIT:
+
+            elif self.project_state == ProjectState.QUIT:
                 print("quit")
-                self.state = ProjectState.READY
-                step = self.data['configs']['startStep']
+                self.project_state = ProjectState.READY
+                self.step = self.data['configs']['startStep']
+
+            elif self.project_state == ProjectState.NO_FILE:
+                time.sleep(0.1)
+
+
             time.sleep(0.02)
 
 
@@ -86,7 +91,7 @@ class Project(Facility):
                 print(f"Step {step} does not exist in the process.")
 
 
-    def executor_run_step(self, step_num: int):
+    def executor_run_step(self, step_num: int):    
         # 获取sequence中的步骤名称
         step_name = self.data['configs']['sequence'][step_num - 1]
         # 在process中查找对应的步骤
@@ -99,12 +104,20 @@ class Project(Facility):
         parameters_str = " ".join([f"{key}={value}" for key, value in parameters.items()])
         # 将object, command, parameters串成字符串
         result_str = f"{obj} {command} {parameters_str}"
-        self.sub_parser.parse(result_str)
+        ret = self.sub_parser.parse(result_str)
+        if ret == 2:
+            self.project_state = ProjectState.PAUSE
+            print(f"Failed to execute step {step_num} {step_name}.")
+        elif ret == 0:
+            self.step += 1
+            if self.step > len(self.data['configs']['sequence']):
+                self.project_state = ProjectState.QUIT
+
 
 
     def cmd_init(self):
         self.parser.register("load", self.cmd_load, {"file": ''}, "load file")
-        self.parser.register("objects-supple", self.cmd_objects_supple, {}, "check objects and supple missing objects")
+        self.parser.register("supple", self.cmd_objects_supple, {}, "check objects and supple missing objects")
         self.parser.register("run", self.cmd_project_run, {}, "run project")
         self.parser.register("stop", self.cmd_project_run, {}, "stop project")
         self.parser.register("exit", self.cmd_project_run, {}, "exit project")
@@ -136,20 +149,26 @@ class Project(Facility):
                 # 构建最终的命令字符串
                 result_str = f"os {obj_type} name={file_obj_name} {obj_params_str}"
                 # 调用 sub_parser 的 parse 方法
-                self.sub_parser.parse(result_str)
+                ret = self.sub_parser.parse(result_str)
+                if ret != 0:
+                    print(f"Failed to create object {file_obj_name} in the system.")
+                    break
                 
 
     def cmd_project_run(self):
+        if self.data is None:
+            print("No file loaded")
+            return
         print("running")
-        self.state = ProjectState.RUNNING
+        self.project_state = ProjectState.RUNNING
 
     def cmd_project_stop(self):
         print("stop")
-        self.state = ProjectState.PAUSE
+        self.project_state = ProjectState.PAUSE
 
     def cmd_project_exit(self):
         print("exit")
-        self.state = ProjectState.QUIT
+        self.project_state = ProjectState.QUIT
 
     def cmd_load(self, file: str):
         if file == '':
@@ -173,9 +192,8 @@ class Project(Facility):
                 # 你可以在这里对解析后的 JSON 数据进行进一步处理
                 self.data = data
                 # 创建并启动线程
-                self.executor_thread = threading.Thread(target=self.executor)
-                self.executor_thread.daemon = True
-                self.executor_thread.start()
-                self.state = ProjectState.READY
+                self.executor_check_all()
+                self.step = self.data['configs']['startStep']
+                self.project_state = ProjectState.READY
         except json.JSONDecodeError as e:
             print(f"Error decoding JSON file: {e}")
