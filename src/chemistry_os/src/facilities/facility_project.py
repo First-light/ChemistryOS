@@ -21,13 +21,13 @@ class Project(Facility):
 
     def __init__(self, name: str, file: str):
         super().__init__(name, Project.type)
+        self.step = 1
         self.project_state = ProjectState.NO_FILE
         self.cmd_load(file)
         self.sub_parser = CommandParser()
         self.executor_thread = threading.Thread(target=self.executor)
         self.executor_thread.daemon = True
         self.executor_thread.start()
-        self.step = 0
 
     def __del__(self):
         # 停止线程
@@ -42,7 +42,11 @@ class Project(Facility):
 
             elif self.project_state == ProjectState.RUNNING:
                 # 执行任务
-                self.executor_run_step(self.step)
+                sequence = self.dict['configs']['sequence']
+                self.executor_run_step(self.step,sequence)
+                self.step += 1
+                if self.step > len(sequence):
+                    self.project_state = ProjectState.QUIT
                 time.sleep(0.1)
 
             elif self.project_state == ProjectState.PAUSE:
@@ -51,7 +55,7 @@ class Project(Facility):
             elif self.project_state == ProjectState.QUIT:
                 print("quit")
                 self.project_state = ProjectState.READY
-                self.step = self.data['configs']['startStep']
+                self.step = self.dict['configs']['startStep']
 
             elif self.project_state == ProjectState.NO_FILE:
                 time.sleep(0.1)
@@ -73,7 +77,7 @@ class Project(Facility):
             name = tuple_t[0]
             obj_name_list.append(name)
 
-        for file_obj_name in self.data['objects']:
+        for file_obj_name in self.dict['objects']:
             if any(obj_name == file_obj_name for obj_name in obj_name_list):
                 print(f"Object {file_obj_name} exists in the system.")
             else:
@@ -82,8 +86,8 @@ class Project(Facility):
 
     def executor_check_step(self):
         print("Self check for all step...")
-        sequence_steps = self.data['configs']['sequence']
-        process_steps = self.data['process'].keys()
+        sequence_steps = self.dict['configs']['sequence']
+        process_steps = self.dict['process'].keys()
         for step in sequence_steps:
             if step in process_steps:
                 print(f"Step {step} exists in the process.")
@@ -91,11 +95,18 @@ class Project(Facility):
                 print(f"Step {step} does not exist in the process.")
 
 
-    def executor_run_step(self, step_num: int):    
+    def executor_run_step(self, step_num: int,sequence):    
         # 获取sequence中的步骤名称
-        step_name = self.data['configs']['sequence'][step_num - 1]
+        step_name = sequence[step_num - 1]
         # 在process中查找对应的步骤
-        step_info = self.data['process'][step_name]
+        step_info = self.dict['process'][step_name]
+        
+        if 'sequence' in step_info:
+            sub_sequence = step_info['sequence']
+            for sub_step_num in range(len(sub_sequence)):
+                self.executor_run_step(sub_step_num+1,sub_sequence)
+            return
+
         # 获取步骤的object, command, parameters
         obj = step_info['object']
         command = step_info['command']
@@ -108,10 +119,6 @@ class Project(Facility):
         if ret == 2:
             self.project_state = ProjectState.PAUSE
             print(f"Failed to execute step {step_num} {step_name}.")
-        elif ret == 0:
-            self.step += 1
-            if self.step > len(self.data['configs']['sequence']):
-                self.project_state = ProjectState.QUIT
 
 
 
@@ -124,7 +131,7 @@ class Project(Facility):
 
 
     def cmd_objects_supple(self):
-        if self.data is None:
+        if self.dict is None:
             print("No file loaded")
             return
         
@@ -135,15 +142,15 @@ class Project(Facility):
             name = tuple_t[0]
             obj_name_list.append(name)
 
-        for file_obj_name in self.data['objects']:
+        for file_obj_name in self.dict['objects']:
             if any(obj_name == file_obj_name for obj_name in obj_name_list):
                 print(f"Object {file_obj_name} exists in the system.")
             else:
                 # 读取self.data['objects'][file_obj_name]['type']的信息,调用sub_parser的parse方法，输入“os {type} 键1=键的值 ......”
                 print(f"Create object {file_obj_name} in the system.")
                 # 读取 self.data['objects'][file_obj_name]['type'] 的信息
-                obj_type = self.data['objects'][file_obj_name]['type']
-                obj_params = self.data['objects'][file_obj_name]
+                obj_type = self.dict['objects'][file_obj_name]['type']
+                obj_params = self.dict['objects'][file_obj_name]
                 # 构建参数字符串
                 obj_params_str = " ".join([f"{key}={value}" for key, value in obj_params.items() if key != 'type'])
                 # 构建最终的命令字符串
@@ -156,7 +163,7 @@ class Project(Facility):
                 
 
     def cmd_project_run(self):
-        if self.data is None:
+        if self.dict is None:
             print("No file loaded")
             return
         print("running")
@@ -190,10 +197,10 @@ class Project(Facility):
                 data = json.load(f)
                 # print("JSON file content: ", data)
                 # 你可以在这里对解析后的 JSON 数据进行进一步处理
-                self.data = data
+                self.dict = data
                 # 创建并启动线程
                 self.executor_check_all()
-                self.step = self.data['configs']['startStep']
+                self.step = self.dict['configs']['startStep']
                 self.project_state = ProjectState.READY
         except json.JSONDecodeError as e:
             print(f"Error decoding JSON file: {e}")

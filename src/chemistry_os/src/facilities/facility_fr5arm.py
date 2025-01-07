@@ -48,7 +48,7 @@ class Fr5Arm(Facility):
         self.initial_offset = [x,y,z,r1,r2,r3]
 
     def cmd_init(self):
-        self.parser.register("moveto",self.MoveTo,
+        self.parser.register("moveto",self.move_to,
                             {
                             "x": 0, # 世界坐标系x
                             "y": 0, # 世界坐标系y
@@ -61,7 +61,7 @@ class Fr5Arm(Facility):
                             "acc": self.default_acc # 加速度
                             },
                             "Move to a specified position")
-        self.parser.register("moveby",self.MoveBy,
+        self.parser.register("moveby",self.move_by,
                             {
                             "x": 0, # 世界坐标系x
                             "y": 0, # 世界坐标系y
@@ -75,6 +75,27 @@ class Fr5Arm(Facility):
                             },
                             "Move by a specified distance")
         
+        self.parser.register("fromby",self.from_by,
+                            {
+                            "pose1": [0,0,0,0,0,0], # 世界坐标系x
+                            "pose2": [0,0,0,0,0,0], # 世界坐标系y
+                            "offset": False, # 世界坐标系z
+                            "type": "MoveL", # 运动类型
+                            "vel": self.default_speed, # 速度
+                            "acc": self.default_acc # 加速度
+                            },
+                            "Move from pose1 to pose2")
+        self.parser.register("fromto",self.from_to,
+                            {
+                            "pose1": [0,0,0,0,0,0], # 世界坐标系x
+                            "pose2": [0,0,0,0,0,0], # 世界坐标系y
+                            "offset": False, # 世界坐标系z
+                            "type": "MoveL", # 运动类型
+                            "vel": self.default_speed, # 速度
+                            "acc": self.default_acc # 加速度
+                            },
+                            "Move from pose1 to pose2")
+       
         self.parser.register("reset",self.reset_all,
                             {},
                             "Reset position and gripper")
@@ -92,7 +113,7 @@ class Fr5Arm(Facility):
     #     print("末端法兰位姿",self.robot.GetActualToolFlangePose())
     #     self.message_end()
         
-    def Move(self,new_pose,type = "MoveL",vel_t=default_speed,acc_t=default_acc):
+    def move(self,new_pose,type = "MoveL",vel_t=default_speed,acc_t=default_acc):
         if type == "MoveL":
             ret = self.robot.MoveL(new_pose, 0, 0, vel=vel_t, acc =acc_t,blendR = 0.0)  # 笛卡尔空间直线运动
             if ret != 0:
@@ -146,28 +167,35 @@ class Fr5Arm(Facility):
                     sys.exit(1)
 
 
-    def MoveBy(self,x=0, y=0, z=0, r1=0, r2=0, r3=0,type = "MoveL",vel=default_speed,acc=default_acc):
+    def move_by(self,x=0, y=0, z=0, r1=0, r2=0, r3=0,type = "MoveL",vel=default_speed,acc=default_acc):
         old_pose = self.robot.GetActualToolFlangePose()
         new_list = [old_pose[1][i] + val for i , val in enumerate([x, y, z, r1, r2, r3])]
         new_pose = tuple(new_list)
         self.message_head()
         print("新位姿",new_pose)
-        self.Move(new_pose,type,vel,acc)
+        self.move(new_pose,type,vel,acc)
         self.message_head()
         print("到达")
 
 
-    def MoveTo(self,x=0, y=0, z=0, r1=0, r2=0, r3=0,offset = False,type = "MoveL",vel=default_speed,acc=default_acc):
+    def move_to(self,x=0, y=0, z=0, r1=0, r2=0, r3=0,offset = False,type = "MoveL",vel=default_speed,acc=default_acc):
         new_list = [val + (self.initial_offset[i] if offset else 0) for i, val in enumerate([x, y, z, r1, r2, r3])]
         new_pose = tuple(new_list)
         self.message_head()
         print("新位姿",new_pose)
-        self.Move(new_pose,type,vel,acc)
+        self.move(new_pose,type,vel,acc)
         self.message_head()
         print("到达")
         
+    def from_by(self,pose1:list[float],pose2:list[float],offset = False,type:str= "MoveL",vel=default_speed,acc=default_acc):
+        self.move_to(pose1[0],pose1[1],pose1[2],pose1[3],pose1[4],pose1[5],offset=offset,type=type,vel=vel,acc=acc)
+        self.move_by(pose2[0],pose2[1],pose2[2],pose2[3],pose2[4],pose2[5],type=type,vel=vel,acc=acc)
 
-        
+
+    def from_to(self,pose1:list[float],pose2:list[float],offset = False,type:str = "MoveL",vel=default_speed,acc=default_acc):
+        self.move_to(pose1[0],pose1[1],pose1[2],pose1[3],pose1[4],pose1[5],offset=offset,type=type,vel=vel,acc=acc)
+        self.move_to(pose2[0],pose2[1],pose2[2],pose2[3],pose2[4],pose2[5],offset=offset,type=type,vel=vel,acc=acc)     
+
     # def ToolPosSwitch(self,x,y,z,rx, rz, s):
     #     angle_z = self.robot.GetActualToolFlangePose()[1][5] + rz
     #     angle_x = self.robot.GetActualToolFlangePose()[1][3] + rx
@@ -467,7 +495,7 @@ class Fr5Arm(Facility):
         # while self.robot.GetRobotMotionDone()[1] == 0:
         #     time.sleep(0.1)
         pose = [self.default_start_pose[i] + self.initial_offset[i] for i in range(len(self.default_start_pose))]
-        self.MoveTo(pose[0],pose[1],pose[2],pose[3],pose[4],pose[5],type="MoveJ")
+        self.move_to(pose[0],pose[1],pose[2],pose[3],pose[4],pose[5],type="MoveJ")
         self.message_head()
         print("完成")
 
