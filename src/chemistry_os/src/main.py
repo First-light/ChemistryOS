@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
     main_parser = CommandParser()
     main_parser.parse("os check")
-    main_parser.parse("os project name=pro file=arm")
+    main_parser.parse("os project name=pro file=sub")
     main_parser.start()
 
     # 保持主线程运行
