@@ -194,7 +194,9 @@ class Fr5Arm(Facility):
 
     def from_to(self,pose1:list[float],pose2:list[float],offset = False,type:str = "MoveL",vel=default_speed,acc=default_acc):
         self.move_to(pose1[0],pose1[1],pose1[2],pose1[3],pose1[4],pose1[5],offset=offset,type=type,vel=vel,acc=acc)
-        self.move_to(pose2[0],pose2[1],pose2[2],pose2[3],pose2[4],pose2[5],offset=offset,type=type,vel=vel,acc=acc)     
+        self.move_to(pose2[0],pose2[1],pose2[2],pose2[3],pose2[4],pose2[5],offset=offset,type=type,vel=vel,acc=acc) 
+
+        
 
     # def ToolPosSwitch(self,x,y,z,rx, rz, s):
     #     angle_z = self.robot.GetActualToolFlangePose()[1][5] + rz
