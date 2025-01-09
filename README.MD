@@ -9,6 +9,42 @@ HN软件控制配置与流程标准化分析设计实现，使用`python`编写
 + ubuntu 20.04/22.04
 + python 3.10(.4)
 
+### json流程编写
+
+进入src/chemistry/src//facilities/json文件目录，创建一个json文件，需要至少包含objects，configs，process三项，按照下面的例程编辑你的流程
+
+运行时会按照你在configs-sequence中填写的动作列表执行
+```json
+{
+    "objects": {
+        "设备名": {
+            "type": "设备类",
+            "参数": "xxx"
+        },
+        "fr5A": {
+            "type": "fr5arm",
+            "ip": "192.168.58.6"
+        }
+    },
+    "configs": {
+        "sequence": [
+            "你在process里定义的动作",
+            "end"
+        ],
+        "startStep": 1,
+        "endCondition": "completion"
+    },
+    "process": {
+        "动作": {
+            "object": "对象名",
+            "command": "对象包含的指令",
+            "parameters": {
+                "参数": "xx"
+            }
+    }
+}
+```
+
 
 ## 文件结构
 ```shell
