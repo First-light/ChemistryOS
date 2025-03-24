@@ -1,0 +1,179 @@
+{
+    "objects": {
+        "fr5A": {
+            "type": "fr5arm",
+            "ip": "192.168.58.2"
+        }
+    },
+    "configs": {
+        "sequence": [
+            "close_to_cup_1",
+            "close_to_cup_2",
+            "catch_cup_to_new_pose",
+            "catch_cup_back",
+            "arm_back"
+        ],
+        "startStep": 1,
+        "endCondition": "completion"
+    },
+    "process": {
+        "close_to_cup_1": {
+            "object": "fr5A",
+            "command": "cmoveto",
+            "parameters": {
+                "x": -220, 
+                "y": -575, 
+                "z": -78, 
+                "r1": 90, 
+                "r2": 0, 
+                "r3": -90
+            }
+        },
+        "close_to_cup_2": {
+            "object": "fr5A",
+            "command": "fromby",
+            "parameters": {
+                "fx": -220, 
+                "fy": -575, 
+                "fz": -78, 
+                "f1": 90,
+                "f2": 0, 
+                "f3": -90, 
+                "x": -100
+            }
+        },
+        "catch_cup_to_new_pose": {
+            "sequence": [
+                "catch_cup",
+                "catch_cup_to_new_pose_2",
+                "catch_cup_to_new_pose_3",
+                "catch_cup_to_new_pose_4",
+                "put_cup"
+            ]
+
+        },
+        "catch_cup": {
+            "object": "fr5A",
+            "command": "catch",
+            "parameters": {}
+        },
+        "catch_cup_to_new_pose_2": {
+            "object": "fr5A",
+            "command": "fromby",
+            "parameters": {
+                "fx": -320, 
+                "fy": -575, 
+                "fz": -78, 
+                "f1": 90,
+                "f2": 0, 
+                "f3": -90, 
+                "z": 200
+            }
+        }
+        ,"catch_cup_to_new_pose_3" : {
+            "object": "fr5A",
+            "command": "fromby",
+            "parameters": {
+                "fx": -320, 
+                "fy": -575, 
+                "fz": 122, 
+                "f1": 90,
+                "f2": 0, 
+                "f3": -90, 
+                "y": 200
+            }
+        }
+        ,"catch_cup_to_new_pose_4" : {
+            "object": "fr5A",
+            "command": "fromby",
+            "parameters": {
+                "fx": -320, 
+                "fy": -375, 
+                "fz": 122, 
+                "f1": 90,
+                "f2": 0, 
+                "f3": -90, 
+                "z": -200
+            }
+        }
+        ,"put_cup" : {
+            "object": "fr5A",
+            "command": "put",
+            "parameters": {}
+        }
+        ,"catch_cup_back":{
+            "sequence": [
+                "catch_cup",
+                "catch_cup_back_1",
+                "catch_cup_back_2",
+                "catch_cup_back_3",
+                "put_cup"
+            ]
+        }
+        ,"catch_cup_back_1" : {
+            "object": "fr5A",
+            "command": "fromby",
+            "parameters": {
+                "fx": -320, 
+                "fy": -375, 
+                "fz": -78, 
+                "f1": 90,
+                "f2": 0, 
+                "f3": -90, 
+                "z": 200
+            }
+        }
+        ,"catch_cup_back_2" : {
+            "object": "fr5A",
+            "command": "fromby",
+            "parameters": {
+                "fx": -320, 
+                "fy": -375, 
+                "fz": 122, 
+                "f1": 90,
+                "f2": 0, 
+                "f3": -90, 
+                "y": -200
+            }
+        }
+        ,"catch_cup_back_3" : {
+            "object": "fr5A",
+            "command": "fromby",
+            "parameters": {
+                "fx": -320, 
+                "fy": -575, 
+                "fz": 122, 
+                "f1": 90,
+                "f2": 0, 
+                "f3": -90, 
+                "z": -200
+            }
+        }
+        ,"arm_back":{
+            "sequence": [
+                "arm_back_1",
+                "arm_back_2",
+                "arm_back_3"
+            ]
+        }
+        ,"arm_back_1":{
+            "object": "fr5A",
+            "command": "moveby",
+            "parameters": {
+                "x": 100
+            }
+        }
+        ,"arm_back_2":{
+            "object": "fr5A",
+            "command": "moveby",
+            "parameters": {
+                "z": 200
+            }
+        }
+        ,"arm_back_3":{
+            "object": "fr5A",
+            "command": "reset",
+            "parameters": {}
+        }
+    }
+}

@@ -1,0 +1,8 @@
+prefix=/home/xiaoxiao/Projects/ChemistryOS_DEMO/devel
+
+Name: chemistry_os
+Description: Description of chemistry_os
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

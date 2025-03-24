@@ -1,0 +1,66 @@
+{
+    "objects": {
+        "fr3": {
+            "type": "fr3arm",
+            "ip": "192.168.60.2"
+        }
+    },
+    "configs": {
+        "sequence": [
+            "open",
+            "delay10",
+            "close",
+            "delay10",
+            "delay10",
+            "down",
+            "up"
+        ],
+        "startStep": 1,
+        "endCondition": "completion"
+    },
+    "process": {
+        "open": {
+            "object": "fr3",
+            "command": "put",
+            "parameters": {
+            }
+        },
+        "delay10": {
+            "object": "fr3",
+            "command": "delay",
+            "parameters": {
+                "sec": 10
+            }
+        },
+        "close": {
+            "object": "fr3",
+            "command": "catch",
+            "parameters": {
+            }
+        },
+        "down": {
+            "object": "fr3",
+            "command": "moveto",
+            "parameters": {
+                "x": -340.0, 
+                "y": -38.0, 
+                "z": 215, 
+                "r1": 90, 
+                "r2": -45, 
+                "r3": -90
+            }
+        },
+        "up": {
+            "object": "fr3",
+            "command": "moveto",
+            "parameters": {
+                "x": -340.0, 
+                "y": -38.0, 
+                "z": 345, 
+                "r1": 90, 
+                "r2": -45, 
+                "r3": -90
+            }
+        }
+    }
+}
