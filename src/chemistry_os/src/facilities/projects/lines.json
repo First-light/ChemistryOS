@@ -1,0 +1,52 @@
+{
+    "objects": {
+        "fr5A": {
+            "type": "temp",
+            "param1": 1,
+            "param2": 2
+        }
+    },
+    "configs": {
+        "sequence": [
+            "step1",
+            "step2",
+            "waitA",
+            "waitA",
+            "waitA",
+            "waitA",
+            "waitA",
+            "waitA",
+            "step1",
+            "step3"
+        ],
+        "startStep": 1,
+        "endCondition": "completion"
+    },
+    "process": {
+        "step1": {
+            "object": "fr5A",
+            "command": "output",
+            "parameters": {
+                "param1": 8,
+                "param2": 9
+            }
+        },
+        "step2": {
+            "object": "fr5B",
+            "command": "message",
+            "parameters": {}
+        },
+        "step3": {
+            "object": "fr5C",
+            "command": "message",
+            "parameters": {}
+        },
+        "waitA": {
+            "object": "fr5A",
+            "command": "wait",
+            "parameters": {
+                "time":  5
+            }
+        }
+    }
+}

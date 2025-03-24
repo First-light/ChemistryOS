@@ -1,0 +1,73 @@
+{
+    "objects": {
+        "fr5A": {
+            "type": "fr5arm",
+            "ip": "192.168.58.6"
+        }
+    },
+    "configs": {
+        "sequence": [
+            "reset-fr5A",
+            "forward100",
+            "forward100",
+            "forward100",
+            "down",
+            "down",
+            "forward100",
+            "catch",
+            "up",
+            "back100",
+            "down",
+            "put",
+            "up",
+            "reset-fr5A"
+        ],
+        "startStep": 1,
+        "endCondition": "completion"
+    },
+    "process": {
+        "reset-fr5A": {
+            "object": "fr5A",
+            "command": "reset",
+            "parameters": {}
+        },
+        "forward100": {
+            "object": "fr5A",
+            "command": "moveby",
+            "parameters": {
+                "y": -100
+            }
+        },
+        "back100": {
+            "object": "fr5A",
+            "command": "moveby",
+            "parameters": {
+                "y": 100
+            }
+        },
+        "down": {
+            "object": "fr5A",
+            "command": "moveby",
+            "parameters": {
+                "z": -150
+            }
+        },
+        "up": {
+            "object": "fr5A",
+            "command": "moveby",
+            "parameters": {
+                "z": 150
+            }
+        },
+        "catch": {
+            "object": "fr5A",
+            "command": "catch",
+            "parameters": {}
+        },
+        "put": {
+            "object": "fr5A",
+            "command": "put",
+            "parameters": {}
+        }
+    }
+}
