@@ -8,6 +8,7 @@ from facilities.facility_fr5arm import Fr5Arm
 from facilities.facility_fr3arm import Fr3Arm
 from facilities.facility_system import System
 from facilities.facility_bath import Bath
+from facilities.facility_filter import Filter
 
 if __name__ == '__main__':
 
@@ -35,15 +36,16 @@ if __name__ == '__main__':
     # fr5_B = FacilityTemp("fr5B",2,3)
     # fr5_C = FacilityTemp("fr5C",4,5)
     
-    main_bath = Bath("bath",'/dev/ttyUSB0')
-
+    # main_bath = Bath("bath",'/dev/ttyUSB0')
+    filter = Filter("filter","/dev/ttyUSB0")
     main_sys = System("os")
 
 
     main_parser = CommandParser()
-    main_parser.parse("os project name=pro1 file=double1.json")
-    main_parser.parse("os project name=pro2 file=double1.json")
+    # main_parser.parse("os project name=pro1 file=double1.json")
+    # main_parser.parse("os project name=pro2 file=double1.json")
     main_parser.parse("os check")
+    main_parser.parse("filter test")
     main_parser.start()
     
     # 保持主线程运行
