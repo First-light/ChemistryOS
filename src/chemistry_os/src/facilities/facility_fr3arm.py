@@ -528,103 +528,6 @@ class Fr3Arm(Facility):
                 P1 += [90.0, 0.0, 0.0]
             self.robot.MoveCart(P1, 0, 0, 0.0, 0.0, v, -1.0, -1)
 
-    # def pourwater(self,pour_position,pour_direction,sel_num,clockwise = False):
-    #     '''
-    #     指定位置倾倒指定仪器
-    #     预期效果： 机械臂运动到指定位置————机械臂倾倒仪器————机械臂等待倾倒完毕————机械臂抖动————机械臂回到一个中立位置
-    #     pour_position: 目标绝对xyz坐标
-    #     pour_direction: ym——y轴负方向  xm——x负方向
-    #     sel_num:倾倒的对象 1---试管 2---烧杯 3---量筒 4---反应瓶
-    #     '''
-    #     print("目标物体绝对xyz坐标:",pour_position)
-    #     rxryrz = []
-    #     if pour_direction == "yn":
-    #         print("倾倒方向是：y轴负方向")
-    #         # 数据处理y
-    #         pour_position[1] = pour_position[1] + 150.0
-    #         pour_position[0] = pour_position[0]
-    #         if clockwise:
-    #             rxryrz = [90.0, -30.0, 0.0]
-    #         else:
-    #             rxryrz = [90.0, 30.0, 0.0]
-    #     elif pour_direction == "xn":
-    #         print("倾倒方向是：x轴负方向")
-    #         # 数据处理x
-    #         pour_position[0] = pour_position[0] + 150.0
-    #         rxryrz = [90.0, 0.0, -90.0]
-    #     elif pour_direction == "xp":
-    #         print("倾倒方向是：x轴正方向")
-    #         # 数据处理x
-    #         pour_position[0] = pour_position[0] - 150
-    #         rxryrz = [90.0, 0.0, 90.0]
-    #     else:
-    #         print("------error!-------")
-    #         exit()
-    #     # 合法检测
-    #     if len(pour_position) != 3:
-    #         print("xyz坐标错误")
-    #         exit()
-    #     else:
-    #         print("----------------------")   
-        
-    #     if int(sel_num) == 1:
-    #         print("倾倒的对象：试管")
-    #         pour_position[2] += 10.0
-    #         bias = 20
-    #         height = 10
-    #     elif int(sel_num) == 2:
-    #         print("倾倒的对象：烧杯")
-    #         pour_position[2] += 10.0
-    #         bias = 37
-    #         height = 35
-    #     elif int(sel_num) == 3:
-    #         print("倾倒的对象：量筒")
-    #         pour_position[2] += 10.0
-    #         bias = 20
-    #         height = 50     
-    #     else:
-    #         print("--------Wrong sel index!---------")
-    #         exit()
-
-    #     pour_position += rxryrz
-    #     print('==========================',pour_position)
-
-
-    #     if pour_direction == "yn":
-    #         # y方向留bias距离 z方向留height距离
-    #         position1 = pour_position
-    #         if clockwise:
-    #             position1[0] = position1[0] - bias
-    #         else:
-    #             position1[0] = position1[0] + bias
-    #         position1[2] = position1[2] + height * math.cos(math.fabs(rxryrz[1]) * math.pi / 180)
-    #         self.robot.MoveCart(position1,0,0)
-    #         time.sleep(2)
-    #     elif pour_direction == "xn":
-    #         # x方向留bias距离 z方向留height距离
-    #         position1 = pour_position
-    #         position1[0] = position1[0] + bias
-    #         position1[2] = position1[2] + height
-    #         self.robot.MoveCart(position1,0,0)
-    #         time.sleep(2)
-    #     elif pour_direction == "xp":
-    #         # x方向留bias距离 z方向留height距离
-    #         position1 = pour_position
-    #         position1[0] = position1[0] - bias
-    #         position1[2] = position1[2] + height
-    #         self.robot.MoveCart(position1,0,0)
-    #         time.sleep(2)
-    #     max_angle = 100
-    #     pre_angle = math.fabs(90 - math.fabs(rxryrz[1]))
-
-    #     if clockwise == False:
-    #         bias = -bias
-            
-    #     self.pour(math.fabs(bias), height, float(2 * numpy.sign(bias)), max_angle, 100)
-    #     # time.sleep(1)
-    #     # self.Go_to_start_zone(open=False)
-    #     print("动作完成")
-
 
     def reset_all(self):
         self.open_up()
@@ -651,12 +554,6 @@ class Fr3Arm(Facility):
         self.put()
         print("完成")
         
-    # def Release_DiGuan(self):
-    #     self.robot.MoveGripper(1, 20, 20, 10, 10000, 1)
-    #     time.sleep(2.0)
-    # def Push_DiGuan(self):
-    #     self.robot.MoveGripper(1, 0, 20, 10, 10000, 1)
-    #     time.sleep(2.0)
 
     def catch(self):
         self.robot.SetToolDO(0,1,0,0)
@@ -687,32 +584,6 @@ class Fr3Arm(Facility):
         self.message_head()
         print(f"清除错误码:{ret}")
 
-    # def Catch_to_start(self,x,y,z):
-    #     self.MoveTo(x,y+80,z+150,90,0,0)
-    #     self.MoveTo(x,y+80,z,90,0,0)
-    #     self.MoveTool(80.0)
-    #     self.Catch()
-    #     self.MoveBy(z=200.0)
-    #     self.Reset_Pose()
-
-    # def Put_to_ground(self,x,y,z):
-    #     self.MoveTo(x,y,z+150,90,0,0)
-    #     self.MoveTo(x,y,z,90,0,0)
-    #     self.Put()
-    #     self.MoveBy(y=100.0)
-    #     self.MoveBy(z=200.0)
-    #     self.Reset_Pose()
-
-    # def Shake(self,num):
-    #     self.MoveBy(x=-20,r2=30,vel=100,acc=100)
-    #     for i in range(num):
-    #         self.MoveBy(x=40,r2=-60,vel=100,acc=100)
-    #         self.MoveBy(x=-40,r2=60,vel=100,acc=100)
-    #     self.MoveBy(x=20,r2=-30,vel=100,acc=100)
-
-    def delay(self,sec):
-        print("delay ",sec)
-        time.sleep(sec)
 
 if __name__ == '__main__':
     exit()
