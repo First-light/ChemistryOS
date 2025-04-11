@@ -1,19 +1,19 @@
+import time
+from time import sleep
+from serial.tools import list_ports
+import serial
+from structs import FacilityState
+from facility import Facility
 import sys
 sys.path.append('src/chemistry_os/src')
-from facility import Facility
-from structs import FacilityState
-import serial
-from serial.tools import list_ports
-from time import sleep
-import time
-import serial
 
 # sudo chmod 666 /dev/ttyUSB0 开串口权限
+
 
 class Filter(Facility):
     type = "filter"
 
-    def __init__(self, name: str, com: str, baudrate: int = 9600, address: int = 0x50 , sub_address: int = 0x01):
+    def __init__(self, name: str, com: str, baudrate: int = 9600, address: int = 0x50, sub_address: int = 0x01):
         """
         初始化抽滤装置类
         :param name: 设备名称
@@ -24,7 +24,7 @@ class Filter(Facility):
         self.com = com
         self.baudrate = baudrate
         self.address = address
-        self.sub_address = sub_address # 蠕动泵地址
+        self.sub_address = sub_address  # 蠕动泵地址
         self.ser = None
         super().__init__(name, Filter.type)
         self.connect()
@@ -34,13 +34,20 @@ class Filter(Facility):
         注册指令
         """
         self.parser.register("test", self.test, {}, "send empty command")
-        self.parser.register("pump", self.pump_control, {"address": self.sub_address, "state": 0}, "control pump on/off")
-        self.parser.register("dir", self.set_pump_direction, {"address": self.sub_address, "direction": 0}, "set pump direction")
-        self.parser.register("speed", self.set_pump_speed, {"address": self.sub_address, "speed": 0}, "set pump speed")
-        self.parser.register("valve", self.valve_control, {"state": 0}, "control valve on/off")
-        self.parser.register("airpump", self.air_pump_control, {"state": 0}, "control air pump on/off")
-        self.parser.register("query", self.pump_query, {"address": self.sub_address}, "query pump status")
-        self.parser.register("setaddr", self.set_pump_address, {"address": self.sub_address, "new_address": 0}, "set pump address")
+        self.parser.register("pump", self.pump_control, {
+                             "address": self.sub_address, "state": 0}, "control pump on/off")
+        self.parser.register("dir", self.set_pump_direction, {
+                             "address": self.sub_address, "direction": 0}, "set pump direction")
+        self.parser.register("speed", self.set_pump_speed, {
+                             "address": self.sub_address, "speed": 0}, "set pump speed")
+        self.parser.register("valve", self.valve_control, {
+                             "state": 0}, "control valve on/off")
+        self.parser.register("airpump", self.air_pump_control, {
+                             "state": 0}, "control air pump on/off")
+        self.parser.register("query", self.pump_query, {
+                             "address": self.sub_address}, "query pump status")
+        self.parser.register("setaddr", self.set_pump_address, {
+                             "address": self.sub_address, "new_address": 0}, "set pump address")
 
     def cmd_error(self):
         self.cmd_print("error")
@@ -97,7 +104,6 @@ class Filter(Facility):
 
         except Exception as e:
             self.cmd_print(f"发送指令失败: {str(e)}")
-
 
     def test(self):
         """
@@ -184,10 +190,3 @@ class Filter(Facility):
         """
         command = [self.address, 0x09, address, 0x00, 0x00, 0x55]
         return self.send_command(command)
-    
-
-
-
-
-
-    
