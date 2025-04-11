@@ -13,7 +13,7 @@ import serial
 class Filter(Facility):
     type = "filter"
 
-    def __init__(self, name: str, com: str, baudrate: int = 9600, address: int = 0x50 , sub_address: int = 0x00):
+    def __init__(self, name: str, com: str, baudrate: int = 9600, address: int = 0x50 , sub_address: int = 0x01):
         """
         初始化抽滤装置类
         :param name: 设备名称
@@ -83,18 +83,21 @@ class Filter(Facility):
         发送指令到设备
         :param command: 指令列表
         """
-        if not self.ser or not self.ser.is_open:
-            self.cmd_print("设备未连接")
-            return
+        command_t = bytearray(command)
         try:
-            self.ser.write(bytearray(command))
-            self.cmd_print(f"发送指令: {command}")
-            sleep(0.1)
-            response = self.ser.read(self.ser.in_waiting).decode('utf-8', errors='ignore')
-            self.cmd_print(f"设备响应: {response}")
-            return response
+            with serial.Serial(port=self.com, baudrate=self.baudrate, timeout=1, stopbits=2) as ser:
+
+                print("成功连接")
+                ser.write(command_t)
+                self.cmd_print(f"发送指令: {command_t}")
+                time.sleep(0.2)
+                response = ser.read(ser.in_waiting)
+                response_str = response.decode('utf-8', errors='ignore')
+                self.cmd_print(f"设备响应: {response_str}")
+
         except Exception as e:
             self.cmd_print(f"发送指令失败: {str(e)}")
+
 
     def test(self):
         """
@@ -109,7 +112,12 @@ class Filter(Facility):
         :param address: 蠕动泵设备地址
         :param state: 1=打开, 0=关闭
         """
-        command = [self.address, 0x01, address, 0x00, state, 0x55]
+        state_int = int(state)
+        if state_int not in [0, 1]:
+            self.cmd_print("无效的阀门状态，请输入 1 或 0")
+            return
+        state_byte = state_int.to_bytes(1, byteorder='big')
+        command = [self.address, 0x01, address, 0x00, state_byte[0], 0x55]
         return self.send_command(command)
 
     def set_pump_direction(self, address: int, direction: int):
@@ -118,7 +126,12 @@ class Filter(Facility):
         :param address: 蠕动泵设备地址
         :param direction: 方向，1=正转, 0=反转
         """
-        command = [self.address, 0x02, address, 0x00, direction, 0x55]
+        direction_int = int(direction)
+        if direction_int not in [0, 1]:
+            self.cmd_print("无效的方向，请输入 1 或 0")
+            return
+        direction_byte = direction_int.to_bytes(1, byteorder='big')
+        command = [self.address, 0x02, address, 0x00, direction_byte[0], 0x55]
         return self.send_command(command)
 
     def set_pump_speed(self, address: int, speed: int):
@@ -127,6 +140,10 @@ class Filter(Facility):
         :param address: 蠕动泵设备地址
         :param speed: 速度值 (0-65535)
         """
+        speed = int(speed)
+        if speed < 0 or speed > 65535:
+            self.cmd_print("速度值超出范围，请输入 0-65535")
+            return
         high_byte = (speed >> 8) & 0xFF
         low_byte = speed & 0xFF
         command = [self.address, 0x03, address, high_byte, low_byte, 0x55]
@@ -136,8 +153,15 @@ class Filter(Facility):
         """
         控制三通阀门开关
         :param state: 1=打开, 0=关闭
+        1 = 蠕动泵端关
+        0 = 气泵端关
         """
-        command = [self.address, 0x05, state, 0x55, 0x55, 0x55]
+        state_int = int(state)
+        if state_int not in [0, 1]:
+            self.cmd_print("无效的阀门状态，请输入 1 或 0")
+            return
+        state_byte = state_int.to_bytes(1, byteorder='big')
+        command = [self.address, 0x05, state_byte[0], 0x55, 0x55, 0x55]
         return self.send_command(command)
 
     def air_pump_control(self, state: int):
@@ -145,7 +169,12 @@ class Filter(Facility):
         控制气泵开关
         :param state: 1=打开, 0=关闭
         """
-        command = [self.address, 0x06, state, 0x55, 0x55, 0x55]
+        state_int = int(state)
+        if state_int not in [0, 1]:
+            self.cmd_print("无效的阀门状态，请输入 1 或 0")
+            return
+        state_byte = state_int.to_bytes(1, byteorder='big')
+        command = [self.address, 0x06, state_byte[0], 0x55, 0x55, 0x55]
         return self.send_command(command)
 
     def pump_query(self, address: int):
@@ -155,3 +184,10 @@ class Filter(Facility):
         """
         command = [self.address, 0x09, address, 0x00, 0x00, 0x55]
         return self.send_command(command)
+    
+
+
+
+
+
+    
