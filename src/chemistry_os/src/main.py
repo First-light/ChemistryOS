@@ -6,13 +6,12 @@ from facilities.facility_fr5arm import Fr5Arm
 from facilities.facility_temp import FacilityTemp
 from parser import CommandParser
 import time
-import threading
 import sys
 
 sys.path.append('src/chemistry_os/src')
 
 if __name__ == '__main__':
-    filter = Filter("filter", "/dev/ttyUSB0")
+    filter = Filter("filter", "/dev/ttyUSB0",sub_address = 0x01)
     main_sys = System("os")
 
     time.sleep(5)
@@ -25,23 +24,22 @@ if __name__ == '__main__':
     main_parser.parse("filter valve state=1")
     time.sleep(1)
     main_parser.parse("filter airpump state=1")
-    time.sleep(40)
-    main_parser.parse("filter airpump state=0")
-    time.sleep(1)
-    main_parser.parse("filter pump state=0")
+    time.sleep(20)
+    main_parser.parse("filter airpump state=1")
+
 
     time.sleep(1)
-    main_parser.parse("filter valve state=0")
-    time.sleep(1)
-    main_parser.parse("filter speed speed=600")
-    time.sleep(1)
-    main_parser.parse("filter dir direction=1")
-    time.sleep(1)
-    main_parser.parse("filter pump state=1")
-    time.sleep(40)
-    main_parser.parse("filter pump state=0")
-    main_parser.parse("filter query")
-    time.sleep(1)
+    # main_parser.parse("filter valve state=0")
+    # time.sleep(1)
+    # main_parser.parse("filter speed speed=600")
+    # time.sleep(1)
+    # main_parser.parse("filter dir direction=1")
+    # time.sleep(1)
+    # main_parser.parse("filter pump state=1")
+    # time.sleep(10)
+    # main_parser.parse("filter pump state=0")
+    # main_parser.parse("filter query")
+    # time.sleep(1)
 
     # 保持主线程运行
     try:

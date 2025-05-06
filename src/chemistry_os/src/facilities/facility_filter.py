@@ -8,6 +8,7 @@ import sys
 sys.path.append('src/chemistry_os/src')
 
 # sudo chmod 666 /dev/ttyUSB0 开串口权限
+# ls -l /dev/ttyUSB* 查串口设备
 
 
 class Filter(Facility):
@@ -18,6 +19,7 @@ class Filter(Facility):
         初始化抽滤装置类
         :param name: 设备名称
         :param com: 串口号
+
         :param baudrate: 波特率
         :param address: 主控地址，默认0x50
         """
