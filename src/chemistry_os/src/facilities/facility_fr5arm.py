@@ -1,8 +1,8 @@
 import sys
 
 sys.path.append('src/chemistry_os/src')
-from simple_client import TCPClient
-from unity import DeviceType,Gripper_status,Running_status,Weighing_status,Tube_position
+from user.zzp.simple_client import TCPClient
+from user.zzp.unity import DeviceType,Gripper_status,Running_status,Weighing_status,Tube_position
 import time
 import Robot # type: ignore # 根目录在src下
 import math
