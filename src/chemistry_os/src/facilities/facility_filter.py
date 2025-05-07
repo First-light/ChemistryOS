@@ -24,6 +24,7 @@ class Filter(Facility):
         :param address: 主控地址，默认0x50
         """
         self.com = com
+        self.ifconnect = False
         self.baudrate = baudrate
         self.address = address
         self.sub_address = sub_address  # 蠕动泵地址
@@ -64,8 +65,11 @@ class Filter(Facility):
         try:
             self.ser = serial.Serial(self.com, self.baudrate, timeout=1)
             self.cmd_print(f"{self.name} 成功连接到 {self.com}")
+            self.ifconnect = True
         except Exception as e:
             self.cmd_print(f"连接失败: {str(e)}")
+            self.ifconnect = False
+
 
     def set_pump_address(self, old_address: int, new_address: int):
         """
@@ -92,20 +96,34 @@ class Filter(Facility):
         发送指令到设备
         :param command: 指令列表
         """
+        if not self.ifconnect:
+            self.cmd_print("设备未连接，请检查连接")
+            return
+    
+        wait_time = 2.0
         command_t = bytearray(command)
         try:
             with serial.Serial(port=self.com, baudrate=self.baudrate, timeout=1, stopbits=2) as ser:
-
                 print("成功连接")
                 ser.write(command_t)
                 self.cmd_print(f"发送指令: {command_t}")
-                time.sleep(0.2)
-                response = ser.read(ser.in_waiting)
-                response_str = response.decode('utf-8', errors='ignore')
-                self.cmd_print(f"设备响应: {response_str}")
+                start_time = time.time()
+                while True:
+                    sleep(0.01)
+                    if ser.in_waiting > 0:
+                        # 读取设备响应
+                        response = ser.read(ser.in_waiting)
+                        response_str = response.decode('utf-8', errors='ignore')
+                        self.cmd_print(f"设备响应: {response_str}")
+                        return response_str
+                    if time.time() - start_time > wait_time:
+                        # 超过等待时间，认为超时
+                        self.cmd_print("发送指令失败: 超时未收到响应")
+                        return None
 
         except Exception as e:
             self.cmd_print(f"发送指令失败: {str(e)}")
+            return None
 
     def test(self):
         """
