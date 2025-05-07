@@ -10,7 +10,7 @@ import struct
 from dataclasses import dataclass, field
 import logging
 import enum
-from queue import Queue, Empty, Full, ShutDown
+from queue import Queue, Empty, Full
 from typing import Tuple, Optional, List, Union  # 引入类型提示
 
 # --- 配置常量 ---
@@ -379,7 +379,7 @@ class Add_Solid:
                 try:
                     self._sending_queue.put(cmd)
                     return True
-                except (Full, ShutDown):
+                except:
                     return False
 
         def stop(self):
@@ -387,7 +387,7 @@ class Add_Solid:
                 while not self._sending_queue.empty():
                     self._sending_queue.get_nowait()
                     self._sending_queue.task_done()
-                self._sending_queue.shutdown()
+                # self._sending_queue.shutdown()
             self._stop_event.set()
 
 
