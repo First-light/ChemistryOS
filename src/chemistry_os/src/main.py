@@ -14,7 +14,6 @@ if __name__ == '__main__':
     filter = Filter("filter", "/dev/ttyUSB0",sub_address = 0x01)
     main_sys = System("os")
 
-    time.sleep(5)
     main_parser = CommandParser()
     # main_parser.parse("os project name=pro1 file=double1.json")
     # main_parser.parse("os project name=pro2 file=double1.json")
