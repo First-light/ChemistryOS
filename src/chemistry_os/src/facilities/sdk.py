@@ -2,11 +2,12 @@ import select
 import threading
 import time
 import sys
-from facility_fr5arm import Fr5Arm
-from facility_fr3arm import Fr3Arm
-from facility_addLiquid import Add_Liquid
-from facility_addSolid import Add_Solid
-from facility_bath import Bath
+sys.path.append('src/chemistry_os/src')
+from facilities.facility_fr5arm import Fr5Arm
+from facilities.facility_fr3arm import Fr3Arm
+from facilities.facility_addLiquid import Add_Liquid
+from facilities.facility_addSolid import Add_Solid
+from facilities.facility_bath import Bath
 
 class HN_SDK:
     

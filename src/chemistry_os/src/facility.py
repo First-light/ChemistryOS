@@ -17,11 +17,11 @@ class Facility(ABC):
         self.state[0] = FacilityState.IDLE
         self.parser = PkgCmdParser(self.name, self.state)
 
-        self.parser.register("delay", self.delay,
-                             {
-                                 "sec": 0
-                             },
-                             "Delay for a specified time")
+        # self.parser.register("delay", self.delay,
+        #                      {
+        #                          "sec": 0
+        #                      },
+        #                      "Delay for a specified time")
 
         self.cmd_init()
 
