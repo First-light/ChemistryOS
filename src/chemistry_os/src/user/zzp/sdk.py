@@ -1,3 +1,42 @@
+"""
+描述:
+    本文件定义了 HN_SDK 类，这是 Chemistry OS 的软件开发工具包 (SDK) 的核心模块。
+    该模块封装了多个设备的操作逻辑，包括机械臂、加液装置、加固体装置和水浴锅等。
+    提供了高层次的接口，用于实现复杂的化学实验自动化操作。
+
+主要功能:
+    - 控制机械臂 (Fr5Arm 和 Fr3Arm) 的抓取、放置、倒液等操作。
+    - 操作加液装置和加固体装置，实现液体和固体的精确添加。
+    - 控制水浴锅的加热、制冷、搅拌等功能。
+    - 提供倒计时功能，用于实验过程中的时间控制。
+
+类:
+    HN_SDK:
+        - 初始化多个设备实例。
+        - 提供高层次的操作接口，如抓取、放置、倒液、加液、加固体等。
+        - 封装了设备的具体操作逻辑，简化了用户的调用流程。
+
+依赖:
+    - threading: 用于多线程操作。
+    - time: 用于时间控制。
+    - sys: 用于系统路径管理和输入监听。
+    - select: 用于监听键盘输入。
+    - Chemistry OS 的设备模块:
+        - facilities.facility_fr5arm: 控制 Fr5Arm 机械臂。
+        - facilities.facility_fr3arm: 控制 Fr3Arm 机械臂。
+        - facilities.facility_addLiquid: 控制加液装置。
+        - facilities.facility_addSolid: 控制加固体装置。
+        - facilities.facility_bath: 控制水浴锅。
+
+作者:
+    朱振鹏
+
+版本:
+    1.0.0
+
+日期:
+    2025年5月7日
+"""
 import select
 import threading
 import time

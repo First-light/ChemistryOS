@@ -1,7 +1,7 @@
 import sys
+from chemistry_os.src.user.zzp.sdk import HN_SDK
 sys.path.append('src/chemistry_os/src')
-from facilities.sdk import HN_SDK
-from simple_client import TCPClient
+from chemistry_os.src.user.zzp.simple_client import TCPClient
 
 if __name__ == '__main__':
     CompoundC_solid_add = 0.5 # 化合物C的添加量
