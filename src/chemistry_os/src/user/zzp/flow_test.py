@@ -11,7 +11,7 @@ if __name__ == '__main__':
     HCL_L_volume_add = 80.0*CompoundC_solid_add
     CH3CN_volume_add = 20.0 # 乙腈添加量
     N2H4_volume_add = 0.4854 # 肼添加量
-    exit()
+
     hn_sdk=HN_SDK()
     # 机械臂初始化
     hn_sdk.HN_init()
@@ -28,7 +28,7 @@ if __name__ == '__main__':
     hn_sdk.bath_writetmp(25)
     hn_sdk.interactable_countdown(7200)
     hn_sdk.bath_writetmp(0)
-    hn_sdk.add_liquid('H2O2', 30, KMnO4_volume_add)
+    hn_sdk.add_liquid('H2O2', 30, H2O2_volume_add)
     hn_sdk.interactable_countdown(1200)
 
     hn_sdk.bath_writetmp(25)

@@ -55,7 +55,7 @@ class HN_SDK:
         self.version = "1.0.0"
         self.description = "A software development kit for Chemistry OS."
         self.fr5_A = Fr5Arm("fr5A","192.168.58.2")
-        self.fr3_C = Fr3Arm("fr3C","192.168.60.2")
+        # self.fr3_C = Fr3Arm("fr3C","192.168.60.2")
         self.add_Liquid=Add_Liquid('add_Liquid')
         self.add_Solid=Add_Solid('add_Solid')
         self.bath=Bath('bath')
@@ -80,7 +80,7 @@ class HN_SDK:
         time.sleep(1)
 
         #抬起
-        self.fr5_A.move_by(0, 0, 50.0, vel=10)
+        self.fr5_A.move_by(0, 0, obj_statu['put_height'], vel=10)
         time.sleep(1)
 
         #移动到安全位置
@@ -109,10 +109,7 @@ class HN_SDK:
         #下降，完成放置
         self.fr5_A.move_by(0, 0, -obj_statu['put_height'], vel=10)
 
-        if name=='add_liquid_place':
-            self.fr5_A.robot.MoveGripper(1, 50, 50, 100, 10000, 0)
-        else:
-            self.fr5_A.put()
+        self.fr5_A.put()
 
         time.sleep(1)
 
@@ -121,8 +118,6 @@ class HN_SDK:
         time.sleep(1)
 
         #移动到安全位置
-        if name=='add_liquid_place':
-            self.fr5_A.put()
         self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=10)
         time.sleep(1)
 
@@ -210,8 +205,12 @@ class HN_SDK:
         time.sleep(1)
 
         #移动到准备位置
-        desc_pos_aim_pre = list(map(lambda x, y: x + y, obj_statu['destination'], obj_statu['catch_pre_xyz_offset'])) + obj_statu['catch_direction']
-        self.fr5_A.move_to_desc(desc_pos_aim_pre, vel=10)
+        desc_pos_aim_xyz = list(map(lambda x, y: x + y, obj_statu['destination'], obj_statu['bath_pre_offset']))
+        desc_pos_aim_pre_2 = desc_pos_aim_xyz + obj_statu['catch_direction']
+        desc_pos_aim_pre_1 = list(map(lambda x, y: x + y, desc_pos_aim_xyz, obj_statu['catch_pre_xyz_offset'])) + obj_statu['catch_direction']
+        self.fr5_A.move_to_desc(desc_pos_aim_pre_2, vel=10)
+        time.sleep(1)
+        self.fr5_A.move_to_desc(desc_pos_aim_pre_1, vel=10)
         time.sleep(1)
 
         #移动到安全位置
@@ -226,8 +225,12 @@ class HN_SDK:
         self.fr5_A.move_to_safe_catch(obj_statu['safe_place_id'])
 
         #移动到准备位置
-        desc_pos_aim_pre = list(map(lambda x, y: x + y, obj_statu['destination'], obj_statu['catch_pre_xyz_offset'])) + obj_statu['catch_direction']
-        self.fr5_A.move_to_desc(desc_pos_aim_pre, vel=10)
+        desc_pos_aim_xyz = list(map(lambda x, y: x + y, obj_statu['destination'], obj_statu['bath_pre_offset']))
+        desc_pos_aim_pre_2 = desc_pos_aim_xyz + obj_statu['catch_direction']
+        desc_pos_aim_pre_1 = list(map(lambda x, y: x + y, desc_pos_aim_xyz, obj_statu['catch_pre_xyz_offset'])) + obj_statu['catch_direction']
+        self.fr5_A.move_to_desc(desc_pos_aim_pre_1, vel=10)
+        time.sleep(1)
+        self.fr5_A.move_to_desc(desc_pos_aim_pre_2, vel=10)
         time.sleep(1)
 
         #靠近，完成抓取
@@ -237,7 +240,7 @@ class HN_SDK:
 
         self.fr5_A.robot.MoveGripper(1, 15, 50, 10, 10000, 1)
         time.sleep(1)
-        self.fr3_C.put()
+        self.fr3_C.catch()
         time.sleep(1)
         self.fr5_A.put()
         time.sleep(1)
@@ -262,6 +265,8 @@ class HN_SDK:
         desc_pos_aim = list(map(lambda x, y: x + y, obj_statu['destination'], obj_statu['catch_pre_xyz_offset'])) + obj_statu['catch_direction']
         self.fr5_A.move_to_desc(desc_pos_aim, vel=10)
         time.sleep(1)
+
+        self.fr5_A.robot.MoveGripper(1, 50, 50, 100, 10000, 0)
 
         #靠近，完成抓取
         desc_pos_aim = obj_statu['destination'] + obj_statu['catch_direction']
@@ -304,12 +309,14 @@ class HN_SDK:
 
         #下降，完成放置
         self.fr5_A.move_by(0, 0, -obj_statu['put_height'], vel=10)
-        self.fr5_A.put()
+        self.fr5_A.robot.MoveGripper(1, 50, 50, 100, 10000, 0)
+        time.sleep(1)
 
         #移动到准备位置
         desc_pos_aim_pre = list(map(lambda x, y: x + y, obj_statu['destination'], obj_statu['catch_pre_xyz_offset'])) + obj_statu['catch_direction']
         self.fr5_A.move_to_desc(desc_pos_aim_pre, vel=10)
         time.sleep(1)
+        self.fr5_A.put()
 
         #移动到安全位置
         self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=10)
@@ -317,9 +324,11 @@ class HN_SDK:
 
     def add_solid(self, name:str, gram:float, name_space='add_solid_place'):
         self.name_catch_and_put(name, name_space)
-        self.add_Solid.tube_ver()
-        self.add_Solid.add_solid_series(gram)
+        self.add_Solid.turn_on()
         self.add_Solid.tube_hor()
+        self.add_Solid.add_solid_series(gram)
+        self.add_Solid.tube_ver()
+        self.add_Solid.turn_off()
         self.pour()
 
     def fr3_move_to_catch(self):
