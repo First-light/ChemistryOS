@@ -25,9 +25,8 @@ class Fr5Arm(Facility):
 
     safe_place=[[-250.0, -250.0, 350.0, 90.0, 0.0, -90.0],
             [0.0, -250.0, 350.0, 90.0, 0.0, 0.0],
-            [200.0, -200.0, 350.0, 90.0, 0.0, 90.0],
-            [50.0, 350.0, 350.0, 90.0, 0.0, 180.0],
-            [-50.0, 250.0, 238.0, 90.0, 0.0, -90.0]]
+            [200.0, -100.0, 350.0, 90.0, 0.0, 90.0],
+            [100.0, 200.0, 400.0, 90.0, 0.0, 180.0]]
     
     obj_status = {
         'graduated cylinder':
@@ -46,14 +45,6 @@ class Fr5Arm(Facility):
             'catch_direction': [90.0,0.0,-90.0],
             'safe_place_id': 0
         },
-        'add_liquid_place':
-        {
-            'destination': [540.0, -128.0, 106.0],
-            'catch_pre_offset': 190.0,
-            'put_height': 14.0,
-            'catch_direction': [90.0,0.0,90.0],
-            'safe_place_id': 2
-        },
         'add_solid_place':
         {
             'destination': [580.0, -625.0, 134.0],
@@ -65,42 +56,27 @@ class Fr5Arm(Facility):
         'bath_fr5':
         {
             'destination' : [-111.0, 521.0, 238.0],
+            'bath_pre_offset' : [60,0,0],
             'catch_pre_offset' : 60.0,
             'put_height': 0.0,
             'catch_direction' : [90.0, 0.0, -90.0],
             'safe_place_id': 4
         },
-        'add_liquid_mode':
+        'HCl':
         {
-            'destination': [-290.0,391.0,224.0],
-            'catch_pre_offset': 50.0,
-            'put_height': 100.0,
-            'catch_direction': [90.0,0.0,-90.0],
-            'safe_place_id': 4
+            'destination': [130.0, 385.0, 115.0],
+            'catch_pre_offset': 60.0,
+            'put_height': 180.0,
+            'catch_direction': [90.0,0.0,180.0],
+            'safe_place_id': 3
         },
         'add_liquid_mode_place':
         {
-            'destination': [-125.0, 445.0, 140.0],
+            'destination': [80, 515.0, 195.0],
             'catch_pre_offset': 0.0,
-            'put_height': 190.0,
-            'catch_direction': [90.0,0.0,-90.0],
-            'safe_place_id': 4
-        },
-        'chongxi_mode':
-        {
-            'destination': [-265.0,391.0,224.0],
-            'catch_pre_offset': 50.0,
-            'put_height': 100.0,
-            'catch_direction': [90.0,0.0,-90.0],
-            'safe_place_id': 4
-        },
-        'chongxi_mode_place':
-        {
-            'destination': [-125.0, 515.0, 194.0],
-            'catch_pre_offset': 0.0,
-            'put_height': 130.0,
-            'catch_direction': [90.0,0.0,-90.0],
-            'safe_place_id': 4
+            'put_height': 100,
+            'catch_direction': [90.0,0.0,180.0],
+            'safe_place_id': 3
         },
         'sanjinshaoping':
         {

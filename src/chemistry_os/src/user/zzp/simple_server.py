@@ -5,7 +5,7 @@ import time
 # 将包所在路径添加到sys.path，这样可以直接运行示例而不需要安装包
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from tcp_server import TCPServer
+from tcp_server.server import TCPServer
 
 def handle_client_data(data):
     """处理从客户端接收到的数据"""
