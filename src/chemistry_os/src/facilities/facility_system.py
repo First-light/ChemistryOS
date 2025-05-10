@@ -62,10 +62,6 @@ class System(Facility):
                 return
         self.log.info(f"No matching object found for name: {name}")
         
-    def cmd_error(self):
-        pass
-    def cmd_stop(self):
-        pass
 
 # 以下为创建实例的函数
         
