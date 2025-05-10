@@ -92,7 +92,7 @@ class Filter(Facility):
         :param command: 指令列表
         """
         if not self.ifconnect:
-            self.log.info("设备未连接，请检查连接")
+            self.log.info("发送指令失败，设备未连接，请检查连接")
             return
     
         wait_time = 2.0
