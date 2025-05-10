@@ -11,11 +11,11 @@ class TCPServer(Facility):
     TCP服务端类，提供连接、发送和接收数据的功能。
     """
     type = "tcp_server"
-    def __init__(self, host: str = '0.0.0.0', port: int = 8888, buffer_size: int = 4096):
+    def __init__(self,name: str = "server",host: str = '0.0.0.0', port: int = 8888, buffer_size: int = 4096):
         """
         初始化TCP服务端
         """
-        super().__init__(name=f"tcp:{host}:{port}", type = TCPServer.type)
+        super().__init__(name, type = TCPServer.type)
         self.host = host
         self.port = port
         self.buffer_size = buffer_size
@@ -41,28 +41,18 @@ class TCPServer(Facility):
             self.server_socket.bind((self.host, self.port))
             self.server_socket.listen(1)
             self.is_running = True
-            self.log.info(f"服务器启动成功，监听地址: {self.host}:{self.port}")
 
-            threading.Thread(target=self._accept_connections, daemon=True).start()
-            threading.Thread(target=self._process_tx_buffer, daemon=True).start()
+            self.log.info(f"服务器启动成功，监听地址: {self.host}:{self.port}")
+            self.log.info("等待客户端连接...")
+            # 启动接收和发送线程
+            threading.Thread(target=self.receive_data, daemon=True).start()
+            threading.Thread(target=self.send_data, daemon=True).start()
+
         except Exception as e:
             self.log.error(f"服务器启动失败: {str(e)}")
             self.stop()
 
-    def _accept_connections(self):
-        """
-        接受客户端连接。
-        """
-        while self.is_running:
-            try:
-                self.client_socket, self.client_address = self.server_socket.accept()
-                self.is_connected = True
-                self.log.info(f"客户端已连接: {self.client_address}")
-                threading.Thread(target=self._receive_data, daemon=True).start()
-            except Exception as e:
-                self.log.error(f"接受连接时发生错误: {str(e)}")
-
-    def _receive_data(self):
+    def receive_data(self):
         """
         接收客户端数据并存储到接收缓冲区。
         """
@@ -75,18 +65,25 @@ class TCPServer(Facility):
                     self.log.info(f"接收到数据: {decoded_data}")
                     if self.callback:
                         self.callback(decoded_data)
-                else:
-                    self.log.warning("客户端断开连接")
-                    self._disconnect_client()
+
             except Exception as e:
                 self.log.error(f"接收数据失败: {str(e)}")
-                self._disconnect_client()
+                self.disconnect_client()
 
-    def _process_tx_buffer(self):
+    def send_data(self):
         """
         处理发送缓冲区中的数据。
         """
         while self.is_running:
+            # 尝试接受客户端连接
+            try:
+                self.client_socket, self.client_address = self.server_socket.accept()
+                self.is_connected = True
+                self.log.info(f"客户端已连接: {self.client_address}")
+            except Exception as e:
+                self.log.error(f"接受连接时发生错误: {str(e)}")
+
+            # 处理发送缓冲区中的数据
             if self.tx_buffer and self.is_connected:
                 try:
                     data = self.tx_buffer.pop(0)
@@ -94,8 +91,8 @@ class TCPServer(Facility):
                     self.log.info(f"发送数据: {data}")
                 except Exception as e:
                     self.log.error(f"发送数据失败: {str(e)}")
-                    self._disconnect_client()
-            time.sleep(0.1)
+                    self.disconnect_client()
+            time.sleep(0.01)
 
     def send(self, data: Union[str, Dict[str, Any]]):
         """
@@ -114,7 +111,7 @@ class TCPServer(Facility):
         """
         self.callback = callback
 
-    def _disconnect_client(self):
+    def disconnect_client(self):
         """
         断开客户端连接。
         """
@@ -132,7 +129,7 @@ class TCPServer(Facility):
         停止服务器。
         """
         self.is_running = False
-        self._disconnect_client()
+        self.disconnect_client()
         if self.server_socket:
             try:
                 self.server_socket.close()
