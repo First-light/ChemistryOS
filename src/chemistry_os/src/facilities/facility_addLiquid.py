@@ -177,9 +177,9 @@ class Add_Liquid(Facility):
         elif name=='H2O2':
             addr=0x05
         elif name=='CH3CN':
-            addr=0x05
+            addr=0x06
         elif name=='N2H4':
-            addr=0x05
+            addr=0x07
         speed = 0.0675 * rpm# 滴加速率：ml/min，测试日期9.13 0.0525
         tim = volume / speed * 60 # 滴加时间
         print(f"滴加液体为{name},体积为{volume}ml,转速为{rpm}rpm，预期需要{tim}s")
@@ -194,14 +194,16 @@ class Add_Liquid(Facility):
 
 if __name__ == "__main__":
     add_Liquid=Add_Liquid('add_Liquid')
-    # Add_liquid_fixed.writespeed(0x02, 100)
+    add_Liquid.writespeed(0x03, 100)
+    add_Liquid.writespeed(0x04, 100)
+    add_Liquid.writespeed(0x05, 100)
     # Add_liquid_fixed.startadd(0x02)
     # Add_liquid_fixed.stopadd(0x02)
     # Add_liquid_fixed.add_liquid('H2O2', 0x01, 14.3, 10)
     # Add_liquid_fixed.add_liquid('H2O2', 0x01, 100, 10)
     # Add_liquid_fixed.liquid_wash('ice', 0x01, rpm=150, tim=5)
     # Add_liquid_fixed.add_liquid('addHCl', rpm=150, volume=5)
-    add_Liquid.add_liquid('addHCl', rpm=100, volume=20)
+    # add_Liquid.add_liquid('addHCl', rpm=100, volume=20)
     # add_Liquid.liquid_wash('addHCl', rpm=100, tim=5)
     # add_Liquid.writespeed(0x01, 0)
     # Add_liquid_fixed.stopadd('H2O2',0x01)
