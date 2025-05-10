@@ -36,10 +36,15 @@ class TCPServer(Facility):
         启动TCP服务端，开始监听连接并处理数据。
         """
         try:
+            # 创建一个TCP/IP套接字
             self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            # 设置套接字选项，允许地址重用
             self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            # 绑定套接字到指定的主机和端口
             self.server_socket.bind((self.host, self.port))
+            # 开始监听传入的连接，最大连接数为1
             self.server_socket.listen(1)
+            # 设置服务器运行状态为True
             self.is_running = True
 
             self.log.info(f"服务器启动成功，监听地址: {self.host}:{self.port}")
@@ -56,19 +61,31 @@ class TCPServer(Facility):
         """
         接收客户端数据并存储到接收缓冲区。
         """
-        while self.is_connected:
-            try:
-                data = self.client_socket.recv(self.buffer_size)
-                if data:
-                    decoded_data = data.decode('utf-8')
-                    self.rx_buffer.append(decoded_data)
-                    self.log.info(f"接收到数据: {decoded_data}")
-                    if self.callback:
-                        self.callback(decoded_data)
+        while self.is_running:
+            if self.is_connected:
+                try:
+                    # 检查 rx_buffer 是否已满
+                    if len(self.rx_buffer) >= self.buffer_size:
+                        self.log.warning("接收缓冲区已满，停止接收新数据")
+                        time.sleep(0.5)  # 防止过度占用 CPU
+                        continue
 
-            except Exception as e:
-                self.log.error(f"接收数据失败: {str(e)}")
-                self.disconnect_client()
+                    data = self.client_socket.recv(self.buffer_size)
+                    if data:
+                        decoded_data = data.decode('utf-8')
+                        self.rx_buffer.append(decoded_data)
+                        
+                        # 将数据写入文件
+                        with open("src/chemistry_os/src/log/data.log", "a", encoding="utf-8") as file:
+                            file.write(f"{decoded_data}\n")
+                        
+                        if self.callback:
+                            self.callback(decoded_data)
+
+                except Exception as e:
+                    self.log.error(f"接收数据失败: {str(e)}")
+                    self.disconnect_client()
+        self.log.info("接收线程已停止")
 
     def send_data(self):
         """
@@ -93,6 +110,7 @@ class TCPServer(Facility):
                     self.log.error(f"发送数据失败: {str(e)}")
                     self.disconnect_client()
             time.sleep(0.01)
+        self.log.info("发送线程已停止")
 
     def send(self, data: Union[str, Dict[str, Any]]):
         """

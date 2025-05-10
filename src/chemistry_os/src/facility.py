@@ -81,6 +81,7 @@ class Facility(ABC):
         # 确保日志文件存在
         timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')  # 格式化当前时间
         log_file = os.path.join(self.log_dir, f'facilities_{timestamp}.log')  # 日志文件路径
+
         # 创建文件处理器
         file_handler = logging.FileHandler(log_file, mode='a', encoding='utf-8')
         file_handler.setFormatter(file_formatter)
