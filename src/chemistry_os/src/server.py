@@ -1,7 +1,7 @@
 import socket
 import threading
 import json
-import logging
+import datetime
 import time
 from typing import Dict, Any, Callable, Optional, Union
 from facility import Facility
@@ -74,10 +74,13 @@ class TCPServer(Facility):
                     if data:
                         decoded_data = data.decode('utf-8')
                         self.rx_buffer.append(decoded_data)
+                        # 添加时间戳
+                        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        data_saved = f"[{timestamp}][{self.name}][receive]: {decoded_data}"
                         
                         # 将数据写入文件
                         with open("src/chemistry_os/src/log/data.log", "a", encoding="utf-8") as file:
-                            file.write(f"{decoded_data}\n")
+                            file.write(f"{data_saved}\n")
                         
                         if self.callback:
                             self.callback(decoded_data)
