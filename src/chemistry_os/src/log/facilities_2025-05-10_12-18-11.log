@@ -1,5 +1,0 @@
-[2025-05-10 12:18:11] [filter] [INFO]: 连接失败: [Errno 2] could not open port /dev/ttyUSB0: [Errno 2] No such file or directory: '/dev/ttyUSB0'
-[2025-05-10 12:18:11] [os] [INFO]: check all objects:
-[2025-05-10 12:18:11] [filter] [INFO]: 设备未连接，请检查连接
-[2025-05-10 12:18:12] [filter] [INFO]: 设备未连接，请检查连接
-[2025-05-10 12:18:32] [filter] [INFO]: 设备未连接，请检查连接

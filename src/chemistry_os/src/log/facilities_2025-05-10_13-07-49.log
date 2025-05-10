@@ -1,0 +1,21 @@
+[2025-05-10 13:07:49] [filter] [INFO]: 连接失败: [Errno 2] could not open port /dev/ttyUSB0: [Errno 2] No such file or directory: '/dev/ttyUSB0'
+[2025-05-10 13:07:49] [server] [INFO]: 服务器启动成功，监听地址: 0.0.0.0:8888
+[2025-05-10 13:07:49] [server] [INFO]: 等待客户端连接...
+[2025-05-10 13:07:49] [os] [INFO]: check all objects:
+[2025-05-10 13:07:49] [filter] [INFO]: 设备未连接，请检查连接
+[2025-05-10 13:07:50] [filter] [INFO]: 设备未连接，请检查连接
+[2025-05-10 13:07:56] [server] [INFO]: 客户端已连接: ('127.0.0.1', 46992)
+[2025-05-10 13:07:56] [server] [INFO]: 接收到数据: {"message": "ping"}{"message": "\u5ba2\u6237\u7aef\u6d88\u606f #0", "timestamp": 1746853676.970957}
+[2025-05-10 13:08:06] [server] [INFO]: 接收到数据: {"message": "\u5ba2\u6237\u7aef\u6d88\u606f #1", "timestamp": 1746853686.9825022}
+[2025-05-10 13:08:10] [filter] [INFO]: 设备未连接，请检查连接
+[2025-05-10 13:08:16] [server] [INFO]: 接收到数据: {"message": "\u5ba2\u6237\u7aef\u6d88\u606f #2", "timestamp": 1746853696.9943697}
+[2025-05-10 13:08:27] [server] [INFO]: 接收到数据: {"message": "\u5ba2\u6237\u7aef\u6d88\u606f #3", "timestamp": 1746853707.006299}
+[2025-05-10 13:08:37] [server] [INFO]: 接收到数据: {"message": "\u5ba2\u6237\u7aef\u6d88\u606f #4", "timestamp": 1746853717.017496}
+[2025-05-10 13:08:47] [server] [INFO]: 接收到数据: {"message": "\u5ba2\u6237\u7aef\u6d88\u606f #5", "timestamp": 1746853727.0287695}
+[2025-05-10 13:08:57] [server] [INFO]: 接收到数据: {"message": "\u5ba2\u6237\u7aef\u6d88\u606f #6", "timestamp": 1746853737.040424}
+[2025-05-10 13:09:07] [server] [INFO]: 接收到数据: {"message": "\u5ba2\u6237\u7aef\u6d88\u606f #7", "timestamp": 1746853747.0521429}
+[2025-05-10 13:09:17] [server] [INFO]: 接收到数据: {"message": "\u5ba2\u6237\u7aef\u6d88\u606f #8", "timestamp": 1746853757.062915}
+[2025-05-10 13:09:27] [server] [INFO]: 接收到数据: {"message": "\u5ba2\u6237\u7aef\u6d88\u606f #9", "timestamp": 1746853767.0715597}
+[2025-05-10 13:09:37] [server] [INFO]: 接收到数据: {"message": "\u5ba2\u6237\u7aef\u6d88\u606f #10", "timestamp": 1746853777.082582}
+[2025-05-10 13:09:47] [server] [INFO]: 接收到数据: {"message": "\u5ba2\u6237\u7aef\u6d88\u606f #11", "timestamp": 1746853787.093859}
+[2025-05-10 13:09:57] [server] [INFO]: 接收到数据: {"message": "\u5ba2\u6237\u7aef\u6d88\u606f #12", "timestamp": 1746853797.1035879}
