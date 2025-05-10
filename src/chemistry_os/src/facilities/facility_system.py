@@ -23,17 +23,17 @@ class System(Facility):
         self.parser.register("!", self.stop_all,{}, "list all objects")
 
     def stop_all(self):
-        self.cmd_print("stop all objects:")
+        self.log.info("stop all objects:")
         for i, tuple_t in enumerate(Facility.tuple_list):
             name = tuple_t[0]
             type = tuple_t[1]
             state_data_p = tuple_t[3].state
             if name != self.name:
                 state_data_p[0] = FacilityState.STOP
-                self.cmd_print(f"object {name} stopped.")
+                self.log.info(f"object {name} stopped.")
 
     def list(self):
-        self.cmd_print("check all objects:")
+        self.log.info("check all objects:")
         table = PrettyTable()
         table.field_names = ["Index", "Object Name", "Object Type", "Object State"]
 
@@ -47,8 +47,7 @@ class System(Facility):
 
     def destroy(self, name: str):
         if name == '':
-            self.cmd_print_head
-            print("failed to delete object:",name)
+            self.log.info("failed to delete object:",name)
             return
 
         for i, tuple_t in enumerate(Facility.tuple_list):
@@ -59,11 +58,9 @@ class System(Facility):
                 del obj
                 # 删除元组
                 del Facility.tuple_list[i]
-                self.cmd_print_head
-                print(f"object {name} destroyed successfully.")
+                self.log.info(f"object {name} destroyed successfully.")
                 return
-        self.cmd_print_head
-        print(f"No matching object found for name: {name}")
+        self.log.info(f"No matching object found for name: {name}")
         
     def cmd_error(self):
         pass
@@ -75,32 +72,26 @@ class System(Facility):
 
     def create_temp(self,name:str,param1,param2):
         if name != '' or param1 != '' or param2 != '':
-            self.cmd_print_head
-            print("create temp:",name,param1,param2)
+            self.log.info("create temp:",name,param1,param2)
             new_temp = FacilityTemp(name, param1, param2)
             self.objects.append(new_temp)
         else:
-            self.cmd_print_head
-            print("failed to create temp:",name,param1,param2)
+            self.log.info("failed to create temp:",name,param1,param2)
 
     def create_fr5robot(self,name:str,ip:str):
         if name != '' or ip != '':
-            self.cmd_print_head
-            print("create fr5robot:",name,ip)
+            self.log.info("create fr5robot:",name,ip)
             new_robot = Fr5Arm(name, ip)
             self.objects.append(new_robot)
         else:
-            self.cmd_print_head
-            print("failed to create fr5robot:",name,ip)
+            self.log.info("failed to create fr5robot:",name,ip)
 
     def create_project(self,name:str,file:str):
         if name != '' or file != '':
-            self.cmd_print_head
-            print("create project:",name,file)
+            self.log.info("create project:",name,file)
             new_project = Project(name, file)
             self.objects.append(new_project)
         else:
-            self.cmd_print_head
-            print("failed to create project:",name,file)
+            self.log.info("failed to create project:",name,file)
         
 

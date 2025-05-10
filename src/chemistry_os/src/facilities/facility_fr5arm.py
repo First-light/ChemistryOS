@@ -114,11 +114,6 @@ class Fr5Arm(Facility):
 
     def __init__(self, name: str, ip: str):
         self.robot = Robot.RPC(ip)
-        self.client = TCPClient(host='localhost', port=8888)
-    
-    # 连接到服务器
-        if not self.client.connect():
-            print("无法连接到服务器，程序退出")
 
         try:
             ret, version = self.robot.GetSDKVersion()  # 查询SDK版本号
@@ -264,11 +259,6 @@ class Fr5Arm(Facility):
                                 "acc": self.default_acc # 加速度 
                              }, 
                              "Move to a specified position")
-        self.parser.register("delay",self.delay,
-                            {
-                                "sec": 0
-                            },
-                            "Delay for a specified time")
 
     def cmd_error(self):
         print("error")
