@@ -52,11 +52,6 @@ class Filter(Facility):
         self.parser.register("setaddr", self.set_pump_address, {
                              "address": self.sub_address, "new_address": 0}, "set pump address")
 
-    def cmd_error(self):
-        self.cmd_print("error")
-
-    def cmd_stop(self):
-        self.cmd_print("stop")
 
     def connect(self):
         """
@@ -64,10 +59,10 @@ class Filter(Facility):
         """
         try:
             self.ser = serial.Serial(self.com, self.baudrate, timeout=1)
-            self.cmd_print(f"{self.name} 成功连接到 {self.com}")
+            self.log.info(f"{self.name} 成功连接到 {self.com}")
             self.ifconnect = True
         except Exception as e:
-            self.cmd_print(f"连接失败: {str(e)}")
+            self.log.info(f"连接失败: {str(e)}")
             self.ifconnect = False
 
 
@@ -78,7 +73,7 @@ class Filter(Facility):
         :param new_address: 新地址 (0x00 表示不设置新地址)
         """
         if new_address == 0:
-            self.cmd_print("新地址无效，未进行设置")
+            self.log.info("新地址无效，未进行设置")
             return
 
         command = [self.address, 0x04, old_address, 0x00, new_address, 0x55]
@@ -87,9 +82,9 @@ class Filter(Facility):
         # 如果设置成功，更新类中的 sub_address
         if response in response:
             self.sub_address = new_address
-            self.cmd_print(f"蠕动泵地址已更新为: {hex(new_address)}")
+            self.log.info(f"蠕动泵地址已更新为: {hex(new_address)}")
         else:
-            self.cmd_print("设置蠕动泵地址失败")
+            self.log.info("设置蠕动泵地址失败")
 
     def send_command(self, command: list):
         """
@@ -97,16 +92,16 @@ class Filter(Facility):
         :param command: 指令列表
         """
         if not self.ifconnect:
-            self.cmd_print("设备未连接，请检查连接")
+            self.log.info("发送指令失败，设备未连接，请检查连接")
             return
     
         wait_time = 2.0
         command_t = bytearray(command)
         try:
             with serial.Serial(port=self.com, baudrate=self.baudrate, timeout=1, stopbits=2) as ser:
-                print("成功连接")
+                self.log.info("成功连接")
                 ser.write(command_t)
-                self.cmd_print(f"发送指令: {command_t}")
+                self.log.info(f"发送指令: {command_t}")
                 start_time = time.time()
                 while True:
                     sleep(0.01)
@@ -114,15 +109,15 @@ class Filter(Facility):
                         # 读取设备响应
                         response = ser.read(ser.in_waiting)
                         response_str = response.decode('utf-8', errors='ignore')
-                        self.cmd_print(f"设备响应: {response_str}")
+                        self.log.info(f"设备响应: {response_str}")
                         return response_str
                     if time.time() - start_time > wait_time:
                         # 超过等待时间，认为超时
-                        self.cmd_print("发送指令失败: 超时未收到响应")
+                        self.log.info("发送指令失败: 超时未收到响应")
                         return None
 
         except Exception as e:
-            self.cmd_print(f"发送指令失败: {str(e)}")
+            self.log.info(f"发送指令失败: {str(e)}")
             return None
 
     def test(self):
@@ -140,7 +135,7 @@ class Filter(Facility):
         """
         state_int = int(state)
         if state_int not in [0, 1]:
-            self.cmd_print("无效的阀门状态，请输入 1 或 0")
+            self.log.info("无效的阀门状态，请输入 1 或 0")
             return
         state_byte = state_int.to_bytes(1, byteorder='big')
         command = [self.address, 0x01, address, 0x00, state_byte[0], 0x55]
@@ -154,7 +149,7 @@ class Filter(Facility):
         """
         direction_int = int(direction)
         if direction_int not in [0, 1]:
-            self.cmd_print("无效的方向，请输入 1 或 0")
+            self.log.info("无效的方向，请输入 1 或 0")
             return
         direction_byte = direction_int.to_bytes(1, byteorder='big')
         command = [self.address, 0x02, address, 0x00, direction_byte[0], 0x55]
@@ -168,7 +163,7 @@ class Filter(Facility):
         """
         speed = int(speed)
         if speed < 0 or speed > 65535:
-            self.cmd_print("速度值超出范围，请输入 0-65535")
+            self.log.info("速度值超出范围，请输入 0-65535")
             return
         high_byte = (speed >> 8) & 0xFF
         low_byte = speed & 0xFF
@@ -184,7 +179,7 @@ class Filter(Facility):
         """
         state_int = int(state)
         if state_int not in [0, 1]:
-            self.cmd_print("无效的阀门状态，请输入 1 或 0")
+            self.log.info("无效的阀门状态，请输入 1 或 0")
             return
         state_byte = state_int.to_bytes(1, byteorder='big')
         command = [self.address, 0x05, state_byte[0], 0x55, 0x55, 0x55]
@@ -197,7 +192,7 @@ class Filter(Facility):
         """
         state_int = int(state)
         if state_int not in [0, 1]:
-            self.cmd_print("无效的阀门状态，请输入 1 或 0")
+            self.log.info("无效的阀门状态，请输入 1 或 0")
             return
         state_byte = state_int.to_bytes(1, byteorder='big')
         command = [self.address, 0x06, state_byte[0], 0x55, 0x55, 0x55]
