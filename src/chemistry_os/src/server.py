@@ -88,6 +88,7 @@ class TCPServer(Facility):
                 except Exception as e:
                     self.log.error(f"接收数据失败: {str(e)}")
                     self.disconnect_client()
+            time.sleep(0.001)
         self.log.info("接收线程已停止")
 
     def send_data(self):
@@ -112,7 +113,7 @@ class TCPServer(Facility):
                 except Exception as e:
                     self.log.error(f"发送数据失败: {str(e)}")
                     self.disconnect_client()
-            time.sleep(0.01)
+            time.sleep(0.001)
         self.log.info("发送线程已停止")
 
     def send(self, data: Union[str, Dict[str, Any]]):
