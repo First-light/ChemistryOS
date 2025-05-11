@@ -13,7 +13,6 @@ class FacilityTemp(Facility):
         super().__init__(name,FacilityTemp.type)
         self.param1 = param1
         self.param2 = param2
-        
 
     def output(self,param1,param2):
         print("output:",param1,param2)
