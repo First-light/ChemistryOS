@@ -5,6 +5,7 @@ from facilities.facility_fr3arm import Fr3Arm
 from facilities.facility_fr5arm import Fr5Arm
 from facilities.facility_temp import FacilityTemp
 from parser import CommandParser
+from server import TCPServer
 import time
 import sys
 
@@ -13,7 +14,8 @@ sys.path.append('src/chemistry_os/src')
 if __name__ == '__main__':
     filter = Filter("filter", "/dev/ttyUSB0",sub_address = 0x01)
     main_sys = System("os")
-
+    main_server = TCPServer()
+    main_server.start()
     main_parser = CommandParser()
     # main_parser.parse("os project name=pro1 file=double1.json")
     main_parser.parse("os project name=pro2 file=double1.json")
