@@ -11,6 +11,17 @@ if __name__ == '__main__':
     HCL_L_volume_add = 80.0*CompoundC_solid_add
     CH3CN_volume_add = 20.0 # 乙腈添加量
     N2H4_volume_add = 0.4854 # 肼添加量
+    HCl_rpm = 100
+    KMnO4_rpm = 15
+    H2O2_rpm = 30
+    CH3CN_rpm = 30
+    N2H4_rpm = 30
+    tmp_0 = 0
+    tmp_25 = 25
+    reaction_time_1 = 7200
+    reaction_time_2 = 1200
+    reaction_time_3 = 14400
+
 
     hn_sdk=HN_SDK()
     # 机械臂初始化
@@ -20,21 +31,21 @@ if __name__ == '__main__':
     hn_sdk.bath_put('bath_fr5')
     # 固液进料
     hn_sdk.add_solid('beaker', CompoundC_solid_add)
-    hn_sdk.add_liquid('HCl', 100, HCL_volume_add)
+    hn_sdk.add_liquid('HCl', HCl_rpm, HCL_volume_add)
     # 水浴
     hn_sdk.bath_init()
-    hn_sdk.bath_writetmp(0)
-    hn_sdk.add_liquid('KMnO4', 15, KMnO4_volume_add)
-    hn_sdk.bath_writetmp(25)
-    hn_sdk.interactable_countdown(7200)
-    hn_sdk.bath_writetmp(0)
-    hn_sdk.add_liquid('H2O2', 30, H2O2_volume_add)
-    hn_sdk.interactable_countdown(1200)
+    hn_sdk.bath_writetmp(tmp_0)
+    hn_sdk.add_liquid('KMnO4', KMnO4_rpm, KMnO4_volume_add)
+    hn_sdk.bath_writetmp(tmp_25)
+    hn_sdk.interactable_countdown(reaction_time_1)
+    hn_sdk.bath_writetmp(tmp_0)
+    hn_sdk.add_liquid('H2O2', H2O2_rpm, H2O2_volume_add)
+    hn_sdk.interactable_countdown(reaction_time_2)
 
-    hn_sdk.bath_writetmp(25)
-    hn_sdk.add_liquid('CH3CN', 30, CH3CN_volume_add)
-    hn_sdk.add_liquid('N2H4', 30, N2H4_volume_add)
-    hn_sdk.interactable_countdown(14400)
+    hn_sdk.bath_writetmp(tmp_25)
+    hn_sdk.add_liquid('CH3CN', CH3CN_rpm, CH3CN_volume_add)
+    hn_sdk.add_liquid('N2H4', N2H4_rpm, N2H4_volume_add)
+    hn_sdk.interactable_countdown(reaction_time_3)
 
     hn_sdk.bath_close()
     # 放置三颈烧瓶

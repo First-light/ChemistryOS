@@ -16,9 +16,10 @@ if __name__ == '__main__':
 
     main_parser = CommandParser()
     # main_parser.parse("os project name=pro1 file=double1.json")
-    # main_parser.parse("os project name=pro2 file=double1.json")
+    main_parser.parse("os project name=pro2 file=double1.json")
     main_parser.parse("os check")
     main_parser.start()
+    exit(0)
     # 气泵测试
     main_parser.parse("filter valve state=1")
     time.sleep(1)
