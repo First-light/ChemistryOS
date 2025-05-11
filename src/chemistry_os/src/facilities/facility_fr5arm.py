@@ -39,7 +39,7 @@ class Fr5Arm(Facility):
         },
         'beaker':
         {
-            'destination': [-460.00, -268.0, 68.0],
+            'destination': [-465.00, -92.0, 65.0],
             'catch_pre_offset': 50.0,
             'put_height': 50,
             'catch_direction': [90.0,0.0,-90.0],
@@ -80,8 +80,8 @@ class Fr5Arm(Facility):
         },
         'sanjinshaoping':
         {
-            'destination': [-400.0, -423.0, 175.0],
-            'catch_pre_offset': 50.0,
+            'destination': [-460, -207.0, 170.0],
+            'catch_pre_offset': 60.0,
             'put_height': 50.0,
             'catch_direction': [90.0,0.0,-90.0],
             'safe_place_id': 0

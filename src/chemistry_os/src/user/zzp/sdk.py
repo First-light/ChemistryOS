@@ -55,7 +55,7 @@ class HN_SDK:
         self.version = "1.0.0"
         self.description = "A software development kit for Chemistry OS."
         self.fr5_A = Fr5Arm("fr5A","192.168.58.2")
-        # self.fr3_C = Fr3Arm("fr3C","192.168.60.2")
+        # self.fr3_C = Fr3Arm("fr3C","192.168.58.3")
         self.add_Liquid=Add_Liquid('add_Liquid')
         self.add_Solid=Add_Solid('add_Solid')
         self.bath=Bath('bath')
