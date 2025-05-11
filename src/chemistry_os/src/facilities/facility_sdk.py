@@ -42,20 +42,21 @@ import threading
 import time
 import sys
 sys.path.append('src/chemistry_os/src')
+from facility import Facility
 from facilities.facility_fr5arm import Fr5Arm
 from facilities.facility_fr3arm import Fr3Arm
 from facilities.facility_addLiquid import Add_Liquid
 from facilities.facility_addSolid import Add_Solid
 from facilities.facility_bath import Bath
 
-class HN_SDK:
+class HN_SDK(Facility):
     
     def __init__(self):
         self.name = "Chemistry OS SDK"
         self.version = "1.0.0"
         self.description = "A software development kit for Chemistry OS."
         self.fr5_A = Fr5Arm("fr5A","192.168.58.2")
-        # self.fr3_C = Fr3Arm("fr3C","192.168.58.3")
+        self.fr3_C = Fr3Arm("fr3C","192.168.58.3")
         self.add_Liquid=Add_Liquid('add_Liquid')
         self.add_Solid=Add_Solid('add_Solid')
         self.bath=Bath('bath')
