@@ -44,7 +44,7 @@ import sys
 sys.path.append('src/chemistry_os/src')
 from facilities.facility_fr5arm import Fr5Arm
 from facilities.facility_fr3arm import Fr3Arm
-from facilities.facility_addLiquid import Add_Liquid
+from chemistry_os.src.facilities.facility_pumps import PumpGroup
 from facilities.facility_addSolid import Add_Solid
 from facilities.facility_bath import Bath
 
@@ -56,7 +56,7 @@ class HN_SDK:
         self.description = "A software development kit for Chemistry OS."
         self.fr5_A = Fr5Arm("fr5A","192.168.58.2")
         # self.fr3_C = Fr3Arm("fr3C","192.168.60.2")
-        self.add_Liquid=Add_Liquid('add_Liquid')
+        self.add_Liquid=PumpGroup('add_Liquid')
         self.add_Solid=Add_Solid('add_Solid')
         self.bath=Bath('bath')
 
