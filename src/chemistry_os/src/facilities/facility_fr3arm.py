@@ -513,7 +513,7 @@ class Fr3Arm(Facility):
         self.move_to_desc([330.0,-195.0,380.0,90.0,-45.0,90.0],vel=10)
         time.sleep(1)
 
-    def move_to_shuiyu(self):
+    def move_to_bath(self):
         self.move_to_desc([330.0,-195.0,200.0,90.0,-45.0,90.0],vel=10)
         time.sleep(1)
 
