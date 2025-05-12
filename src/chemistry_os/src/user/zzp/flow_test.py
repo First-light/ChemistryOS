@@ -1,7 +1,6 @@
 import sys
-from chemistry_os.src.user.zzp.sdk import HN_SDK
 sys.path.append('src/chemistry_os/src')
-from chemistry_os.src.user.zzp.simple_client import TCPClient
+from facilities.facility_sdk import HN_SDK
 
 if __name__ == '__main__':
     CompoundC_solid_add = 0.5 # 化合物C的添加量
@@ -33,7 +32,7 @@ if __name__ == '__main__':
     hn_sdk.add_solid('beaker', CompoundC_solid_add)
     hn_sdk.add_liquid('HCl', HCl_rpm, HCL_volume_add)
     # 水浴
-    hn_sdk.bath_init()
+    hn_sdk.bath_open()
     hn_sdk.bath_writetmp(tmp_0)
     hn_sdk.add_liquid('KMnO4', KMnO4_rpm, KMnO4_volume_add)
     hn_sdk.bath_writetmp(tmp_25)

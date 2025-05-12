@@ -29,17 +29,17 @@ class Fr5Arm(Facility):
             [100.0, 200.0, 400.0, 90.0, 0.0, 180.0]]
     
     obj_status = {
-        'graduated cylinder':
+        'test_tube':
         {
-            'destination': [-455.00, -120.0, 90.0],
+            'destination': [-440.0, -450.0, 160.0],
             'catch_pre_offset' : 50.0,
-            'put_height': 50,
+            'put_height': 90,
             'catch_direction': [90.0,0.0,-90.0],
             'safe_place_id': 0
         },
         'beaker':
         {
-            'destination': [-465.00, -92.0, 65.0],
+            'destination': [-470.00, -113.0, 65.0],
             'catch_pre_offset': 50.0,
             'put_height': 50,
             'catch_direction': [90.0,0.0,-90.0],
@@ -47,7 +47,7 @@ class Fr5Arm(Facility):
         },
         'add_solid_place':
         {
-            'destination': [580.0, -625.0, 134.0],
+            'destination': [605.0, -495.0, 131.0],
             'catch_pre_offset': 190.0,
             'put_height': 16.0,
             'catch_direction': [90.0,0.0,90.0],
@@ -701,8 +701,8 @@ class Fr5Arm(Facility):
             机械臂复位
         '''
         print('机械臂复位')
-        self.robot.MoveCart(self.safe_place[1], 0, 0, vel = v)
-        self.now_place=1
+        self.robot.MoveCart(self.safe_place[0], 0, 0, vel = v)
+        self.now_place=0
 
     def gripper_activate(self):
         '''
