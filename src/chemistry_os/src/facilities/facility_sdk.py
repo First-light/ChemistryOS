@@ -66,9 +66,9 @@ class HN_SDK(Facility):
         try:
             # 引用 Facility.tuple_list 中的对象，并提供默认类型
             self.fr5_A: Fr5Arm = get_facility_ref("fr5A", Fr5Arm)
-            self.fr3_C: Fr3Arm = get_facility_ref("fr3C", Fr3Arm)
             self.add_Liquid: Add_Liquid = get_facility_ref("add_Liquid", Add_Liquid)
             self.add_Solid: Add_Solid = get_facility_ref("add_Solid", Add_Solid)
+            self.fr3_C: Fr3Arm = get_facility_ref("fr3C", Fr3Arm)
             self.bath: Bath = get_facility_ref("bath", Bath)
 
         except ValueError as e:
@@ -90,10 +90,12 @@ class HN_SDK(Facility):
         self.parser.register("name_pour", self.name_pour, {"name1":'', "name2":'', "name3":''}, "catch, pour and put")
         self.parser.register("fr5_gripper_activate", self.fr5_gripper_activate, {}, "activate fr5 gripper")
         self.parser.register("fr5_Go_to_start_zone_0", self.fr5_Go_to_start_zone_0, {}, "fr5 go to start zone 0")
-        self.parser.register("bath_init", self.bath_init, {}, "initialize bath")
+        self.parser.register("bath_init", self.bath_open, {}, "initialize bath")
         self.parser.register("bath_close", self.bath_close, {}, "close bath")
         self.parser.register("bath_writetmp", self.bath_writetmp, {"tmp":0.0}, "write temperature to bath")
         self.parser.register("interactable_countdown", self.interactable_countdown, {"seconds":0.0}, "start interactive countdown")
+        self.parser.register("fr5_init", self.fr5_init, {}, "initialize fr5")
+        self.parser.register("fr3_init", self.fr3_init, {}, "initialize fr3")
         self.parser.register("HN_init", self.HN_init, {}, "initialize HN")
 
 
@@ -395,7 +397,7 @@ class HN_SDK(Facility):
     def fr5_Go_to_start_zone_0(self):
         self.fr5_A.Go_to_start_zone_0()
 
-    def bath_init(self):
+    def bath_open(self):
         self.bath.mix_ctr(1)
         self.bath.circle_ctr(1)# 允许circle
         self.bath.hot_ctr(1)# 加热
@@ -453,10 +455,16 @@ class HN_SDK(Facility):
         # 启动倒计时
         countdown(seconds)
 
-    def HN_init(self):
+    def fr5_init(self):
         self.fr5_gripper_activate()
         self.fr5_Go_to_start_zone_0()
+
+    def fr3_init(self):
         self.fr3_move_to_catch()
         self.fr3_put()
+
+    def HN_init(self):
+        self.fr5_init()
+        self.fr3_init()
 
     
