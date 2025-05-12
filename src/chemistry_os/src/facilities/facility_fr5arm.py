@@ -643,9 +643,12 @@ class Fr5Arm(Facility):
         self.robot.MoveGripper(1, 0, 50, 5, 10000, 1)
         time.sleep(2.0)
 
-
     def put(self):
         self.robot.MoveGripper(1, 100, 50, 10, 10000, 1)   
+        time.sleep(2.0)
+
+    def gripper_half(self):
+        self.robot.MoveGripper(1, 50, 50, 10, 10000, 1)
         time.sleep(2.0)
         
     def shut_down(self):

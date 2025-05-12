@@ -55,11 +55,47 @@ class HN_SDK(Facility):
         self.name = "Chemistry OS SDK"
         self.version = "1.0.0"
         self.description = "A software development kit for Chemistry OS."
-        self.fr5_A = Fr5Arm("fr5A","192.168.58.2")
-        self.fr3_C = Fr3Arm("fr3C","192.168.58.3")
-        self.add_Liquid=Add_Liquid('add_Liquid')
-        self.add_Solid=Add_Solid('add_Solid')
-        self.bath=Bath('bath')
+
+        def get_facility_ref(name, expected_type):
+            for facility in Facility.tuple_list:
+                if facility[0] == name and isinstance(facility[3], expected_type):
+                    return facility[3]  # 返回实例化的对象引用
+            print(f"错误：对象 {name} 不存在于 Facility.tuple_list 中，或类型不匹配。")
+            raise ValueError(f"对象 {name} 不存在于 Facility.tuple_list 中，或类型不匹配。")
+
+        try:
+            # 引用 Facility.tuple_list 中的对象，并提供默认类型
+            self.fr5_A: Fr5Arm = get_facility_ref("fr5A", Fr5Arm)
+            self.fr3_C: Fr3Arm = get_facility_ref("fr3C", Fr3Arm)
+            self.add_Liquid: Add_Liquid = get_facility_ref("add_Liquid", Add_Liquid)
+            self.add_Solid: Add_Solid = get_facility_ref("add_Solid", Add_Solid)
+            self.bath: Bath = get_facility_ref("bath", Bath)
+
+        except ValueError as e:
+            print(e)
+
+    def cmd_init(self):
+        self.parser.register("name_catch", self.name_catch, {"name":''}, "fr5 catch named place")
+        self.parser.register("name_put", self.name_put, {"name":''}, "fr5 put named place")
+        self.parser.register("name_pour", self.name_pour, {"name":''}, "fr5 pour named place")
+        self.parser.register("bath_catch", self.bath_catch, {"name":''}, "fr5 bath catch")
+        self.parser.register("bath_put", self.bath_put, {"name":''}, "fr5 bath put")
+        self.parser.register("add_liquid", self.add_liquid, {"name":'', "rpm":150, "volume":0.0, "name_space":'add_liquid_mode_place'}, "add liquid to named place")
+        self.parser.register("add_solid", self.add_solid, {"name":'', "gram":0.0, "name_space":'add_solid_place'}, "add solid to named place")
+        self.parser.register("fr3_move_to_catch", self.fr3_move_to_catch, {}, "fr3 move to catch")
+        self.parser.register("fr3_move_to_bath_fr5", self.fr3_move_to_bath_fr5, {}, "fr3 move to bath")
+        self.parser.register("fr3_catch", self.fr3_catch, {}, "fr3 catch")
+        self.parser.register("fr3_put", self.fr3_put, {}, "fr3 put")
+        self.parser.register("name_catch_and_put", self.name_catch_and_put, {"name1":'', "name2":''}, "fr5 catch name1 and put name2")
+        self.parser.register("name_pour", self.name_pour, {"name1":'', "name2":'', "name3":''}, "catch, pour and put")
+        self.parser.register("fr5_gripper_activate", self.fr5_gripper_activate, {}, "activate fr5 gripper")
+        self.parser.register("fr5_Go_to_start_zone_0", self.fr5_Go_to_start_zone_0, {}, "fr5 go to start zone 0")
+        self.parser.register("bath_init", self.bath_init, {}, "initialize bath")
+        self.parser.register("bath_close", self.bath_close, {}, "close bath")
+        self.parser.register("bath_writetmp", self.bath_writetmp, {"tmp":0.0}, "write temperature to bath")
+        self.parser.register("interactable_countdown", self.interactable_countdown, {"seconds":0.0}, "start interactive countdown")
+        self.parser.register("HN_init", self.HN_init, {}, "initialize HN")
+
 
     def name_catch(self, name:str):
 
@@ -122,7 +158,7 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=10)
         time.sleep(1)
 
-    def pour(self, name:str):
+    def name_pour(self, name:str):
         obj_statu = self.fr5_A.obj_status[name]
 
         # #根据id确定安全位置, 移动到安全位置
@@ -267,7 +303,7 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(desc_pos_aim, vel=10)
         time.sleep(1)
 
-        self.fr5_A.robot.MoveGripper(1, 50, 50, 100, 10000, 0)
+        self.fr5_A.gripper_half()
 
         #靠近，完成抓取
         desc_pos_aim = obj_statu['destination'] + obj_statu['catch_direction']
@@ -310,7 +346,7 @@ class HN_SDK(Facility):
 
         #下降，完成放置
         self.fr5_A.move_by(0, 0, -obj_statu['put_height'], vel=10)
-        self.fr5_A.robot.MoveGripper(1, 50, 50, 100, 10000, 0)
+        self.fr5_A.gripper_half()
         time.sleep(1)
 
         #移动到准备位置
@@ -330,13 +366,13 @@ class HN_SDK(Facility):
         self.add_Solid.add_solid_series(gram)
         self.add_Solid.tube_ver()
         self.add_Solid.turn_off()
-        self.pour()
+        self.name_pour()
 
     def fr3_move_to_catch(self):
         self.fr3_C.move_to_catch()
 
     def fr3_move_to_bath_fr5(self):
-        self.fr3_C.move_to_bath_fr5()
+        self.fr3_C.move_to_bath()
 
     def fr3_catch(self):
         self.fr3_C.catch()
@@ -350,7 +386,7 @@ class HN_SDK(Facility):
 
     def name_pour(self, name1:str, name2:str, name3:str):
         self.name_catch(name1)
-        self.pour(name2)
+        self.name_pour(name2)
         self.name_put(name3)
 
     def fr5_gripper_activate(self):
@@ -374,7 +410,7 @@ class HN_SDK(Facility):
     def bath_writetmp(self, tmp:float):
         Bath.interactable_writetmp(tmp)
 
-    def interactable_countdown(seconds):
+    def interactable_countdown(seconds:float):
     # 用于控制是否继续计时的事件
         stop_event = threading.Event()
         countdown_finished_event = threading.Event()
