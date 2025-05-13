@@ -32,7 +32,7 @@ class Fr5Arm(Facility):
         'test_tube':
         {
             'destination': [-440.0, -450.0, 160.0],
-            'catch_pre_offset' : 50.0,
+            'catch_pre_offset' : 70.0,
             'put_height': 90,
             'catch_direction': [90.0,0.0,-90.0],
             'safe_place_id': 0
@@ -40,7 +40,7 @@ class Fr5Arm(Facility):
         'beaker':
         {
             'destination': [-470.00, -113.0, 65.0],
-            'catch_pre_offset': 50.0,
+            'catch_pre_offset': 70.0,
             'put_height': 50,
             'catch_direction': [90.0,0.0,-90.0],
             'safe_place_id': 0
@@ -55,12 +55,12 @@ class Fr5Arm(Facility):
         },
         'bath_fr5':
         {
-            'destination' : [-111.0, 521.0, 238.0],
+            'destination' : [125.0, 625.0, 340.0],
             'bath_pre_offset' : [60,0,0],
             'catch_pre_offset' : 60.0,
-            'put_height': 0.0,
-            'catch_direction' : [90.0, 0.0, -90.0],
-            'safe_place_id': 4
+            'put_height': 80.0,
+            'catch_direction' : [90.0, 0.0, 189.0],
+            'safe_place_id': 3
         },
         'HCl':
         {
@@ -72,7 +72,7 @@ class Fr5Arm(Facility):
         },
         'add_liquid_mode_place':
         {
-            'destination': [80, 515.0, 195.0],
+            'destination': [80, 528.0, 195.0],
             'catch_pre_offset': 0.0,
             'put_height': 100,
             'catch_direction': [90.0,0.0,180.0],
@@ -80,7 +80,7 @@ class Fr5Arm(Facility):
         },
         'sanjinshaoping':
         {
-            'destination': [-460, -207.0, 170.0],
+            'destination': [-470, -207.0, 170.0],
             'catch_pre_offset': 60.0,
             'put_height': 50.0,
             'catch_direction': [90.0,0.0,-90.0],
