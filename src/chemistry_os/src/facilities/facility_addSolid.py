@@ -8,6 +8,7 @@ import logging
 import enum
 from queue import Queue
 from typing import Tuple, Optional, List, Union
+from facility import Facility
 
 # --- 配置常量 ---
 # 可以移到 AddSolid 的 __init__ 或作为类变量，这里为方便演示先放外面
@@ -15,7 +16,7 @@ DEFAULT_SERIAL_PORT = '/dev/ttyUSB0'
 DEFAULT_BAUD_RATE = 9600
 DEFAULT_SEND_INTERVAL_MS = 100  # MCU发送状态的典型间隔
 
-class Add_Solid:
+class Add_Solid(Facility):
     # --- 枚举定义 ---
     class ExitCode(enum.IntEnum):
         OK = 0
@@ -44,6 +45,7 @@ class Add_Solid:
     管理串口通信线程，提供阻塞式API。
     """
     # 将枚举和常量作为类属性，方便访问
+    type = "Add_Solid"
     CommandCode = McuCommandCode
     Status = McuStatus
     Exit = ExitCode
@@ -397,6 +399,8 @@ class Add_Solid:
         self._thread = Add_Solid.SerialHandlerThread(self, initial_mode,
                                                     comm, baud_rate, send_interval_ms, mcu_addr, host_addr)
         self.mcu_addr = mcu_addr
+        def __init__(self,name:str = "os"):
+            super().__init__(name, Add_Solid.type)
 
     def __del__(self):
         # 确保在对象销毁时停止线程
@@ -715,17 +719,18 @@ if __name__ == '__main__':
         # logging.debug(controller._thread._read_frame()) # 超时
         print(controller.read_frame() == None)
         controller.turn_on()
+        # controller.clip_open()
 
         # controller.clip_close()
-        # controller.tube_hor()
+        controller.tube_hor()
         # logging.debug(controller.read_frame())
-        controller.add_solid_series(0.5)
+        # controller.add_solid_series(0.5)
         # logging.debug('fine')
         # monitor_and_plot_weight(controller)
         # controller.wait_until_idle()
         # time.sleep(0)
         print(controller.read_frame())
-        # controller.tube_ver()
+        controller.tube_ver()
         # controller.clip_open()
 
         controller.turn_off()

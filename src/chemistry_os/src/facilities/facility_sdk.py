@@ -50,11 +50,12 @@ from facilities.facility_addSolid import Add_Solid
 from facilities.facility_bath import Bath
 
 class HN_SDK(Facility):
+    type = "sdk"
+    name = "Chemistry OS SDK"
+    version = "1.0.0"
+    description = "A software development kit for Chemistry OS."
     
     def __init__(self):
-        self.name = "Chemistry OS SDK"
-        self.version = "1.0.0"
-        self.description = "A software development kit for Chemistry OS."
 
         def get_facility_ref(name, expected_type):
             for facility in Facility.tuple_list:
@@ -73,6 +74,8 @@ class HN_SDK(Facility):
 
         except ValueError as e:
             print(e)
+
+        super().__init__(name="Chemistry OS SDK", type = Fr5Arm.type)
 
     def cmd_init(self):
         self.parser.register("name_catch", self.name_catch, {"name":''}, "fr5 catch named place")
