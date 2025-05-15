@@ -20,7 +20,7 @@ class System(Facility):
         self.parser.register("project", self.create_project, {"name":'', "file":''}, "create project")
         self.parser.register("delete", self.destroy, {"name":''}, "delete object")
         self.parser.register("check", self.list,{}, "list all objects")
-        self.parser.register("!", self.stop_all,{}, "list all objects")
+        self.parser.register("!", self.stop_all,{}, "stop_all")
 
     def stop_all(self):
         self.log.info("stop all objects:")
