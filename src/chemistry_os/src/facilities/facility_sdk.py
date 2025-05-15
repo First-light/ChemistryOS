@@ -45,7 +45,7 @@ sys.path.append('src/chemistry_os/src')
 from facility import Facility
 from facilities.facility_fr5arm import Fr5Arm
 from facilities.facility_fr3arm import Fr3Arm
-from chemistry_os.src.facilities.facility_pumps import PumpGroup
+from facilities.facility_pumps import PumpGroup
 from facilities.facility_addSolid import Add_Solid
 from facilities.facility_bath import Bath
 
@@ -68,7 +68,7 @@ class HN_SDK(Facility):
         try:
             # 引用 Facility.tuple_list 中的对象，并提供默认类型
             self.fr5_A: Fr5Arm = get_facility_ref("fr5A", Fr5Arm)
-            self.add_Liquid: Add_Liquid = get_facility_ref("add_Liquid", Add_Liquid)
+            self.add_Liquid: PumpGroup = get_facility_ref("add_Liquid", PumpGroup)
             self.add_Solid: Add_Solid = get_facility_ref("add_Solid", Add_Solid)
             self.fr3_C: Fr3Arm = get_facility_ref("fr3C", Fr3Arm)
             self.bath: Bath = get_facility_ref("bath", Bath)
@@ -103,7 +103,7 @@ class HN_SDK(Facility):
         self.parser.register("HN_init", self.HN_init, {}, "initialize HN")
 
 
-    def name_catch(self, name:str):
+    def name_catch(self, name:str, test_tube_add:bool = False):
 
         obj_statu = self.fr5_A.obj_status[name]
         #根据id确定安全位置, 移动到安全位置
@@ -118,6 +118,13 @@ class HN_SDK(Facility):
         desc_pos_aim = obj_statu['destination'] + obj_statu['catch_direction']
         self.fr5_A.move_to_desc(desc_pos_aim, vel=10)
         time.sleep(1)
+
+        if test_tube_add:
+            self.fr5_A.gripper_little()
+            Add_Solid.turn_on()
+            Add_Solid.clip_open()
+            Add_Solid.turn_off()
+            input('ok?')
 
         self.fr5_A.catch()
         time.sleep(1)
@@ -153,6 +160,7 @@ class HN_SDK(Facility):
         self.fr5_A.move_by(0, 0, -obj_statu['put_height'], vel=10)
 
         if test_tube_add:
+            self.fr5_A.gripper_little()
             Add_Solid.turn_on()
             Add_Solid.clip_close()
             Add_Solid.turn_off()
@@ -246,8 +254,8 @@ class HN_SDK(Facility):
         time.sleep(1)
 
         
-        self.fr5_A.robot.MoveGripper(1, 15, 50, 10, 10000, 1)
-        time.sleep(3)
+        self.fr5_A.gripper_little()
+        time.sleep(1)
         self.fr3_C.put()
         time.sleep(1)
         self.fr5_A.catch()
@@ -291,7 +299,7 @@ class HN_SDK(Facility):
 
         input('ok?')
 
-        self.fr5_A.robot.MoveGripper(1, 15, 50, 10, 10000, 1)
+        self.fr5_A.gripper_little()
         time.sleep(1)
         self.fr3_C.catch()
         time.sleep(1)
@@ -375,14 +383,20 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=10)
         time.sleep(1)
 
-    def add_solid(self, name:str, gram:float, name_space='add_solid_place'):
-        self.name_catch_and_put(name, name_space)
+    def add_solid(self, gram:float, tube_from:str, beaker_from:str, test_tube_add_place:str='test_tube_add_place', beaker_add_space:str='add_solid_place', pour_place:str='solid_pour_place'):
+        self.name_catch(tube_from)
+        self.name_put(test_tube_add_place, test_tube_add=True)
+        self.name_catch_and_put(beaker_from, beaker_add_space)
         self.add_Solid.turn_on()
         self.add_Solid.tube_hor()
         self.add_Solid.add_solid_series(gram)
         self.add_Solid.tube_ver()
         self.add_Solid.turn_off()
-        self.name_pour()
+        self.name_catch(test_tube_add_place, test_tube_add=True)
+        self.name_put(tube_from)
+        self.name_catch(beaker_add_space)
+        self.name_pour(pour_place)
+        self.name_put(beaker_from)
 
     def fr3_move_to_catch(self):
         self.fr3_C.move_to_catch()
@@ -412,6 +426,7 @@ class HN_SDK(Facility):
         self.fr5_A.Go_to_start_zone_0()
 
     def bath_open(self):
+        self.bath.power_ctr(1)
         self.bath.mix_ctr(1)
         self.bath.circle_ctr(1)# 允许circle
         self.bath.hot_ctr(1)# 加热
@@ -422,6 +437,7 @@ class HN_SDK(Facility):
         self.bath.circle_ctr(0)# 禁止circle
         self.bath.hot_ctr(0)# 禁止加热
         self.bath.cold_ctr(0)# 禁止制冷
+        self.bath.power_ctr(0)
 
     def bath_writetmp(self, tmp:float):
         Bath.interactable_writetmp(tmp)
