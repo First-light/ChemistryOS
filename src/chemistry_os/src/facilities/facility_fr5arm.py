@@ -1,3 +1,4 @@
+import json
 import sys
 
 sys.path.append('src/chemistry_os/src')
@@ -9,8 +10,6 @@ import math
 import numpy as np
 from facility import Facility
 from structs import FacilityState
-
-
 
 class Fr5Arm(Facility):
     type = "fr5arm"
@@ -28,73 +27,7 @@ class Fr5Arm(Facility):
             [200.0, -100.0, 350.0, 90.0, 0.0, 90.0],
             [100.0, 200.0, 400.0, 90.0, 0.0, 180.0]]
     
-    obj_status = {
-        'test_tube':
-        {
-            'destination': [-445.0, -450.0, 160.0],
-            'catch_pre_offset' : 70.0,
-            'put_height': 90,
-            'catch_direction': [90.0,0.0,-90.0],
-            'safe_place_id': 0
-        },
-        'beaker':
-        {
-            'destination': [-470.00, -113.0, 65.0],
-            'catch_pre_offset': 70.0,
-            'put_height': 50,
-            'catch_direction': [90.0,0.0,-90.0],
-            'safe_place_id': 0
-        },
-        'test_tube_place':
-        {
-            'destination': [610.0, -239.0, 350.0],
-            'catch_pre_offset': 190.0,
-            'put_height': 60.0,
-            'catch_direction': [90.0,0.0,90.0],
-            'safe_place_id': 2
-        },
-        'add_solid_place':
-        {
-            'destination': [605.0, -495.0, 131.0],
-            'catch_pre_offset': 190.0,
-            'put_height': 16.0,
-            'catch_direction': [90.0,0.0,90.0],
-            'safe_place_id': 2
-        },
-        'bath_fr5':
-        {
-            'destination' : [125.0, 625.0, 340.0],
-            'bath_pre_offset' : [60,0,0],
-            'catch_pre_offset' : 60.0,
-            'put_height': 80.0,
-            'catch_direction' : [90.0, 0.0, 180.0],
-            'safe_place_id': 3
-        },
-        'HCl':
-        {
-            'destination': [130.0, 385.0, 115.0],
-            'catch_pre_offset': 60.0,
-            'put_height': 180.0,
-            'catch_direction': [90.0,0.0,180.0],
-            'safe_place_id': 3
-        },
-        'add_liquid_mode_place':
-        {
-            'destination': [80, 528.0, 195.0],
-            'catch_pre_offset': 0.0,
-            'put_height': 100,
-            'catch_direction': [90.0,0.0,180.0],
-            'safe_place_id': 3
-        },
-        'sanjinshaoping':
-        {
-            'destination': [-470, -207.0, 170.0],
-            'catch_pre_offset': 60.0,
-            'put_height': 50.0,
-            'catch_direction': [90.0,0.0,-90.0],
-            'safe_place_id': 0
-        },
-    }
+    position_file_path = "facilities\\location\\fr5.json"
 
     def __init__(self, name: str, ip: str):
         self.robot = Robot.RPC(ip)
@@ -127,7 +60,9 @@ class Fr5Arm(Facility):
         self.initial_offset = [0, 0, 0, 0, 0, 0]  # 机械臂初始位置与世界坐标系原点的偏差
         ret = self.robot.RobotEnable(1)  # 机器人上使能
         print(name, "", "FR5机器人上使能", ret)
-
+        
+        with open(self.position_file_path, 'r') as file:
+            self.obj_status = json.load(file)
         self.obj_status_init()
 
     def obj_status_init(self):
@@ -657,6 +592,10 @@ class Fr5Arm(Facility):
 
     def gripper_half(self):
         self.robot.MoveGripper(1, 50, 50, 10, 10000, 1)
+        time.sleep(2.0)
+
+    def gripper_little(self):
+        self.fr5_A.robot.MoveGripper(1, 15, 50, 10, 10000, 1)
         time.sleep(2.0)
         
     def shut_down(self):
