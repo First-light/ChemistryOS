@@ -1,0 +1,7 @@
+[2025-05-11 14:32:23] [filter] [INFO]: 连接失败: [Errno 2] could not open port /dev/ttyUSB0: [Errno 2] No such file or directory: '/dev/ttyUSB0'
+[2025-05-11 14:32:23] [server] [INFO]: 服务器启动成功，监听地址: 0.0.0.0:8888
+[2025-05-11 14:32:23] [server] [INFO]: 等待客户端连接...
+[2025-05-11 14:32:23] [os] [INFO]: check all objects:
+[2025-05-11 14:32:23] [filter] [INFO]: 发送指令失败，设备未连接，请检查连接
+[2025-05-11 14:32:24] [filter] [INFO]: 发送指令失败，设备未连接，请检查连接
+[2025-05-11 14:32:44] [filter] [INFO]: 发送指令失败，设备未连接，请检查连接
