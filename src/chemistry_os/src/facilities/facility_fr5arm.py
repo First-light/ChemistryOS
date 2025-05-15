@@ -31,7 +31,7 @@ class Fr5Arm(Facility):
     obj_status = {
         'test_tube':
         {
-            'destination': [-440.0, -450.0, 160.0],
+            'destination': [-445.0, -450.0, 160.0],
             'catch_pre_offset' : 70.0,
             'put_height': 90,
             'catch_direction': [90.0,0.0,-90.0],
@@ -44,6 +44,14 @@ class Fr5Arm(Facility):
             'put_height': 50,
             'catch_direction': [90.0,0.0,-90.0],
             'safe_place_id': 0
+        },
+        'test_tube_place':
+        {
+            'destination': [610.0, -239.0, 350.0],
+            'catch_pre_offset': 190.0,
+            'put_height': 60.0,
+            'catch_direction': [90.0,0.0,90.0],
+            'safe_place_id': 2
         },
         'add_solid_place':
         {
@@ -59,7 +67,7 @@ class Fr5Arm(Facility):
             'bath_pre_offset' : [60,0,0],
             'catch_pre_offset' : 60.0,
             'put_height': 80.0,
-            'catch_direction' : [90.0, 0.0, 189.0],
+            'catch_direction' : [90.0, 0.0, 180.0],
             'safe_place_id': 3
         },
         'HCl':
