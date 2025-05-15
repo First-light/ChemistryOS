@@ -62,6 +62,7 @@ class HN_SDK(Facility):
                 if facility[0] == name and isinstance(facility[3], expected_type):
                     return facility[3]  # 返回实例化的对象引用
             print(f"错误：对象 {name} 不存在于 Facility.tuple_list 中，或类型不匹配。")
+            print(Facility.tuple_list)
             raise ValueError(f"对象 {name} 不存在于 Facility.tuple_list 中，或类型不匹配。")
 
         try:
@@ -86,11 +87,11 @@ class HN_SDK(Facility):
         self.parser.register("add_liquid", self.add_liquid, {"name":'', "rpm":150, "volume":0.0, "name_space":'add_liquid_mode_place'}, "add liquid to named place")
         self.parser.register("add_solid", self.add_solid, {"name":'', "gram":0.0, "name_space":'add_solid_place'}, "add solid to named place")
         self.parser.register("fr3_move_to_catch", self.fr3_move_to_catch, {}, "fr3 move to catch")
-        self.parser.register("fr3_move_to_bath_fr5", self.fr3_move_to_bath_fr5, {}, "fr3 move to bath")
+        self.parser.register("fr3_move_to_bath", self.fr3_move_to_bath, {}, "fr3 move to bath")
         self.parser.register("fr3_catch", self.fr3_catch, {}, "fr3 catch")
         self.parser.register("fr3_put", self.fr3_put, {}, "fr3 put")
         self.parser.register("name_catch_and_put", self.name_catch_and_put, {"name1":'', "name2":''}, "fr5 catch name1 and put name2")
-        self.parser.register("name_pour", self.name_pour, {"name1":'', "name2":'', "name3":''}, "catch, pour and put")
+        self.parser.register("name_catch_pour_put", self.name_catch_pour_put, {"name1":'', "name2":'', "name3":''}, "catch, pour and put")
         self.parser.register("fr5_gripper_activate", self.fr5_gripper_activate, {}, "activate fr5 gripper")
         self.parser.register("fr5_Go_to_start_zone_0", self.fr5_Go_to_start_zone_0, {}, "fr5 go to start zone 0")
         self.parser.register("bath_init", self.bath_open, {}, "initialize bath")
@@ -129,7 +130,7 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=10)
         time.sleep(1)
         
-    def name_put(self, name:str):
+    def name_put(self, name:str, test_tube_add:bool = False):
         obj_statu = self.fr5_A.obj_status[name]
 
         # #根据id确定安全位置, 移动到安全位置
@@ -150,6 +151,12 @@ class HN_SDK(Facility):
 
         #下降，完成放置
         self.fr5_A.move_by(0, 0, -obj_statu['put_height'], vel=10)
+
+        if test_tube_add:
+            Add_Solid.turn_on()
+            Add_Solid.clip_close()
+            Add_Solid.turn_off()
+            input('ok?')
 
         self.fr5_A.put()
 
@@ -275,10 +282,14 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(desc_pos_aim_pre_2, vel=10)
         time.sleep(1)
 
+        input('ok?')
+
         #靠近，完成抓取
         desc_pos_aim = obj_statu['destination'] + obj_statu['catch_direction']
         self.fr5_A.move_to_desc(desc_pos_aim, vel=10)
         time.sleep(1)
+
+        input('ok?')
 
         self.fr5_A.robot.MoveGripper(1, 15, 50, 10, 10000, 1)
         time.sleep(1)
@@ -376,7 +387,7 @@ class HN_SDK(Facility):
     def fr3_move_to_catch(self):
         self.fr3_C.move_to_catch()
 
-    def fr3_move_to_bath_fr5(self):
+    def fr3_move_to_bath(self):
         self.fr3_C.move_to_bath()
 
     def fr3_catch(self):
@@ -389,7 +400,7 @@ class HN_SDK(Facility):
         self.name_catch(name1)
         self.name_put(name2)
 
-    def name_pour(self, name1:str, name2:str, name3:str):
+    def name_catch_pour_put(self, name1:str, name2:str, name3:str):
         self.name_catch(name1)
         self.name_pour(name2)
         self.name_put(name3)

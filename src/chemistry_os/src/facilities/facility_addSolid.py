@@ -229,6 +229,7 @@ class Add_Solid(Facility):
 
                     if command_to_send:
                         self._send_frame(command_to_send.build_frame())
+                        logging.debug(command_to_send)
                         if command_to_send.trigger:
                             command_to_send.trigger.set()
                         if command_to_send.cmd != Add_Solid.CommandCode.IDLE:
@@ -322,7 +323,7 @@ class Add_Solid(Facility):
             if not frame_buffer:
                 return None
             else:
-                # logging.debug(f"成功读取一帧，长度: {len(frame_buffer)}")
+                logging.debug(f"成功读取一帧，长度: {len(frame_buffer)}")
                 return bytes(frame_buffer)
 
         def _drop_frame(self, frame: bytes) -> bool:
@@ -390,6 +391,7 @@ class Add_Solid(Facility):
 
 
     def __init__(self,
+                 name: str = 'add_Solid',
                  comm: str = DEFAULT_SERIAL_PORT,
                  baud_rate: int = DEFAULT_BAUD_RATE,
                  send_interval_ms: int = DEFAULT_SEND_INTERVAL_MS,
@@ -399,8 +401,19 @@ class Add_Solid(Facility):
         self._thread = Add_Solid.SerialHandlerThread(self, initial_mode,
                                                     comm, baud_rate, send_interval_ms, mcu_addr, host_addr)
         self.mcu_addr = mcu_addr
-        def __init__(self,name:str = "os"):
-            super().__init__(name, Add_Solid.type)
+        super().__init__(name, Add_Solid.type)
+
+    def cmd_init(self):
+        """注册命令到解析器"""
+        self.parser.register("add_solid_turn_on", self.turn_on, {"block":True}, "Turn on the add solid device")
+        self.parser.register("add_solid_turn_off", self.turn_off, {"block":True}, "Turn off the add solid device")
+        self.parser.register("add_solid_clip_open", self.clip_open, {"block":True}, "Open the clip of add solid device")
+        self.parser.register("add_solid_clip_close", self.clip_close, {"block":True}, "Close the clip of add solid device")
+        self.parser.register("add_solid_tube_hor", self.tube_hor, {"block":True}, "Set tube to horizontal position")
+        self.parser.register("add_solid_tube_ver", self.tube_ver, {"block":True}, "Set tube to vertical position")
+        self.parser.register("add_solid_set_dac", self.set_dac, {"dac":0.0, "block":True}, "Set DAC value of add solid device")
+        self.parser.register("add_solid_set_pid", self.set_pid, {"kp":0.0, "kd":0.0, "offset":0.0, "block":True}, "Set PID parameters of add solid device")
+        self.parser.register("add_solid_add_series", self.add_solid_series, {"weight":0.0, "block":True}, "Add solid series operation")
 
     def __del__(self):
         # 确保在对象销毁时停止线程
@@ -691,6 +704,7 @@ def monitor_and_plot_weight(controller, exit_threshold=0.005, consecutive_count=
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     with Add_Solid(
+        name='Add_Solid',
         initial_mode=Add_Solid.ThreadMode.HOST_MODE
     ) as controller:
         # controller._thread._initialize_serial()

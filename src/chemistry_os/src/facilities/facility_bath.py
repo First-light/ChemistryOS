@@ -321,9 +321,10 @@ class Bath(Facility):
 if __name__ == '__main__':
     bath = Bath('bath')
 
-    bath.power_ctr(1)
-    bath.hot_ctr(1)
-    bath.cold_ctr(1)
-    bath.mix_ctr(1)
-    bath.circle_ctr(1)
-    bath.write_temp(25)
+    print(bath.get_control_status())
+    # bath.power_ctr(1)
+    # bath.hot_ctr(1)
+    # bath.cold_ctr(1)
+    # bath.mix_ctr(1)
+    # bath.circle_ctr(1)
+    # bath.write_temp(25)
