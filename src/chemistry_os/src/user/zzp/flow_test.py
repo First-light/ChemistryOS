@@ -1,7 +1,7 @@
 import sys
 sys.path.append('src/chemistry_os/src')
 from facilities.facility_fr3arm import Fr3Arm
-from facilities.facility_addLiquid import Add_Liquid
+from facilities.facility_pumps import PumpGroup
 from facilities.facility_addSolid import Add_Solid
 from facilities.facility_fr5arm import Fr5Arm
 from facilities.facility_bath import Bath
@@ -26,7 +26,7 @@ if __name__ == '__main__':
     reaction_time_2 = 1200
     reaction_time_3 = 14400
 
-    add_Liquid=Add_Liquid('add_Liquid')
+    add_Liquid=PumpGroup('add_Liquid')
     add_Solid=Add_Solid('add_Solid')
     fr5_C = Fr3Arm("fr3A","192.168.58.3")
     fr5_A = Fr5Arm("fr5C","192.168.58.2")
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     hn_sdk.bath_put('bath_fr5')
     hn_sdk.fr3_move_to_bath()
     # 固液进料
-    hn_sdk.add_solid('beaker', CompoundC_solid_add)
+    hn_sdk.add_solid(CompoundC_solid_add, 'test_tube', 'beaker')
     hn_sdk.add_liquid('HCl', HCl_rpm, HCL_volume_add)
     # 水浴
     hn_sdk.bath_open()
