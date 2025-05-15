@@ -45,7 +45,7 @@ sys.path.append('src/chemistry_os/src')
 from facility import Facility
 from facilities.facility_fr5arm import Fr5Arm
 from facilities.facility_fr3arm import Fr3Arm
-from facilities.facility_addLiquid import Add_Liquid
+from chemistry_os.src.facilities.facility_pumps import PumpGroup
 from facilities.facility_addSolid import Add_Solid
 from facilities.facility_bath import Bath
 
