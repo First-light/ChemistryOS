@@ -29,25 +29,25 @@ class Fr5Arm(Facility):
             [100.0, 200.0, 400.0, 90.0, 0.0, 180.0]]
     
     obj_status = {
-        'graduated cylinder':
+        'test_tube':
         {
-            'destination': [-455.00, -120.0, 90.0],
-            'catch_pre_offset' : 50.0,
-            'put_height': 50,
+            'destination': [-440.0, -450.0, 160.0],
+            'catch_pre_offset' : 70.0,
+            'put_height': 90,
             'catch_direction': [90.0,0.0,-90.0],
             'safe_place_id': 0
         },
         'beaker':
         {
-            'destination': [-460.00, -268.0, 68.0],
-            'catch_pre_offset': 50.0,
+            'destination': [-470.00, -113.0, 65.0],
+            'catch_pre_offset': 70.0,
             'put_height': 50,
             'catch_direction': [90.0,0.0,-90.0],
             'safe_place_id': 0
         },
         'add_solid_place':
         {
-            'destination': [580.0, -625.0, 134.0],
+            'destination': [605.0, -495.0, 131.0],
             'catch_pre_offset': 190.0,
             'put_height': 16.0,
             'catch_direction': [90.0,0.0,90.0],
@@ -55,12 +55,12 @@ class Fr5Arm(Facility):
         },
         'bath_fr5':
         {
-            'destination' : [-111.0, 521.0, 238.0],
+            'destination' : [125.0, 625.0, 340.0],
             'bath_pre_offset' : [60,0,0],
             'catch_pre_offset' : 60.0,
-            'put_height': 0.0,
-            'catch_direction' : [90.0, 0.0, -90.0],
-            'safe_place_id': 4
+            'put_height': 80.0,
+            'catch_direction' : [90.0, 0.0, 189.0],
+            'safe_place_id': 3
         },
         'HCl':
         {
@@ -72,7 +72,7 @@ class Fr5Arm(Facility):
         },
         'add_liquid_mode_place':
         {
-            'destination': [80, 515.0, 195.0],
+            'destination': [80, 528.0, 195.0],
             'catch_pre_offset': 0.0,
             'put_height': 100,
             'catch_direction': [90.0,0.0,180.0],
@@ -80,8 +80,8 @@ class Fr5Arm(Facility):
         },
         'sanjinshaoping':
         {
-            'destination': [-400.0, -423.0, 175.0],
-            'catch_pre_offset': 50.0,
+            'destination': [-470, -207.0, 170.0],
+            'catch_pre_offset': 60.0,
             'put_height': 50.0,
             'catch_direction': [90.0,0.0,-90.0],
             'safe_place_id': 0
@@ -643,9 +643,12 @@ class Fr5Arm(Facility):
         self.robot.MoveGripper(1, 0, 50, 5, 10000, 1)
         time.sleep(2.0)
 
-
     def put(self):
         self.robot.MoveGripper(1, 100, 50, 10, 10000, 1)   
+        time.sleep(2.0)
+
+    def gripper_half(self):
+        self.robot.MoveGripper(1, 50, 50, 10, 10000, 1)
         time.sleep(2.0)
         
     def shut_down(self):
@@ -698,8 +701,8 @@ class Fr5Arm(Facility):
             机械臂复位
         '''
         print('机械臂复位')
-        self.robot.MoveCart(self.safe_place[1], 0, 0, vel = v)
-        self.now_place=1
+        self.robot.MoveCart(self.safe_place[0], 0, 0, vel = v)
+        self.now_place=0
 
     def gripper_activate(self):
         '''

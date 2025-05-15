@@ -18,9 +18,6 @@ class Fr3Arm(Facility):
     angle_offset = 45.0
     saved_pose = [0,0,0,0,0,0]
 
-
-
-
     def __init__(self, name: str, ip: str):
         self.robot = Robot.RPC(ip)
         
@@ -151,11 +148,6 @@ class Fr3Arm(Facility):
                                 "acc": self.default_acc # 加速度 
                              }, 
                              "Move to a specified position")
-        self.parser.register("delay",self.delay,
-                            {
-                                "sec": 0
-                            },
-                            "Delay for a specified time")
 
     def cmd_error(self):
         print("error")
@@ -510,11 +502,11 @@ class Fr3Arm(Facility):
         time.sleep(sec)
 
     def move_to_catch(self):
-        self.move_to_desc([330.0,-195.0,380.0,90.0,-45.0,90.0],vel=10)
+        self.move_to_desc([210.0,-230.0,398.0,90.0,-45.0,45.0],vel=5)
         time.sleep(1)
 
-    def move_to_shuiyu(self):
-        self.move_to_desc([330.0,-195.0,200.0,90.0,-45.0,90.0],vel=10)
+    def move_to_bath(self):
+        self.move_to_desc([330.0,-195.0,160.0,90.0,-45.0,90.0],vel=5)
         time.sleep(1)
 
 if __name__ == '__main__':
