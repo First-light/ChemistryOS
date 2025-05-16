@@ -47,6 +47,7 @@ from facilities.facility_fr5arm import Fr5Arm
 from facilities.facility_fr3arm import Fr3Arm
 from chemistry_os.src.facilities.facility_pumps import PumpGroup
 from facilities.facility_addSolid import Add_Solid
+from facilities.facility_pumps import PumpGroup
 from facilities.facility_bath import Bath
 
 class HN_SDK(Facility):
@@ -67,7 +68,7 @@ class HN_SDK(Facility):
         try:
             # 引用 Facility.tuple_list 中的对象，并提供默认类型
             self.fr5_A: Fr5Arm = get_facility_ref("fr5A", Fr5Arm)
-            self.add_Liquid: Add_Liquid = get_facility_ref("add_Liquid", Add_Liquid)
+            self.add_Liquid: PumpGroup = get_facility_ref("add_Liquid", PumpGroup)
             self.add_Solid: Add_Solid = get_facility_ref("add_Solid", Add_Solid)
             self.fr3_C: Fr3Arm = get_facility_ref("fr3C", Fr3Arm)
             self.bath: Bath = get_facility_ref("bath", Bath)
