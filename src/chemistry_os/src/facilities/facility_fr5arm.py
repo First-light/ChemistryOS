@@ -1,3 +1,4 @@
+import json
 import sys
 
 sys.path.append('src/chemistry_os/src')
@@ -9,8 +10,6 @@ import math
 import numpy as np
 from facility import Facility
 from structs import FacilityState
-
-
 
 class Fr5Arm(Facility):
     type = "fr5arm"
@@ -28,65 +27,7 @@ class Fr5Arm(Facility):
             [200.0, -100.0, 350.0, 90.0, 0.0, 90.0],
             [100.0, 200.0, 400.0, 90.0, 0.0, 180.0]]
     
-    obj_status = {
-        'test_tube':
-        {
-            'destination': [-440.0, -450.0, 160.0],
-            'catch_pre_offset' : 70.0,
-            'put_height': 90,
-            'catch_direction': [90.0,0.0,-90.0],
-            'safe_place_id': 0
-        },
-        'beaker':
-        {
-            'destination': [-470.00, -113.0, 65.0],
-            'catch_pre_offset': 70.0,
-            'put_height': 50,
-            'catch_direction': [90.0,0.0,-90.0],
-            'safe_place_id': 0
-        },
-        'add_solid_place':
-        {
-            'destination': [605.0, -495.0, 131.0],
-            'catch_pre_offset': 190.0,
-            'put_height': 16.0,
-            'catch_direction': [90.0,0.0,90.0],
-            'safe_place_id': 2
-        },
-        'bath_fr5':
-        {
-            'destination' : [125.0, 625.0, 340.0],
-            'bath_pre_offset' : [60,0,0],
-            'catch_pre_offset' : 60.0,
-            'put_height': 80.0,
-            'catch_direction' : [90.0, 0.0, 189.0],
-            'safe_place_id': 3
-        },
-        'HCl':
-        {
-            'destination': [130.0, 385.0, 115.0],
-            'catch_pre_offset': 60.0,
-            'put_height': 180.0,
-            'catch_direction': [90.0,0.0,180.0],
-            'safe_place_id': 3
-        },
-        'add_liquid_mode_place':
-        {
-            'destination': [80, 528.0, 195.0],
-            'catch_pre_offset': 0.0,
-            'put_height': 100,
-            'catch_direction': [90.0,0.0,180.0],
-            'safe_place_id': 3
-        },
-        'sanjinshaoping':
-        {
-            'destination': [-470, -207.0, 170.0],
-            'catch_pre_offset': 60.0,
-            'put_height': 50.0,
-            'catch_direction': [90.0,0.0,-90.0],
-            'safe_place_id': 0
-        },
-    }
+    position_file_path = "src/chemistry_os/src/facilities/location/fr5.json"
 
     def __init__(self, name: str, ip: str):
         self.robot = Robot.RPC(ip)
@@ -119,7 +60,9 @@ class Fr5Arm(Facility):
         self.initial_offset = [0, 0, 0, 0, 0, 0]  # 机械臂初始位置与世界坐标系原点的偏差
         ret = self.robot.RobotEnable(1)  # 机器人上使能
         print(name, "", "FR5机器人上使能", ret)
-
+        
+        with open(self.position_file_path, 'r') as file:
+            self.obj_status = json.load(file)
         self.obj_status_init()
 
     def obj_status_init(self):
@@ -650,6 +593,14 @@ class Fr5Arm(Facility):
     def gripper_half(self):
         self.robot.MoveGripper(1, 50, 50, 10, 10000, 1)
         time.sleep(2.0)
+
+    def gripper_15(self):
+        self.robot.MoveGripper(1, 15, 50, 10, 10000, 1)
+        time.sleep(2.0)
+    
+    def gripper_30(self):
+        self.robot.MoveGripper(1, 30, 50, 10, 10000, 1)
+        time.sleep(2.0)
         
     def shut_down(self):
         ret = self.robot.RobotEnable(0)   #机器人下使能
@@ -737,6 +688,116 @@ class Fr5Arm(Facility):
 
     def set_nowplace(self, nowplace:int):
         self.now_place = nowplace
+
+        # 参数为容器半径，容器上平面离夹爪中心高度，角度增量及方向，指令周期，最大旋转角度
+    def pour(self, r, h, i=-2, max_angel=90, rate = 100.0, v = 70.0, upright = 0, shake = 1, solid = 0):
+        rate /= 100
+        # 伺服运动参数预置
+        t=0.006
+        gain = [1.0, 1.0, 0.0, 0.0, 0.0, 0.0]  # 位姿增量比例系数，仅在增量运动下生效，范围[0~1]
+        
+        P1 = self.robot.GetActualTCPPose(0)
+        J1 = self.robot.GetActualJointPosDegree(0)
+        while( type(P1) != tuple):
+            P1 = self.robot.GetActualToolFlangePose(0)
+            print('when executing pouring,failed to get P1 from sdk')
+            time.sleep(0.5)
+        P1 = P1[1]
+        while( type(J1) != tuple):
+            J1 = self.robot.GetActualJointPosDegree(0)
+            print('when executing pouring,failed to get J1 from sdk')
+            time.sleep(0.5)
+        J1 = J1[1]
+
+        # 计算旋转参数
+        R = np.sqrt(r**2 + h**2)
+        phi = np.arctan(h / r)
+        l = np.pi * R / 180  # 弧长（x理论增量）
+        # 工具坐标笛卡尔增量
+        n_pos = [
+            float(2.2 * l * np.sin(phi) * np.sign(i)) * rate,
+            float(2.2 * l * np.cos(phi)) * rate,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        ]
+
+        joint_pos_difference = 0  # 确保进入倾倒循环
+        
+        # 在末端关节伺服旋转时，执行空间伺服运动以确保仪器出料口位置稳定
+        # 可通过修改单步时延t的大小来调整旋转速度
+        while np.abs(joint_pos_difference) < max_angel:
+            self.robot.ServoCart(2, n_pos, gain, 0.0, 0.0, t, 0.0, 0.0)  # 工具笛卡尔坐标增量移动
+
+            joint_pos = self.robot.GetActualJointPosDegree(0)
+            while( type(joint_pos) != tuple):
+                joint_pos = self.robot.GetActualJointPosDegree(0)
+                print('when executing pouring,failed to get end_height_from_sdk2')
+                time.sleep(0.5)
+            joint_pos = joint_pos[1]
+            joint_pos[5] = joint_pos[5] + i * rate
+
+            self.robot.ServoJ(joint_pos, 0.0, 0.0, t, 0.0, 0.0)  # 关节角增量移动
+
+            time.sleep(t)
+
+            # 更新差值
+            joint_pos_difference = joint_pos[5] - J1[5]
+
+        joint_pos = self.robot.GetActualJointPosDegree(0)
+        while( type(joint_pos) != tuple):
+            joint_pos = self.robot.GetActualJointPosDegree(0)
+            print('when executing pouring,failed to get end_height_from_sdk2')
+            time.sleep(0.5)
+        joint_pos = joint_pos[1]
+
+        pos_record = self.robot.GetActualTCPPose(0)
+        while( type(pos_record) != tuple):
+            pos_record = self.robot.GetActualTCPPose(0)
+            print('when executing pouring,failed to get pos record')
+            time.sleep(0.5)
+        pos_record = pos_record[1]
+        
+        max_angel = joint_pos[5] + 6.0
+        min_angel = joint_pos[5] - 6.0
+        # 固体抖动提速
+        if solid:
+            t=0.003 
+        else:
+            t=0.006
+        shakes = 0
+        if shake == 1:
+            time.sleep(3)
+            while shakes < 300:
+                self.robot.ServoJ(joint_pos, 0.0, 0.0, t, 0.0, 0.0)
+                if joint_pos[5] > max_angel:
+                    i = -1
+                if joint_pos[5] < min_angel:
+                    i = 1
+                joint_pos[5] += i
+
+                time.sleep(t)
+                shakes += 1
+            self.robot.MoveCart(pos_record, 0, 0, 0.0, 0.0, v, -1.0, -1)
+            
+        # 回到倾倒起点，有些场景下可能需要，暂时保留
+        # self.MoveL(0.0, 0.0, (300 - self.robot.GetActualTCPPose(0)[3]), 50.0)
+        # time.sleep(0.5)
+        
+        # 是否需要上抬以规避倾倒仪器回归水平位时的碰撞
+        if upright == 0:
+            return
+        else:
+            P1 = self.robot.GetActualTCPPose(0)[1]
+            P1[2] += 60.0
+            if np.abs(P1[5]) > 80.0 and np.abs(P1[5]) < 170.0:
+                P1 = P1[0:3]
+                P1 += [90.0, 0.0, -90.0]
+            else:
+                P1 = P1[0:3]
+                P1 += [90.0, 0.0, 0.0]
+            self.robot.MoveCart(P1, 0, 0, 0.0, 0.0, v, -1.0, -1)
 
 if __name__ == '__main__':
     exit()

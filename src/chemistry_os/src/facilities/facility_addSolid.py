@@ -1,13 +1,15 @@
 # coding=utf-8
-import serial
+import enum
+import logging
+import struct
 import threading
 import time
-import struct
+from collections import deque
 from dataclasses import dataclass, field
-import logging
-import enum
-from queue import Queue
-from typing import Tuple, Optional, List, Union
+from typing import Optional, List
+
+import serial
+
 from facility import Facility
 
 # --- 配置常量 ---
@@ -117,6 +119,7 @@ class Add_Solid(Facility):
         addr: int
         cmd: 'Add_Solid.CommandCode'
         data: List[float] = field(default_factory=list)  # 使用float列表存储数据
+        waiting_time: Optional[float] = None
         trigger: Optional[threading.Event] = None
 
         def build_frame(self) -> bytes:
@@ -139,550 +142,469 @@ class Add_Solid(Facility):
         HOST_MODE = 0,
         MCU_MODE = 1
 
-    # --- 内部串口处理线程 ---
-    class SerialHandlerThread(threading.Thread):
-        def __init__(self, owner: 'Add_Solid',
-                     initial_mode: 'Add_Solid.ThreadMode',
-                     comm: str,
-                     baud_rate: int,
-                     send_interval_ms: int,
-                     mcu_addr: int,
-                     host_addr: int,
-                     ):
-            super().__init__(name="SerialHandlerThread", daemon=True)  # 设置为守护线程
-            self.owner = owner
-
-            # 串口设置
-            self.ser = None  # 串口设备
-            self.comm = comm
-            self.baud_rate = baud_rate
-            self.send_interval_ms = send_interval_ms
-
-            # 通信设置 8N1
-            self.bytesize = serial.EIGHTBITS
-            self.parity = serial.PARITY_NONE
-            self.stopbits = serial.STOPBITS_ONE
-
-            # 通信识别
-            self.mcu_addr = mcu_addr
-            self.host_addr = host_addr
-
-            # 时序设置
-            _, self._t3_5, self._initial_wait_sec = self._calculate_timing()
-            # self._last_comm_time = 0            self._mode = i            self._mode = initial_modenitial_mode
-
-
-            # 线程控制
-            self._mode = initial_mode  # 控制是否等待数据到达
-            self._sending_queue = Queue()
-            # self._sending_lock = threading.Lock()
-            self._frame_arrive_event = threading.Event()
-            # self._stop_event = threading.Event()
-            self._stop_status = False
-            self.latest_frame: 'Add_Solid.McuStatusCommandTypedef' = Add_Solid.McuStatusCommandTypedef(
-                                addr=self.host_addr
-                            )
-
-
-        def run(self):
-            if not (self.ser and self.ser.is_open):
-                self._initialize_serial()
-            else:
-                assert False
-
-            timeout_count = 0
-            while not self._stop_status:
-                try:
-                    received_frame = None
-                    if self._mode == Add_Solid.ThreadMode.MCU_MODE or True:
-                        received_frame = self._read_frame()
-                        if received_frame:
-                            self._mode = Add_Solid.ThreadMode.MCU_MODE
-                            self.latest_frame = Add_Solid.McuStatusCommandTypedef.parse(received_frame)
-                            self._frame_arrive_event.set()
-                            if timeout_count > 0:
-                                timeout_count = 0
-                            elif timeout_count < 0:
-                                timeout_count += 1
-                        else:
-                            timeout_count += 1
-                            if timeout_count >= 20:
-                                logging.warning('串口离线或者 MCU 状态错误，切换 HOST 模式')
-                                timeout_count = 0
-                                self._mode = Add_Solid.ThreadMode.HOST_MODE
-                            if self._mode == Add_Solid.ThreadMode.MCU_MODE:
-                                continue
-                            else:
-                                timeout_count -= 1
-
-                    # else:
-                    #     if not self.latest_frame:
-                    #         self.latest_frame = AddSolid.McuStatusCommandTypedef(
-                    #             addr=self.host_addr
-                    #         )
-
-                    if not self._sending_queue.empty():
-                        command_to_send = self._sending_queue.get_nowait()
-                    else:
-                        command_to_send = None if self._mode == Add_Solid.ThreadMode.HOST_MODE \
-                            else Add_Solid.McuControlCommandTypedef(addr=self.mcu_addr, cmd=Add_Solid.CommandCode.IDLE)
-
-                    if command_to_send:
-                        self._send_frame(command_to_send.build_frame())
-                        if command_to_send.trigger:
-                            command_to_send.trigger.set()
-                        if command_to_send.cmd != Add_Solid.CommandCode.IDLE:
-                            self._sending_queue.task_done()
-
-                        if command_to_send.cmd == Add_Solid.CommandCode.TURN_ON:
-                            logging.info('切换 MCU 模式')
-                            self._mode = Add_Solid.ThreadMode.MCU_MODE
-                        elif command_to_send.cmd == Add_Solid.CommandCode.TURN_OFF:
-                            logging.info('切换 HOST 模式')
-                            self._mode = Add_Solid.ThreadMode.HOST_MODE
-                        elif command_to_send.cmd == Add_Solid.CommandCode.BEGIN:
-                            # TODO, in a hacky way
-                            timeout_count -= int(7.0 / self._initial_wait_sec) + 1
-
-                    if not received_frame or not command_to_send:
-                        time.sleep(0.001)
-
-                except serial.SerialException as e:
-                    logging.error(e)
-                    raise e
-
-            self._stop_status = False
-
-        def _calculate_timing(self):
-            bits_per_char = 1 + self.bytesize + (0 if self.parity == serial.PARITY_NONE else 1) + self.stopbits
-            char_time_sec = bits_per_char / self.baud_rate
-            t1_5 = 1.5 * char_time_sec
-            t3_5 = 3.5 * char_time_sec
-            if self.baud_rate > 19200:
-                t1_5 = max(t1_5, 0.00075)
-                t3_5 = max(t3_5, 0.00175)
-            return t1_5, t3_5, self.send_interval_ms / 1000.0 * 1.5
-
-        def _initialize_serial(self) -> bool:
-            try:
-                self.ser = serial.Serial(
-                    port=self.comm, baudrate=self.baud_rate,
-                    bytesize=self.bytesize, parity=self.parity, stopbits=self.stopbits,
-                    timeout=0.01  # 初始短超时用于清空
-                )
-                logging.info(f"串口 {self.comm} 打开成功.")
-                # 清空缓冲区
-                time.sleep(0.1)  # 等待串口稳定
-                if self.ser.in_waiting > 0:
-                    discarded = self.ser.read(self.ser.in_waiting)
-                    logging.debug(f"初始化丢弃 {len(discarded)} 字节: {discarded.hex()}")
-                # self._last_comm_time = time.monotonic()  # 初始化通信时间
-                return True
-            except serial.SerialException as e:
-                logging.error(f"无法打开或配置串口 {self.comm}: {e}")
-                self.ser = None
-                return False
-            except Exception as e:
-                logging.error(f"初始化串口时发生未知错误: {e}")
-                self.ser = None
-                # return False
-                raise e
-
-        def _read_raw_frame(self) -> Optional[bytes]:
-            """读取一帧，考虑时序，返回原始字节串"""
-            if not self.ser or not self.ser.is_open: return None
-
-            frame_buffer = bytearray()
-
-            try:
-                self.ser.timeout = self._initial_wait_sec
-
-                first_byte = self.ser.read(1)
-                if not first_byte: return None  # 超时未收到
-
-                frame_buffer.extend(first_byte)
-                # self._last_comm_time = time.monotonic()  # 更新通信时间
-                self.ser.timeout = self._t3_5  # 后续字节用 T3.5
-
-                while True:
-                    byte = self.ser.read(1)
-                    if byte:
-                        # self._last_comm_time = time.monotonic()  # 更新通信时间
-                        frame_buffer.extend(byte)
-                    else:  # 超时
-                        # logging.debug((time.monotonic() - self._last_comm_time) / self._t3_5)
-                        break
-            except serial.SerialException as e:
-                logging.error(f"读取串口时发生错误: {e}")
-                return None
-            except Exception as e:
-                logging.error(f"读取帧时发生未知错误: {e}")
-                return None
-
-            if not frame_buffer:
-                return None
-            else:
-                # logging.debug(f"成功读取一帧，长度: {len(frame_buffer)}")
-                return bytes(frame_buffer)
-
-        def _drop_frame(self, frame: bytes) -> bool:
-            """判断是否为我们关心的MCU状态帧 (Cmd 0x41, len 26)"""
-            if (frame and len(frame) == 26
-                    and frame[0] == self.host_addr and frame[1] == Add_Solid.CommandCode.IDLE.value):
-                # 这是我们期望的 MCU 状态帧，不丢弃
-                return False
-            else:
-                # 其他帧，可能是 Modbus RTU 通信或其他噪声，丢弃
-                prefix = bytes(frame[:8]).hex() if frame else "N/A"
-                length = len(frame) if frame else 0
-                logging.debug(f"丢弃帧: 长度={length}, 前8字节={prefix}" if frame else "丢弃空帧")
-                return True
-
-        def _read_frame(self) -> Optional[bytes]:
-            frame = self._read_raw_frame()
-            while frame:
-                if not self._drop_frame(frame):
-                    break
-
-                frame = self._read_raw_frame()
-
-            return frame
-
-        def _send_frame(self, frame_to_send: bytes):
-            """发送帧，确保 T3.5 间隔"""
-            if not self.ser or not self.ser.is_open:
-                logging.error("发送失败：串口未打开")
-                return False
-
-            try:
-                # 确保距离上次通信（读或写）至少 T3.5
-                # current_time = time.monotonic()
-                # time_since_last = (current_time - self._last_comm_time) / 1000.0
-                # wait_time = self._t3_5 - time_since_last
-                # if wait_time > 0 and False:
-                #     logging.debug(f"等待 T3.5 间隔: {wait_time:.4f}s")
-                #     time.sleep(wait_time)
-
-                # logging.debug(f"发送帧: {frame_to_send.hex()}")
-                self.ser.write(frame_to_send)
-                self.ser.flush()  # 确保数据发出
-                # self._last_comm_time = time.monotonic()  # 更新最后通信时间
-                return True
-            except serial.SerialException as e:
-                logging.error(f"发送串口数据时发生错误: {e}")
-                return False
-            except Exception as e:
-                logging.error(f"发送帧时发生未知错误: {e}")
-                return False
-
-        def send_command(self, cmd: 'Add_Solid.McuControlCommandTypedef'):
-            if self._stop_status:
-                return False
-
-            self._sending_queue.put(cmd)
-            return True
-
-        def stop(self):
-            while not self._sending_queue.empty():
-                self._sending_queue.get_nowait()
-                self._sending_queue.task_done()
-            self._stop_status = True
-
-
     def __init__(self,
+                 name: str = 'add_Solid',
                  comm: str = DEFAULT_SERIAL_PORT,
                  baud_rate: int = DEFAULT_BAUD_RATE,
                  send_interval_ms: int = DEFAULT_SEND_INTERVAL_MS,
-                 mcu_addr: int = 0x01,
-                 host_addr: int = 0x01,
-                 initial_mode: 'Add_Solid.ThreadMode' = ThreadMode.HOST_MODE):
-        self._thread = Add_Solid.SerialHandlerThread(self, initial_mode,
-                                                    comm, baud_rate, send_interval_ms, mcu_addr, host_addr)
-        self.mcu_addr = mcu_addr
-        def __init__(self,name:str = "os"):
-            super().__init__(name, Add_Solid.type)
+                 addr: int = 0x01,
+                 initial_mode: Optional['Add_Solid.ThreadMode'] = None):
+        super().__init__(name, Add_Solid.type)
+
+        # 串口设置
+        self.ser = None  # 串口设备
+        self.comm = comm
+        self.baud_rate = baud_rate
+        self.send_interval_ms = send_interval_ms
+
+        # 通信设置 8N1
+        self.bytesize = serial.EIGHTBITS
+        self.parity = serial.PARITY_NONE
+        self.stopbits = serial.STOPBITS_ONE
+
+        # 通信识别
+        self.addr = addr
+
+        # 时序设置
+        _, self._t3_5, self._initial_wait_sec = self._calculate_timing()
+
+        self._thread: Optional['Add_Solid.SerialHandlerThread'] = None
+        self._mode = None
+        self._change_mode(initial_mode)
+
+        # FIFO 队列，保存最近10帧状态
+        self.fifo_frame: deque['Add_Solid.McuStatusCommandTypedef'] = deque(maxlen=10)
+
+    def _calculate_timing(self):
+        bits_per_char = 1 + self.bytesize + (0 if self.parity == serial.PARITY_NONE else 1) + self.stopbits
+        char_time_sec = bits_per_char / self.baud_rate
+        t1_5 = 1.5 * char_time_sec
+        t3_5 = 3.5 * char_time_sec
+        if self.baud_rate > 19200:
+            t1_5 = max(t1_5, 0.00075)
+            t3_5 = max(t3_5, 0.00175)
+        return t1_5, t3_5, self.send_interval_ms / 1000.0 * 1.5
+
+    def initialize_serial(self) -> bool:
+        if self.ser and self.ser.is_open:
+            # logging.info(f"串口 {self.comm} 已经打开.")
+            return True
+
+        try:
+            self.ser = serial.Serial(
+                port=self.comm, baudrate=self.baud_rate,
+                bytesize=self.bytesize, parity=self.parity, stopbits=self.stopbits,
+                timeout=self._t3_5 * 2  # 初始短超时用于清空
+            )
+            logging.info(f"串口 {self.comm} 打开成功.")
+            # 清空缓冲区
+            # time.sleep(0.1)  # 等待串口稳定
+            if self.ser.in_waiting > 0:
+                discarded = self.ser.read(self.ser.in_waiting)
+                logging.debug(f"初始化丢弃 {len(discarded)} 字节: {discarded.hex()}")
+            # self._last_comm_time = time.monotonic()  # 初始化通信时间
+            return True
+        except serial.SerialException as e:
+            logging.error(f"无法打开或配置串口 {self.comm}: {e}")
+            self.ser = None
+            return False
+        # except Exception as e:
+        #     logging.error(f"初始化串口时发生未知错误: {e}")
+        #     self.ser = None
+        #     # return False
+        #     raise e
+
+    def _read_raw_frame(self) -> Optional[bytes]:
+        """读取一帧，考虑时序，返回原始字节串"""
+        if not self.ser or not self.ser.is_open: return None
+
+        frame_buffer = bytearray()
+
+        try:
+            self.ser.timeout = self._initial_wait_sec
+
+            first_byte = self.ser.read(1)
+            if not first_byte: return None  # 超时未收到
+
+            frame_buffer.extend(first_byte)
+            # self._last_comm_time = time.monotonic()  # 更新通信时间
+            self.ser.timeout = self._t3_5  # 后续字节用 T3.5
+
+            while True:
+                byte = self.ser.read(1)
+                if byte:
+                    # self._last_comm_time = time.monotonic()  # 更新通信时间
+                    frame_buffer.extend(byte)
+                else:  # 超时
+                    # logging.debug((time.monotonic() - self._last_comm_time) / self._t3_5)
+                    break
+        except serial.SerialException as e:
+            logging.error(f"读取串口时发生错误: {e}")
+            return None
+        except Exception as e:
+            logging.error(f"读取帧时发生未知错误: {e}")
+            return None
+
+        if not frame_buffer:
+            return None
+        else:
+            logging.debug(f"成功读取一帧，长度: {len(frame_buffer)}")
+            return bytes(frame_buffer)
+
+    def _drop_frame(self, frame: bytes) -> bool:
+        """判断是否为我们关心的MCU状态帧 (Cmd 0x41, len 26)"""
+        if (frame and len(frame) == 26
+                and frame[0] == self.addr and frame[1] == Add_Solid.CommandCode.IDLE.value):
+            # 这是我们期望的 MCU 状态帧，不丢弃
+            return False
+        else:
+            # 其他帧，可能是 Modbus RTU 通信或其他噪声，丢弃
+            prefix = bytes(frame[:8]).hex() if frame else "N/A"
+            length = len(frame) if frame else 0
+            logging.debug(f"丢弃帧: 长度={length}, 前8字节={prefix}" if frame else "丢弃空帧")
+            return True
+
+    def _read_needed_frame(self, timeout: Optional[float]=None) -> Optional[bytes]:
+        """读取一帧，直到超时或读取到我们关心的帧"""
+        # 确保串口已打开
+        if not timeout:
+            timeout = self._initial_wait_sec
+
+        start_time = time.thread_time_ns()
+        end_time = start_time
+
+        frame = self._read_raw_frame()
+        # 当帧未超时且不是我们关心的帧时，继续读取
+        while frame and self._drop_frame(frame) and (end_time - start_time) / 1.0e9 < timeout:
+            frame = self._read_raw_frame()
+            end_time = time.thread_time_ns()
+
+        if frame and not self._drop_frame(frame):
+            return frame
+        return None
+
+    def _send_frame(self, frame_to_send: bytes):
+        """发送帧，确保 T3.5 间隔"""
+        if not self.ser or not self.ser.is_open:
+            logging.error("发送失败：串口未打开")
+            return False
+
+        try:
+            # 确保距离上次通信（读或写）至少 T3.5
+            # current_time = time.monotonic()
+            # time_since_last = (current_time - self._last_comm_time) / 1000.0
+            # wait_time = self._t3_5 - time_since_last
+            # if wait_time > 0 and False:
+            #     logging.debug(f"等待 T3.5 间隔: {wait_time:.4f}s")
+            #     time.sleep(wait_time)
+
+            # logging.debug(f"发送帧: {frame_to_send.hex()}")
+            self.ser.write(frame_to_send)
+            self.ser.flush()
+            # self._last_comm_time = time.monotonic()  # 更新最后通信时间
+            return True
+        except serial.SerialException as e:
+            logging.error(f"发送串口数据时发生错误: {e}")
+            return False
+        except Exception as e:
+            logging.error(f"发送帧时发生未知错误: {e}")
+            return False
+
+    def _change_mode(self, mode: Optional['Add_Solid.ThreadMode']):
+        """切换模式"""
+        # 仅能由主线程调用
+        previous_mode = self._mode
+        if mode is None:
+            # 尝试读取当前模式
+            if self._read_needed_frame(timeout=self._initial_wait_sec * 2):
+                self._mode = Add_Solid.ThreadMode.MCU_MODE
+            else:
+                self._mode = Add_Solid.ThreadMode.HOST_MODE
+        else:
+            # 设置模式
+            self._mode = mode
+
+        if previous_mode == self._mode:
+            logging.debug(f"模式未改变: {self._mode}")
+            return
+        else:
+            logging.info(f"模式已改变: {previous_mode} -> {self._mode}")
+            if self._mode == Add_Solid.ThreadMode.MCU_MODE:
+                self._thread = self.SerialHandlerThread(self)
+                self._thread.start()
+            elif self._mode == Add_Solid.ThreadMode.HOST_MODE:
+                if self._thread and self._thread.is_alive():
+                    self._thread.stop()
+                    self._thread.join()
+                self._thread = None
+
+    def send_command(self, cmd: 'Add_Solid.McuControlCommandTypedef') -> bool:
+        status = False
+        # if self.initialize_serial():
+        if self.ser and self.ser.is_open:
+            if self._mode == Add_Solid.ThreadMode.HOST_MODE:
+                self._send_frame(cmd.build_frame())
+                status = True
+            elif self._mode == Add_Solid.ThreadMode.MCU_MODE:
+                if self._thread and self._thread.is_alive():
+                    status = self._thread.send_command(cmd, timeout=self._initial_wait_sec * 2.5)
+
+        if status:
+            self.log.info(f"发送命令: {cmd.cmd.name}，数据: {cmd.data}")
+            if cmd.cmd == Add_Solid.CommandCode.TURN_ON:
+                self._change_mode(Add_Solid.ThreadMode.MCU_MODE)
+            if cmd.cmd == Add_Solid.CommandCode.TURN_OFF:
+                self._change_mode(Add_Solid.ThreadMode.HOST_MODE)
+
+            if cmd.waiting_time:
+                time.sleep(cmd.waiting_time)
+
+            if self._mode == Add_Solid.ThreadMode.MCU_MODE:
+                print('等待直到 MCU 状态空闲')
+                status = self._thread.wait_until_idle()
+
+        return status
+
+    # --- 内部串口处理线程 ---
+    class SerialHandlerThread(threading.Thread):
+        def __init__(self, upper: 'Add_Solid',
+                     ):
+            super().__init__(name="SerialHandlerThread", daemon=True)  # 设置为守护线程
+            self.upper = upper
+
+            self.ser = self.upper.ser
+
+            self._frame_arrive_event = threading.Event()
+            self._stop_status = False
+            self.latest_frame: 'Add_Solid.McuStatusCommandTypedef' = Add_Solid.McuStatusCommandTypedef(
+                                addr=self.upper.addr
+                            )
+
+            self.sending_cmd = None
+            self.sending_event = threading.Event()
+            self.sending_lock = threading.Lock()
+
+        def send_command(self, cmd: 'Add_Solid.McuControlCommandTypedef', timeout: Optional[float]=None) -> bool:
+            """发送命令到 MCU"""
+            # 仅在主线程中调用
+            if self._stop_status:
+                logging.error("线程已停止，无法发送命令")
+                return False
+
+            with self.sending_lock:
+                if self._stop_status:
+                    logging.error("线程已停止，无法发送命令")
+                    return False
+
+                self.sending_cmd = cmd
+                self.sending_event.clear()
+                status = self.sending_event.wait(timeout=timeout)
+                self.sending_event.clear()
+                self.sending_cmd = None
+                return status
+
+        def run(self):
+            assert self.ser and self.ser.is_open
+
+            timeout_count = 0
+            while not self._stop_status and self.upper._mode == Add_Solid.ThreadMode.MCU_MODE:
+                received_frame = self.upper._read_needed_frame()
+                if received_frame:
+                    self.latest_frame = Add_Solid.McuStatusCommandTypedef.parse(received_frame)
+                    self.upper.fifo_frame.append(self.latest_frame)
+                    self._frame_arrive_event.set()
+
+                    if timeout_count > 0:
+                        timeout_count = 0
+                    elif timeout_count < 0:
+                        timeout_count += 1
+                else:
+                    timeout_count += 1
+                    if timeout_count >= 20:
+                        self.upper.log.error("串口离线或者 MCU 状态错误，切换 HOST 模式")
+                        self.upper._mode = Add_Solid.ThreadMode.HOST_MODE
+                        self._stop_status = True
+                        break
+                    continue
+
+                # 发送命令
+                sending_cmd = self.sending_cmd
+                if not sending_cmd:
+                    sending_cmd = Add_Solid.McuControlCommandTypedef(
+                        addr=self.upper.addr,
+                        cmd=Add_Solid.CommandCode.IDLE
+                    )
+                self.upper._send_frame(sending_cmd.build_frame())
+                if sending_cmd == self.sending_cmd:
+                    self.sending_event.set()
+                    self.sending_cmd = None
+
+                # since python 3.10
+                match sending_cmd.cmd:
+                    case Add_Solid.CommandCode.TURN_ON:
+                        self.upper.log.info("切换 MCU 模式")
+                        self.upper._mode = Add_Solid.ThreadMode.MCU_MODE
+                    case Add_Solid.CommandCode.TURN_OFF:
+                        self.upper.log.info("切换 HOST 模式")
+                        self.upper._mode = Add_Solid.ThreadMode.HOST_MODE
+                    case Add_Solid.CommandCode.BEGIN:
+                        # TODO, in a hacky way
+                        timeout_count -= int(7.0 / self.upper._initial_wait_sec) + 1
+                    case _:
+                        pass
+
+                if not received_frame or not sending_cmd:
+                    time.sleep(0.001)
+
+            self._stop_status = True
+            self._frame_arrive_event.set()
+            self.sending_event.set()
+
+        def stop(self):
+            with self.sending_lock:
+                self._stop_status = True
+
+        def wait_until_idle(self, timeout: Optional[float] = None) -> bool:
+            start_time = time.thread_time_ns()
+            end_time = time.thread_time_ns()
+            period = (start_time - end_time) / 1.0e9
+            while not timeout or period < timeout:
+                if self._frame_arrive_event.wait(timeout=timeout - period if timeout else 1.0):
+                    self._frame_arrive_event.clear()
+                end_time = time.thread_time_ns()
+                period = (start_time - end_time) / 1.0e9
+                if self.is_alive() and not self._stop_status:
+                    if self.latest_frame.status == Add_Solid.Status.IDLE and self.sending_cmd is None:
+                        return True
+                else:
+                    return True
+            return False
+
+    def cmd_init(self):
+        """注册命令到解析器"""
+        self.parser.register("add_solid_turn_on", self.turn_on, None, "Turn on the add solid device")
+        self.parser.register("add_solid_turn_off", self.turn_off, None, "Turn off the add solid device")
+        self.parser.register("add_solid_clip_open", self.clip_open, None, "Open the clip of add solid device")
+        self.parser.register("add_solid_clip_close", self.clip_close, None, "Close the clip of add solid device")
+        self.parser.register("add_solid_tube_hor", self.tube_hor, None, "Set tube to horizontal position")
+        self.parser.register("add_solid_tube_ver", self.tube_ver, None, "Set tube to vertical position")
+        self.parser.register("add_solid_set_dac", self.set_dac, {"dac":0.0}, "Set DAC value of add solid device")
+        self.parser.register("add_solid_set_pid", self.set_pid, {"kp":0.0, "kd":0.0, "offset":0.0}, "Set PID parameters of add solid device")
+        self.parser.register("add_solid_add_series", self.add_solid_series, {"weight":0.0}, "Add solid series operation")
 
     def __del__(self):
         # 确保在对象销毁时停止线程
         self.stop()
 
-    def __enter__(self):
-        self._thread.start()
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.stop()
-
     def stop(self):
-        self._thread.stop()
+        if self._thread:
+            self._thread.stop()
 
-    def turn_on(self, block: bool = True) -> bool:
+    def turn_on(self) -> bool:
         """打开设备。"""
-        if self._thread.send_command(Add_Solid.McuControlCommandTypedef(
-                addr=self.mcu_addr,
+        return self.send_command(Add_Solid.McuControlCommandTypedef(
+                addr=self.addr,
                 cmd=Add_Solid.CommandCode.TURN_ON
-        )):
-            if block:
-                self.wait_until_idle()
-            return True
-        return False
+        ))
 
-    def turn_off(self, block: bool = True) -> bool:
+    def turn_off(self) -> bool:
         """关闭设备。"""
-        if self._thread.send_command(Add_Solid.McuControlCommandTypedef(
-                addr=self.mcu_addr,
+        return self.send_command(Add_Solid.McuControlCommandTypedef(
+                addr=self.addr,
                 cmd=Add_Solid.CommandCode.TURN_OFF
-        )):
-            if block:
-                self.wait_until_idle()
-            return True
-        return False
+        ))
 
-    def clip_open(self, block: bool = True) -> bool:
+    def clip_open(self) -> bool:
         """打开夹爪。"""
-        if self._thread.send_command(Add_Solid.McuControlCommandTypedef(
-                addr=self.mcu_addr,
-                cmd=Add_Solid.CommandCode.CLIP_OPEN
-        )):
-            if block:
-                self.wait_until_idle()
-                time.sleep(2)
-            return True
-        return False
+        return self.send_command(Add_Solid.McuControlCommandTypedef(
+                addr=self.addr,
+                cmd=Add_Solid.CommandCode.CLIP_OPEN,
+                waiting_time=2
+        ))
 
-    def clip_close(self, block: bool = True) -> bool:
+    def clip_close(self) -> bool:
         """关闭夹爪。"""
-        if self._thread.send_command(Add_Solid.McuControlCommandTypedef(
-                addr=self.mcu_addr,
-                cmd=Add_Solid.CommandCode.CLIP_CLOSE
-        )):
-            if block:
-                self.wait_until_idle()
-                time.sleep(2)
-            return True
-        return False
+        return self.send_command(Add_Solid.McuControlCommandTypedef(
+                addr=self.addr,
+                cmd=Add_Solid.CommandCode.CLIP_CLOSE,
+                waiting_time=2
+        ))
 
-    def tube_hor(self, block: bool = True) -> bool:
+    def tube_hor(self) -> bool:
         """将管子设置为水平位置。"""
-        if self._thread.send_command(Add_Solid.McuControlCommandTypedef(
-                addr=self.mcu_addr,
-                cmd=Add_Solid.CommandCode.TUBE_HOR
-        )):
-            if block:
-                self.wait_until_idle()
-                time.sleep(6)
-            return True
-        return False
+        return self.send_command(Add_Solid.McuControlCommandTypedef(
+                addr=self.addr,
+                cmd=Add_Solid.CommandCode.TUBE_HOR,
+                waiting_time=5.5
+        ))
 
-    def tube_ver(self, block: bool = True) -> bool:
+    def tube_ver(self) -> bool:
         """将管子设置为垂直位置。"""
-        if self._thread.send_command(Add_Solid.McuControlCommandTypedef(
-                addr=self.mcu_addr,
-                cmd=Add_Solid.CommandCode.TUBE_VER
-        )):
-            if block:
-                self.wait_until_idle()
-                time.sleep(6)
-            return True
-        return False
+        return self.send_command(Add_Solid.McuControlCommandTypedef(
+                addr=self.addr,
+                cmd=Add_Solid.CommandCode.TUBE_VER,
+                waiting_time=5.5
+        ))
 
-    def set_dac(self, dac: float, block: bool = True) -> bool:
+    def set_dac(self, dac: float) -> bool:
         """设置 DAC 值。"""
-        if self._thread.send_command(Add_Solid.McuControlCommandTypedef(
-                addr=self.mcu_addr,
+        return self.send_command(Add_Solid.McuControlCommandTypedef(
+                addr=self.addr,
                 cmd=Add_Solid.CommandCode.DAC,
                 data=[dac]
-        )):
-            if block:
-                self.wait_until_idle()
-            return True
-        return False
+        ))
 
-    def set_pid(self, kp: float, kd: float, offset: float, block: bool = True) -> bool:
+    def set_pid(self, kp: float, kd: float, offset: float) -> bool:
         """设置 PID 参数。"""
-        if self._thread.send_command(Add_Solid.McuControlCommandTypedef(
-                addr=self.mcu_addr,
+        return self.send_command(Add_Solid.McuControlCommandTypedef(
+                addr=self.addr,
                 cmd=Add_Solid.CommandCode.PID,
                 data=[kp, kd, offset]
-        )):
-            if block:
-                self.wait_until_idle()
-            return True
-        return False
+        ))
 
-    def add_solid_series(self, weight: float, block: bool = True) -> bool:
+    def add_solid_series(self, weight: float) -> bool:
         """开始添加指定重量的固体系列操作。"""
-        if self._thread.send_command(Add_Solid.McuControlCommandTypedef(
-                addr=self.mcu_addr,
+        if self._mode == Add_Solid.ThreadMode.HOST_MODE:
+            raise Exception("当前模式为 HOST_MODE，无法执行添加固体系列操作。")
+            if not self.turn_on():
+                return False
+
+        return self.send_command(Add_Solid.McuControlCommandTypedef(
+                addr=self.addr,
                 cmd=Add_Solid.CommandCode.BEGIN,
-                data=[weight]
-        )):
-            if block:
-                self.wait_until_idle()
-                time.sleep(7)
-                self.wait_until_idle()
-            return True
-        return False
+                data=[weight],
+                waiting_time=7
+        ))
 
     def read_frame(self, timeout: Optional[float] = None) -> Optional['Add_Solid.McuStatusCommandTypedef']:
-        if self._thread.is_alive() and not self._thread._stop_status and self._thread._mode == Add_Solid.ThreadMode.MCU_MODE:
+        if self._thread.is_alive() and not self._thread._stop_status and self._mode == Add_Solid.ThreadMode.MCU_MODE:
+            if not timeout:
+                timeout = self._initial_wait_sec * 2.5
             if self._thread._frame_arrive_event.wait(timeout=timeout):
                 return self._thread.latest_frame
-        # logging.debug("Thread alive: %s, Stop event set: %s, Mode: %s",
-        #               self._thread.is_alive(),
-        #               self._thread._stop_event.is_set(),
-        #               self._thread._mode)
 
         return None
 
-    def wait_until_idle(self, timeout: Optional[float] = None) -> bool:
-        start_time = time.thread_time_ns()
-        end_time = time.thread_time_ns()
-        period = (start_time - end_time) / 1.0e9
-        while not timeout or period < timeout:
-            frame = self.read_frame(timeout=timeout - period if timeout else None)
-            period = (start_time - end_time) / 1.0e9
-            self._thread._sending_queue.join()
-            if not frame:
-                return True
-            elif frame.status == Add_Solid.Status.IDLE:
-                return True
-            time.sleep(0.001)
-        return False
+    def read_frame_fifo(self) -> Optional['Add_Solid.McuStatusCommandTypedef']:
+        """读取 FIFO 队列中的最新帧"""
+        if len(self.fifo_frame) > 0:
+            return self.fifo_frame.popleft()
+        return None
 
-
-def monitor_and_plot_weight(controller, exit_threshold=0.005, consecutive_count=20):
-    """
-    监控加料过程中的重量变化，并在结束后绘制图形。
-
-    Args:
-        controller: 包含 _thread._read_frame() 方法的控制器对象。
-        exit_threshold (float): 判断重量接近目标的阈值 (g)。
-        consecutive_count (int): 连续多少次重量接近目标后退出。
-    """
-    import matplotlib as plt
-    print("等待 MCU 状态变为 BUSY...")
-    time.sleep(1)
-    # while True:
-    #     try:
-    #         frame = controller._thread._read_frame()  # 阻塞读取
-    #         if frame.status == AddSolid.Status.BUSY:
-    #             print("检测到 BUSY 状态，开始记录数据...")
-    #             break
-    #         # (可选) 如果IDLE状态下读取非常频繁，可以加个短暂休眠避免CPU空转
-    #         # time.sleep(0.01)
-    #     except Exception as e:
-    #         print(f"读取 Frame 时出错: {e}")
-    #         return  # 发生错误则退出
-    frame = controller.read_frame()
-
-    # --- 初始化数据记录 ---
-    timestamps_ms = []
-    weights_now_g = []
-
-    # 记录进入 BUSY 状态时的初始数据
-    start_time_ns = frame.time_ns
-    target_weight_g = frame.weight_target  # 假设在 BUSY 过程中目标重量不变
-    initial_weight_now = frame.weight_now
-
-    timestamps_ms.append(0)  # 初始时间点为 0 ms
-    weights_now_g.append(initial_weight_now)
-
-    print(f"初始状态: Time=0ms, Weight={initial_weight_now:.3f}g, Target={target_weight_g:.3f}g")
-
-    # --- 记录循环 ---
-    consecutive_close_readings = 0
-    # 检查初始读数是否满足条件
-    if target_weight_g - initial_weight_now < exit_threshold:
-        consecutive_close_readings = 1
-
-    while True:
+    def release_serial(self) -> bool:
+        """释放串口资源"""
+        if not (self.ser and self.ser.is_open):
+            return True
+        if self._mode == Add_Solid.ThreadMode.MCU_MODE and self._thread and self._thread.is_alive():
+            self._thread.stop()
+            self._thread.join()
         try:
-            frame = controller.read_frame()  # 阻塞读取后续数据
-
-            # --- 检查退出条件 ---
-            # 1. 状态变回 IDLE
-            if frame.status == Add_Solid.McuStatus.IDLE:
-                print("MCU 状态变回 IDLE，停止记录。")
-                # 将最后一次IDLE状态前的数据点也记录下来（如果需要）
-                # elapsed_time_ms = (frame.time_ns - start_time_ns) / 1e6
-                # timestamps_ms.append(elapsed_time_ms)
-                # weights_now_g.append(frame.weight_now) # 使用IDLE帧的重量或上一个BUSY帧的重量？取决于需求
-                # print(f"记录最后一点: Time={elapsed_time_ms:.1f}ms, Weight={frame.weight_now:.3f}g")
-                break  # 退出循环
-
-            # 确保仍在 BUSY 状态下才记录和检查 (理论上应该不会跳变，但做个保护)
-            if frame.status == Add_Solid.McuStatus.BUSY:
-                # 计算相对时间（毫秒）
-                elapsed_time_ms = (frame.time_ns - start_time_ns) / 1e6
-                current_weight_now = frame.weight_now
-
-                timestamps_ms.append(elapsed_time_ms)
-                weights_now_g.append(current_weight_now)
-
-                print(f"数据点: Time={elapsed_time_ms:.1f}ms, Weight={current_weight_now:.3f}g")
-
-                # (可选) 检查目标重量是否变化
-                if frame.weight_target != target_weight_g:
-                    print(f"警告: 目标重量在 BUSY 状态下发生变化！"
-                          f"旧值={target_weight_g:.3f}g, 新值={frame.weight_target:.3f}g")
-                    # 可以选择更新目标重量或保持初始值，这里保持初始值
-                    # target_weight_g = frame.weight_target
-
-                # 2. 检查重量是否连续接近目标
-                if target_weight_g - current_weight_now < exit_threshold:
-                    consecutive_close_readings += 1
-                    print(f"重量接近目标 ({target_weight_g - current_weight_now:.4f} < {exit_threshold}). "
-                          f"连续次数: {consecutive_close_readings}/{consecutive_count}")
-                    if consecutive_close_readings >= consecutive_count:
-                        print(f"重量连续 {consecutive_count} 次接近目标，停止记录。")
-                        break  # 退出循环
-                else:
-                    # 如果当前读数不满足条件，重置计数器
-                    if consecutive_close_readings > 0:
-                        print("重量不再接近目标，重置连续次数计数器。")
-                    consecutive_close_readings = 0
-            else:
-                # 如果状态不是 IDLE 也不是 BUSY，可能需要处理异常情况
-                print(f"检测到意外状态: {frame.status}, 停止记录。")
-                break
-
-        except Exception as e:
-            print(f"读取或处理 Frame 时出错: {e}")
-            break  # 发生错误则退出循环
-
-    # --- 数据绘图 ---
-    if not timestamps_ms or len(timestamps_ms) < 2:  # 需要至少两个点才能画线
-        print("记录的数据不足，无法绘制图形。")
-        return
-
-    print(f"记录结束，共 {len(timestamps_ms)} 个数据点。开始绘图...")
-
-    plt.figure(figsize=(12, 6))  # 创建图形窗口，可以调整大小
-
-    # 绘制实时重量曲线
-    plt.plot(timestamps_ms, weights_now_g, marker='.', linestyle='-', label='实时重量 (Weight Now)')
-
-    # 绘制目标重量水平线
-    plt.axhline(y=target_weight_g, color='r', linestyle='--',
-                label=f'目标重量 (Target Weight = {target_weight_g:.3f}g)')
-
-    # 添加标题和标签
-    plt.title('加料过程重量变化曲线 (Weight Change During Adding Process)')
-    plt.xlabel('时间 (Time / ms)')
-    plt.ylabel('重量 (Weight / g)')
-
-    # 添加图例
-    plt.legend()
-
-    # 添加网格
-    plt.grid(True)
-
-    # 自动调整布局
-    plt.tight_layout()
-
-    # 显示图形
-    plt.show()
+            self.ser.close()
+            logging.info(f"串口 {self.comm} 关闭成功.")
+            return True
+        except serial.SerialException as e:
+            logging.error(f"关闭串口 {self.comm} 时发生错误: {e}")
+            return False
 
 # 测试读取功能正常：20250425
 # len = 8 读天平
@@ -690,47 +612,45 @@ def monitor_and_plot_weight(controller, exit_threshold=0.005, consecutive_count=
 # len = 26 截获
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    with Add_Solid(
-        initial_mode=Add_Solid.ThreadMode.HOST_MODE
-    ) as controller:
-        # controller._thread._initialize_serial()
-        # frame = controller._thread._read_frame()
-        # logging.debug(frame)
-        #
-        # while frame:
-        #     frame = controller._thread._read_frame()
-        #     if not controller._thread._drop_frame(frame):
-        #         break
-        # send_cmd = AddSolid.McuControlCommandTypedef(addr=0x01, cmd=AddSolid.CommandCode.TURN_ON)
-        # logging.debug(controller._thread._send_frame(send_cmd.build_frame()))
-        # time.sleep(0.4)
-        #
-        # while True:
-        #     frame = controller._thread._read_frame()
-        #     if not controller._thread._drop_frame(frame):
-        #         logging.debug(frame[2:].hex(sep=' ', bytes_per_sep=4))
-        #         logging.debug('解析数据')
-        #         status = AddSolid.McuStatusCommandTypedef.parse(frame)
-        #         logging.debug(status)
-        #         break
-        #
-        # send_cmd = AddSolid.McuControlCommandTypedef(addr=0x01, cmd=AddSolid.CommandCode.TURN_OFF)
-        # logging.debug(controller._thread._send_frame(send_cmd.build_frame()))
-        # logging.debug(controller._thread._read_frame()) # 超时
-        print(controller.read_frame() == None)
-        controller.turn_on()
-        # controller.clip_open()
+    controller = Add_Solid(comm='/dev/ttyUSB0', baud_rate=9600, addr=0x01)
+    controller.initialize_serial()
+    # frame = controller._thread._read_frame()
+    # logging.debug(frame)
+    #
+    # while frame:
+    #     frame = controller._thread._read_frame()
+    #     if not controller._thread._drop_frame(frame):
+    #         break
+    # send_cmd = AddSolid.McuControlCommandTypedef(addr=0x01, cmd=AddSolid.CommandCode.TURN_ON)
+    # logging.debug(controller._thread._send_frame(send_cmd.build_frame()))
+    # time.sleep(0.4)
+    #
+    # while True:
+    #     frame = controller._thread._read_frame()
+    #     if not controller._thread._drop_frame(frame):
+    #         logging.debug(frame[2:].hex(sep=' ', bytes_per_sep=4))
+    #         logging.debug('解析数据')
+    #         status = AddSolid.McuStatusCommandTypedef.parse(frame)
+    #         logging.debug(status)
+    #         break
+    #
+    # send_cmd = AddSolid.McuControlCommandTypedef(addr=0x01, cmd=AddSolid.CommandCode.TURN_OFF)
+    # logging.debug(controller._thread._send_frame(send_cmd.build_frame()))
+    # logging.debug(controller._thread._read_frame()) # 超时
+    print(controller.read_frame() is None)
+    controller.turn_on()
+    # controller.clip_open()
 
-        # controller.clip_close()
-        controller.tube_hor()
-        # logging.debug(controller.read_frame())
-        # controller.add_solid_series(0.5)
-        # logging.debug('fine')
-        # monitor_and_plot_weight(controller)
-        # controller.wait_until_idle()
-        # time.sleep(0)
-        print(controller.read_frame())
-        controller.tube_ver()
-        # controller.clip_open()
+    # controller.clip_close()
+    controller.tube_hor()
+    # logging.debug(controller.read_frame())
+    # controller.add_solid_series(0.5)
+    # logging.debug('fine')
+    # monitor_and_plot_weight(controller)
+    # controller.wait_until_idle()
+    # time.sleep(0)
+    print(controller.read_frame())
+    controller.tube_ver()
+    # controller.clip_open()
 
-        controller.turn_off()
+    controller.turn_off()

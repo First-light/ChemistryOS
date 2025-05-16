@@ -45,7 +45,7 @@ sys.path.append('src/chemistry_os/src')
 from facility import Facility
 from facilities.facility_fr5arm import Fr5Arm
 from facilities.facility_fr3arm import Fr3Arm
-from chemistry_os.src.facilities.facility_pumps import PumpGroup
+from facilities.facility_pumps import PumpGroup
 from facilities.facility_addSolid import Add_Solid
 from facilities.facility_pumps import PumpGroup
 from facilities.facility_bath import Bath
@@ -63,6 +63,7 @@ class HN_SDK(Facility):
                 if facility[0] == name and isinstance(facility[3], expected_type):
                     return facility[3]  # 返回实例化的对象引用
             print(f"错误：对象 {name} 不存在于 Facility.tuple_list 中，或类型不匹配。")
+            print(Facility.tuple_list)
             raise ValueError(f"对象 {name} 不存在于 Facility.tuple_list 中，或类型不匹配。")
 
         try:
@@ -87,11 +88,11 @@ class HN_SDK(Facility):
         self.parser.register("add_liquid", self.add_liquid, {"name":'', "rpm":150, "volume":0.0, "name_space":'add_liquid_mode_place'}, "add liquid to named place")
         self.parser.register("add_solid", self.add_solid, {"name":'', "gram":0.0, "name_space":'add_solid_place'}, "add solid to named place")
         self.parser.register("fr3_move_to_catch", self.fr3_move_to_catch, {}, "fr3 move to catch")
-        self.parser.register("fr3_move_to_bath_fr5", self.fr3_move_to_bath_fr5, {}, "fr3 move to bath")
+        self.parser.register("fr3_move_to_bath", self.fr3_move_to_bath, {}, "fr3 move to bath")
         self.parser.register("fr3_catch", self.fr3_catch, {}, "fr3 catch")
         self.parser.register("fr3_put", self.fr3_put, {}, "fr3 put")
         self.parser.register("name_catch_and_put", self.name_catch_and_put, {"name1":'', "name2":''}, "fr5 catch name1 and put name2")
-        self.parser.register("name_pour", self.name_pour, {"name1":'', "name2":'', "name3":''}, "catch, pour and put")
+        self.parser.register("name_catch_pour_put", self.name_catch_pour_put, {"name1":'', "name2":'', "name3":''}, "catch, pour and put")
         self.parser.register("fr5_gripper_activate", self.fr5_gripper_activate, {}, "activate fr5 gripper")
         self.parser.register("fr5_Go_to_start_zone_0", self.fr5_Go_to_start_zone_0, {}, "fr5 go to start zone 0")
         self.parser.register("bath_init", self.bath_open, {}, "initialize bath")
@@ -103,7 +104,7 @@ class HN_SDK(Facility):
         self.parser.register("HN_init", self.HN_init, {}, "initialize HN")
 
 
-    def name_catch(self, name:str):
+    def name_catch(self, name:str, test_tube_add:bool = False):
 
         obj_statu = self.fr5_A.obj_status[name]
         #根据id确定安全位置, 移动到安全位置
@@ -119,6 +120,16 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(desc_pos_aim, vel=10)
         time.sleep(1)
 
+        if test_tube_add:
+            self.fr5_A.gripper_30()
+            self.add_Solid.initialize_serial()
+            # self.add_Solid.turn_on()
+            self.add_Solid.clip_open()
+            # self.add_Solid.turn_off()
+            self.add_Solid.release_serial()
+            input('ok?')
+
+        input('ok?')
         self.fr5_A.catch()
         time.sleep(1)
 
@@ -130,7 +141,7 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=10)
         time.sleep(1)
         
-    def name_put(self, name:str):
+    def name_put(self, name:str, test_tube_add:bool = False):
         obj_statu = self.fr5_A.obj_status[name]
 
         # #根据id确定安全位置, 移动到安全位置
@@ -148,9 +159,19 @@ class HN_SDK(Facility):
         desc_pos_aim = dest + obj_statu['catch_direction']
         self.fr5_A.move_to_desc(desc_pos_aim, vel=10)
         time.sleep(1)
+        input('ok?')
 
         #下降，完成放置
-        self.fr5_A.move_by(0, 0, -obj_statu['put_height'], vel=10)
+        self.fr5_A.move_by(0, 0, -obj_statu['put_height'], vel=5)
+
+        if test_tube_add:
+            self.fr5_A.gripper_30()
+            self.add_Solid.initialize_serial()
+            # self.add_Solid.turn_on()
+            self.add_Solid.clip_close()
+            # self.add_Solid.turn_off()
+            self.add_Solid.release_serial()
+            input('ok?')
 
         self.fr5_A.put()
 
@@ -186,35 +207,10 @@ class HN_SDK(Facility):
         #下降，完成放置
         self.fr5_A.move_by(0, 0, -obj_statu['put_height'], vel=10)
 
-        self.fr5_A.robot.StartJOG(0,6,-1,130.0,vel=100.0,acc=100.0)
-        time.sleep(6)
-        self.fr5_A.robot.ImmStopJOG()
+        self.fr5_A.pour(20, 30)
 
-        time.sleep(3)
-
-        joint_pos = self.fr5_A.robot.GetActualJointPosDegree(0)[1]
-        max_angel = joint_pos[5] + 6.0
-        min_angel = joint_pos[5] - 6.0
-        t=0.003
-        shakes = 0
-        i=-2
-        while shakes < 600:
-            self.fr5_A.robot.ServoJ(joint_pos, 0.0, 0.0, t, 0.0, 0.0)
-            if joint_pos[5] > max_angel:
-                i = -1
-            if joint_pos[5] < min_angel:
-                i = 1
-            joint_pos[5] += i
-
-            time.sleep(t)
-            shakes += 1
-        
-        time.sleep(2)
-
-        self.fr5_A.robot.StartJOG(0,6,1,130.0,vel=100.0,acc=100.0)
-        time.sleep(6)
-
-        self.fr5_A.robot.ImmStopJOG()
+        self.fr5_A.move_to_desc(desc_pos_aim, vel=10)
+        time.sleep(1)
 
         self.fr5_A.move_by(0, 0, obj_statu['put_height'], vel=10)
 
@@ -239,9 +235,8 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(desc_pos_aim, vel=10)
         time.sleep(1)
 
-        
-        self.fr5_A.robot.MoveGripper(1, 15, 50, 10, 10000, 1)
-        time.sleep(3)
+        self.fr5_A.gripper_15()
+        time.sleep(1)
         self.fr3_C.put()
         time.sleep(1)
         self.fr5_A.catch()
@@ -276,12 +271,14 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(desc_pos_aim_pre_2, vel=10)
         time.sleep(1)
 
+        input('ok?')
+
         #靠近，完成抓取
         desc_pos_aim = obj_statu['destination'] + obj_statu['catch_direction']
         self.fr5_A.move_to_desc(desc_pos_aim, vel=10)
         time.sleep(1)
 
-        self.fr5_A.robot.MoveGripper(1, 15, 50, 10, 10000, 1)
+        self.fr5_A.gripper_15()
         time.sleep(1)
         self.fr3_C.catch()
         time.sleep(1)
@@ -365,19 +362,26 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=10)
         time.sleep(1)
 
-    def add_solid(self, name:str, gram:float, name_space='add_solid_place'):
-        self.name_catch_and_put(name, name_space)
+    def add_solid(self, gram:float, tube_from:str, beaker_from:str, test_tube_add_place:str='test_tube_add_place', beaker_add_space:str='add_solid_place', pour_place:str='solid_pour_place'):
+        self.name_catch(tube_from)
+        self.name_put(test_tube_add_place, test_tube_add=True)
+        self.name_catch_and_put(beaker_from, beaker_add_space)
+
+        self.add_Solid.initialize_serial()
         self.add_Solid.turn_on()
-        self.add_Solid.tube_hor()
         self.add_Solid.add_solid_series(gram)
-        self.add_Solid.tube_ver()
         self.add_Solid.turn_off()
-        self.name_pour()
+        self.add_Solid.release_serial()
+        self.name_catch(test_tube_add_place, test_tube_add=True)
+        self.name_put(tube_from)
+        self.name_catch(beaker_add_space)
+        self.name_pour(pour_place)
+        self.name_put(beaker_from)
 
     def fr3_move_to_catch(self):
         self.fr3_C.move_to_catch()
 
-    def fr3_move_to_bath_fr5(self):
+    def fr3_move_to_bath(self):
         self.fr3_C.move_to_bath()
 
     def fr3_catch(self):
@@ -390,7 +394,7 @@ class HN_SDK(Facility):
         self.name_catch(name1)
         self.name_put(name2)
 
-    def name_pour(self, name1:str, name2:str, name3:str):
+    def name_catch_pour_put(self, name1:str, name2:str, name3:str):
         self.name_catch(name1)
         self.name_pour(name2)
         self.name_put(name3)
@@ -402,6 +406,7 @@ class HN_SDK(Facility):
         self.fr5_A.Go_to_start_zone_0()
 
     def bath_open(self):
+        self.bath.power_ctr(1)
         self.bath.mix_ctr(1)
         self.bath.circle_ctr(1)# 允许circle
         self.bath.hot_ctr(1)# 加热
@@ -412,6 +417,7 @@ class HN_SDK(Facility):
         self.bath.circle_ctr(0)# 禁止circle
         self.bath.hot_ctr(0)# 禁止加热
         self.bath.cold_ctr(0)# 禁止制冷
+        self.bath.power_ctr(0)
 
     def bath_writetmp(self, tmp:float):
         Bath.interactable_writetmp(tmp)

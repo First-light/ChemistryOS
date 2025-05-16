@@ -502,11 +502,11 @@ class Fr3Arm(Facility):
         time.sleep(sec)
 
     def move_to_catch(self):
-        self.move_to_desc([210.0,-230.0,398.0,90.0,-45.0,45.0],vel=5)
+        self.move_to_desc([215.0,-225.0,398.0,90.0,-45.0,45.0],vel=5)
         time.sleep(1)
 
     def move_to_bath(self):
-        self.move_to_desc([330.0,-195.0,160.0,90.0,-45.0,90.0],vel=5)
+        self.move_to_desc([215.0,-225.0,160.0,90.0,-45.0,45.0],vel=5)
         time.sleep(1)
 
 if __name__ == '__main__':
