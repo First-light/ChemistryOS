@@ -562,6 +562,11 @@ class Add_Solid(Facility):
 
     def add_solid_series(self, weight: float) -> bool:
         """开始添加指定重量的固体系列操作。"""
+        if self._mode == Add_Solid.ThreadMode.HOST_MODE:
+            raise Exception("当前模式为 HOST_MODE，无法执行添加固体系列操作。")
+            if not self.turn_on():
+                return False
+
         return self.send_command(Add_Solid.McuControlCommandTypedef(
                 addr=self.addr,
                 cmd=Add_Solid.CommandCode.BEGIN,
