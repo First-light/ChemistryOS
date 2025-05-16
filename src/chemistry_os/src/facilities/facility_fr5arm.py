@@ -27,7 +27,7 @@ class Fr5Arm(Facility):
             [200.0, -100.0, 350.0, 90.0, 0.0, 90.0],
             [100.0, 200.0, 400.0, 90.0, 0.0, 180.0]]
     
-    position_file_path = "facilities\\location\\fr5.json"
+    position_file_path = "src/chemistry_os/src/facilities/location/fr5.json"
 
     def __init__(self, name: str, ip: str):
         self.robot = Robot.RPC(ip)
@@ -595,7 +595,7 @@ class Fr5Arm(Facility):
         time.sleep(2.0)
 
     def gripper_little(self):
-        self.fr5_A.robot.MoveGripper(1, 15, 50, 10, 10000, 1)
+        self.robot.MoveGripper(1, 15, 50, 10, 10000, 1)
         time.sleep(2.0)
         
     def shut_down(self):
