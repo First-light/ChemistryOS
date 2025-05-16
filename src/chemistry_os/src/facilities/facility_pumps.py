@@ -105,7 +105,7 @@ class PumpGroup(Facility):
                 ser.write(command)
                 time.sleep(0.2)
                 response = ser.read(ser.in_waiting)
-                self.log.info(response)
+                self.log.info(f"设备响应: {response}")
 
         except Exception as e:
             self.log.info("Error1:", str(e))
@@ -125,7 +125,7 @@ class PumpGroup(Facility):
                 ser.write(command)
                 time.sleep(0.2)
                 response = ser.read(ser.in_waiting)
-                self.log.info(response)
+                self.log.info(f"设备响应: {response}")
 
         except Exception as e:
             self.log.info("Error1: " + str(e))
@@ -142,15 +142,15 @@ class PumpGroup(Facility):
     # rpm转速round per minute,volume体积(ml)
     def add_liquid(self, name, rpm, volume):
         if name=='HCl':
-            addr=0x03
+            addr=0x02
         elif name=='KMnO4':
-            addr=0x04
+            addr=0x03
         elif name=='H2O2':
-            addr=0x05
+            addr=0x04
         elif name=='CH3CN':
-            addr=0x06
+            addr=0x05
         elif name=='N2H4':
-            addr=0x07
+            addr=0x06
         speed = 0.0675 * rpm# 滴加速率：ml/min，测试日期9.13 0.0525
         tim = volume / speed * 60 # 滴加时间
         self.log.info(f"滴加液体为{name},体积为{volume}ml,转速为{rpm}rpm，预期需要{tim}s")
