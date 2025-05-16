@@ -497,7 +497,8 @@ class Add_Solid(Facility):
         self.stop()
 
     def stop(self):
-        self._thread.stop()
+        if self._thread:
+            self._thread.stop()
 
     def turn_on(self) -> bool:
         """打开设备。"""

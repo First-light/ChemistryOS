@@ -297,8 +297,6 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(desc_pos_aim, vel=10)
         time.sleep(1)
 
-        input('ok?')
-
         self.fr5_A.gripper_little()
         time.sleep(1)
         self.fr3_C.catch()
@@ -387,11 +385,12 @@ class HN_SDK(Facility):
         self.name_catch(tube_from)
         self.name_put(test_tube_add_place, test_tube_add=True)
         self.name_catch_and_put(beaker_from, beaker_add_space)
+
+        self.add_Solid.initialize_serial()
         self.add_Solid.turn_on()
-        self.add_Solid.tube_hor()
         self.add_Solid.add_solid_series(gram)
-        self.add_Solid.tube_ver()
         self.add_Solid.turn_off()
+        self.add_Solid.release_serial()
         self.name_catch(test_tube_add_place, test_tube_add=True)
         self.name_put(tube_from)
         self.name_catch(beaker_add_space)

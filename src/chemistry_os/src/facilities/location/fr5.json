@@ -21,7 +21,7 @@
         "safe_place_id": 2
     },
     "add_solid_place": {
-        "destination": [605.0, -495.0, 131.0],
+        "destination": [610.0, -475.0, 130.0],
         "catch_pre_offset": 190.0,
         "put_height": 16.0,
         "catch_direction": [90.0, 0.0, 90.0],
@@ -36,7 +36,28 @@
         "safe_place_id": 3
     },
     "HCl": {
+        "destination": [190.0, 385.0, 115.0],
+        "catch_pre_offset": 60.0,
+        "put_height": 180.0,
+        "catch_direction": [90.0, 0.0, 180.0],
+        "safe_place_id": 3
+    },
+    "KMnO4": {
         "destination": [130.0, 385.0, 115.0],
+        "catch_pre_offset": 60.0,
+        "put_height": 180.0,
+        "catch_direction": [90.0, 0.0, 180.0],
+        "safe_place_id": 3
+    },
+    "H2O2": {
+        "destination": [70.0, 385.0, 115.0],
+        "catch_pre_offset": 60.0,
+        "put_height": 180.0,
+        "catch_direction": [90.0, 0.0, 180.0],
+        "safe_place_id": 3
+    },
+    "CH3CN": {
+        "destination": [10.0, 385.0, 115.0],
         "catch_pre_offset": 60.0,
         "put_height": 180.0,
         "catch_direction": [90.0, 0.0, 180.0],
