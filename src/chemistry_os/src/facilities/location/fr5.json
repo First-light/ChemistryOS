@@ -7,14 +7,14 @@
         "safe_place_id": 0
     },
     "beaker": {
-        "destination": [-470.0, -113.0, 65.0],
+        "destination": [-470.0, -73.0, 65.0],
         "catch_pre_offset": 70.0,
         "put_height": 50,
         "catch_direction": [90.0, 0.0, -90.0],
         "safe_place_id": 0
     },
     "test_tube_add_place": {
-        "destination": [610.0, -239.0, 360.0],
+        "destination": [610.0, -239.0, 290.0],
         "catch_pre_offset": 150.0,
         "put_height": 70.0,
         "catch_direction": [90.0, 0.0, 90.0],
@@ -80,8 +80,15 @@
     "sanjinshaoping": {
         "destination": [-470, -207.0, 170.0],
         "catch_pre_offset": 60.0,
-        "put_height": 50.0,
+        "put_height": 120.0,
         "catch_direction": [90.0, 0.0, -90.0],
         "safe_place_id": 0
+    },
+    "pour_place": {
+        "destination": [100.0, 200.0, 400.0],
+        "catch_pre_offset": 10.0,
+        "put_height": 10.0,
+        "catch_direction": [90.0, 0.0, 180.0],
+        "safe_place_id": 3
     }
 }

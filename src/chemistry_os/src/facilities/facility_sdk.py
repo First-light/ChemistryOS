@@ -120,12 +120,15 @@ class HN_SDK(Facility):
         time.sleep(1)
 
         if test_tube_add:
-            self.fr5_A.gripper_little()
-            Add_Solid.turn_on()
-            Add_Solid.clip_open()
-            Add_Solid.turn_off()
+            self.fr5_A.gripper_30()
+            self.add_Solid.initialize_serial()
+            # self.add_Solid.turn_on()
+            self.add_Solid.clip_open()
+            # self.add_Solid.turn_off()
+            self.add_Solid.release_serial()
             input('ok?')
 
+        input('ok?')
         self.fr5_A.catch()
         time.sleep(1)
 
@@ -155,15 +158,18 @@ class HN_SDK(Facility):
         desc_pos_aim = dest + obj_statu['catch_direction']
         self.fr5_A.move_to_desc(desc_pos_aim, vel=10)
         time.sleep(1)
+        input('ok?')
 
         #下降，完成放置
-        self.fr5_A.move_by(0, 0, -obj_statu['put_height'], vel=10)
+        self.fr5_A.move_by(0, 0, -obj_statu['put_height'], vel=5)
 
         if test_tube_add:
-            self.fr5_A.gripper_little()
-            Add_Solid.turn_on()
-            Add_Solid.clip_close()
-            Add_Solid.turn_off()
+            self.fr5_A.gripper_30()
+            self.add_Solid.initialize_serial()
+            # self.add_Solid.turn_on()
+            self.add_Solid.clip_close()
+            # self.add_Solid.turn_off()
+            self.add_Solid.release_serial()
             input('ok?')
 
         self.fr5_A.put()
@@ -200,35 +206,10 @@ class HN_SDK(Facility):
         #下降，完成放置
         self.fr5_A.move_by(0, 0, -obj_statu['put_height'], vel=10)
 
-        self.fr5_A.robot.StartJOG(0,6,-1,130.0,vel=100.0,acc=100.0)
-        time.sleep(6)
-        self.fr5_A.robot.ImmStopJOG()
+        self.fr5_A.pour(20, 30)
 
-        time.sleep(3)
-
-        joint_pos = self.fr5_A.robot.GetActualJointPosDegree(0)[1]
-        max_angel = joint_pos[5] + 6.0
-        min_angel = joint_pos[5] - 6.0
-        t=0.003
-        shakes = 0
-        i=-2
-        while shakes < 600:
-            self.fr5_A.robot.ServoJ(joint_pos, 0.0, 0.0, t, 0.0, 0.0)
-            if joint_pos[5] > max_angel:
-                i = -1
-            if joint_pos[5] < min_angel:
-                i = 1
-            joint_pos[5] += i
-
-            time.sleep(t)
-            shakes += 1
-        
-        time.sleep(2)
-
-        self.fr5_A.robot.StartJOG(0,6,1,130.0,vel=100.0,acc=100.0)
-        time.sleep(6)
-
-        self.fr5_A.robot.ImmStopJOG()
+        self.fr5_A.move_to_desc(desc_pos_aim, vel=10)
+        time.sleep(1)
 
         self.fr5_A.move_by(0, 0, obj_statu['put_height'], vel=10)
 
@@ -253,8 +234,7 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(desc_pos_aim, vel=10)
         time.sleep(1)
 
-        
-        self.fr5_A.gripper_little()
+        self.fr5_A.gripper_15()
         time.sleep(1)
         self.fr3_C.put()
         time.sleep(1)
@@ -297,7 +277,7 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(desc_pos_aim, vel=10)
         time.sleep(1)
 
-        self.fr5_A.gripper_little()
+        self.fr5_A.gripper_15()
         time.sleep(1)
         self.fr3_C.catch()
         time.sleep(1)
