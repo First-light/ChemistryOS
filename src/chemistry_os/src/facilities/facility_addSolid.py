@@ -360,6 +360,10 @@ class Add_Solid(Facility):
             if cmd.waiting_time:
                 time.sleep(cmd.waiting_time)
 
+            if self._mode == Add_Solid.ThreadMode.MCU_MODE:
+                print('等待直到 MCU 状态空闲')
+                status = self._thread.wait_until_idle()
+
         return status
 
     # --- 内部串口处理线程 ---
@@ -466,14 +470,15 @@ class Add_Solid(Facility):
             end_time = time.thread_time_ns()
             period = (start_time - end_time) / 1.0e9
             while not timeout or period < timeout:
-                if not self._frame_arrive_event.wait(timeout=timeout - period if timeout else None):
-                    return False
-                self._frame_arrive_event.clear()
+                if self._frame_arrive_event.wait(timeout=timeout - period if timeout else 1.0):
+                    self._frame_arrive_event.clear()
                 end_time = time.thread_time_ns()
                 period = (start_time - end_time) / 1.0e9
                 if self.is_alive() and not self._stop_status:
                     if self.latest_frame.status == Add_Solid.Status.IDLE and self.sending_cmd is None:
                         return True
+                else:
+                    return True
             return False
 
     def cmd_init(self):
