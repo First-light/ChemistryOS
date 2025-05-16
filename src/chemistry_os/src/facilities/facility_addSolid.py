@@ -275,12 +275,11 @@ class Add_Solid(Facility):
 
         frame = self._read_raw_frame()
         # 当帧未超时且不是我们关心的帧时，继续读取
-        while frame and not self._drop_frame(frame):
+        while frame and self._drop_frame(frame) and (end_time - start_time) / 1.0e9 < timeout:
             frame = self._read_raw_frame()
             end_time = time.thread_time_ns()
 
-        if frame and (end_time - start_time) / 1.0e9 < timeout:
-            # 如果读取到的帧在超时范围内，返回
+        if frame and not self._drop_frame(frame):
             return frame
         return None
 
@@ -326,10 +325,10 @@ class Add_Solid(Facility):
             self._mode = mode
 
         if previous_mode == self._mode:
-            logging.debug(f"模式未改变: {self._mode.name}")
+            logging.debug(f"模式未改变: {self._mode}")
             return
         else:
-            logging.info(f"模式已改变: {previous_mode.name} -> {self._mode.name}")
+            logging.info(f"模式已改变: {previous_mode} -> {self._mode}")
             if self._mode == Add_Solid.ThreadMode.MCU_MODE:
                 self._thread = self.SerialHandlerThread(self)
                 self._thread.start()
@@ -534,14 +533,16 @@ class Add_Solid(Facility):
         """将管子设置为水平位置。"""
         return self.send_command(Add_Solid.McuControlCommandTypedef(
                 addr=self.addr,
-                cmd=Add_Solid.CommandCode.TUBE_HOR
+                cmd=Add_Solid.CommandCode.TUBE_HOR,
+                waiting_time=5.5
         ))
 
     def tube_ver(self) -> bool:
         """将管子设置为垂直位置。"""
         return self.send_command(Add_Solid.McuControlCommandTypedef(
                 addr=self.addr,
-                cmd=Add_Solid.CommandCode.TUBE_VER
+                cmd=Add_Solid.CommandCode.TUBE_VER,
+                waiting_time=5.5
         ))
 
     def set_dac(self, dac: float) -> bool:
