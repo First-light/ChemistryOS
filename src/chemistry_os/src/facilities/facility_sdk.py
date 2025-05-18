@@ -204,6 +204,9 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(desc_pos_aim, vel=10)
         time.sleep(1)
 
+        #旋转30度
+        self.fr5_A.move_by(0,0,0,0,-30,0)
+
         #下降，完成放置
         self.fr5_A.move_by(0, 0, -obj_statu['put_height'], vel=10)
 
