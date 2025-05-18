@@ -88,7 +88,7 @@
         "destination": [100.0, 200.0, 400.0],
         "catch_pre_offset": 10.0,
         "put_height": 10.0,
-        "catch_direction": [90.0, 0.0, 180.0],
+        "catch_direction": [90.0, 0.0, 90.0],
         "safe_place_id": 3
     }
 }
