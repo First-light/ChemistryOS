@@ -689,115 +689,110 @@ class Fr5Arm(Facility):
     def set_nowplace(self, nowplace:int):
         self.now_place = nowplace
 
-        # 参数为容器半径，容器上平面离夹爪中心高度，角度增量及方向，指令周期，最大旋转角度
-    def pour(self, r, h, i=-2, max_angel=90, rate = 100.0, v = 70.0, upright = 0, shake = 1, solid = 0):
-        rate /= 100
-        # 伺服运动参数预置
-        t=0.006
-        gain = [1.0, 1.0, 0.0, 0.0, 0.0, 0.0]  # 位姿增量比例系数，仅在增量运动下生效，范围[0~1]
+    # radius=参数为容器半径mm，height=容器上平面离夹爪中心高度mm，direction=角度方向与增量，max_angle=倾倒最大角度，rate_percentage=运动速率的百分比
+    def pour(self, radius, height, direction=-2, max_angle=90, rate_percentage=100.0, shake=1):
+        # 将速率百分比转换为小数形式
+        rate_decimal = rate_percentage / 100
         
-        P1 = self.robot.GetActualTCPPose(0)
-        J1 = self.robot.GetActualJointPosDegree(0)
-        while( type(P1) != tuple):
-            P1 = self.robot.GetActualToolFlangePose(0)
-            print('when executing pouring,failed to get P1 from sdk')
+        # 伺服运动参数预置
+        servo_cycle_time = 0.006
+        gain = [1.0, 1.0, 0.0, 0.0, 0.0, 0.0]  # 位姿增量比例系数
+        
+        # 获取初始工具坐标系位姿和关节位置
+        tcp_pose = self.robot.GetActualTCPPose(0)
+        joint_pos = self.robot.GetActualJointPosDegree(0)
+        
+        # 确保获取到有效的 TCP 位姿数据
+        while type(tcp_pose) != tuple:
+            tcp_pose = self.robot.GetActualToolFlangePose(0)
+            print('Failed to get initial TCP pose from SDK during pouring')
             time.sleep(0.5)
-        P1 = P1[1]
-        while( type(J1) != tuple):
-            J1 = self.robot.GetActualJointPosDegree(0)
-            print('when executing pouring,failed to get J1 from sdk')
+        tcp_pose = tcp_pose[1]
+        
+        # 确保获取到有效的关节位置数据
+        while type(joint_pos) != tuple:
+            joint_pos = self.robot.GetActualJointPosDegree(0)
+            print('Failed to get initial joint position from SDK during pouring')
             time.sleep(0.5)
-        J1 = J1[1]
+        initial_joint_pos = joint_pos[1]
 
         # 计算旋转参数
-        R = np.sqrt(r**2 + h**2)
-        phi = np.arctan(h / r)
-        l = np.pi * R / 180  # 弧长（x理论增量）
-        # 工具坐标笛卡尔增量
-        n_pos = [
-            float(2.2 * l * np.sin(phi) * np.sign(i)) * rate,
-            float(2.2 * l * np.cos(phi)) * rate,
+        slope = np.sqrt(radius**2 + height**2)
+        angle_phi = np.arctan(height / radius)
+        arc_length = np.pi * slope / 180  # 弧长增量
+        
+        # 计算工具坐标系下的笛卡尔增量
+        cartesian_increment = [
+            float(2.2 * arc_length * np.sin(angle_phi) * np.sign(direction)) * rate_decimal,
+            float(2.2 * arc_length * np.cos(angle_phi)) * rate_decimal,
             0.0,
             0.0,
             0.0,
             0.0,
         ]
 
-        joint_pos_difference = 0  # 确保进入倾倒循环
+        joint_angle_difference = 0  # 确保进入倾倒循环
         
-        # 在末端关节伺服旋转时，执行空间伺服运动以确保仪器出料口位置稳定
-        # 可通过修改单步时延t的大小来调整旋转速度
-        while np.abs(joint_pos_difference) < max_angel:
-            self.robot.ServoCart(2, n_pos, gain, 0.0, 0.0, t, 0.0, 0.0)  # 工具笛卡尔坐标增量移动
+        # 倾倒循环：在末端关节伺服旋转时，执行空间伺服运动以确保出料口位置稳定
+        while np.abs(joint_angle_difference) < max_angle:
+            self.robot.ServoCart(2, cartesian_increment, gain, 0.0, 0.0, servo_cycle_time, 0.0, 0.0)  # 工具笛卡尔坐标增量移动
 
-            joint_pos = self.robot.GetActualJointPosDegree(0)
-            while( type(joint_pos) != tuple):
-                joint_pos = self.robot.GetActualJointPosDegree(0)
-                print('when executing pouring,failed to get end_height_from_sdk2')
+            current_joint_pos = self.robot.GetActualJointPosDegree(0)
+            # 确保获取到有效的关节位置数据
+            while type(current_joint_pos) != tuple:
+                current_joint_pos = self.robot.GetActualJointPosDegree(0)
+                print('Failed to get current joint position from SDK during pouring')
                 time.sleep(0.5)
-            joint_pos = joint_pos[1]
-            joint_pos[5] = joint_pos[5] + i * rate
+            current_joint_pos = current_joint_pos[1]
+            current_joint_pos[5] = current_joint_pos[5] + direction * rate_decimal
 
-            self.robot.ServoJ(joint_pos, 0.0, 0.0, t, 0.0, 0.0)  # 关节角增量移动
+            self.robot.ServoJ(current_joint_pos, 0.0, 0.0, servo_cycle_time, 0.0, 0.0)  # 关节角增量移动
 
-            time.sleep(t)
+            time.sleep(servo_cycle_time)
 
-            # 更新差值
-            joint_pos_difference = joint_pos[5] - J1[5]
+            # 更新关节角度差值
+            joint_angle_difference = current_joint_pos[5] - initial_joint_pos[5]
 
-        joint_pos = self.robot.GetActualJointPosDegree(0)
-        while( type(joint_pos) != tuple):
-            joint_pos = self.robot.GetActualJointPosDegree(0)
-            print('when executing pouring,failed to get end_height_from_sdk2')
+        # 获取最终关节位置
+        final_joint_pos = self.robot.GetActualJointPosDegree(0)
+        while type(final_joint_pos) != tuple:
+            final_joint_pos = self.robot.GetActualJointPosDegree(0)
+            print('Failed to get final joint position from SDK after pouring')
             time.sleep(0.5)
-        joint_pos = joint_pos[1]
+        final_joint_pos = final_joint_pos[1]
 
-        pos_record = self.robot.GetActualTCPPose(0)
-        while( type(pos_record) != tuple):
-            pos_record = self.robot.GetActualTCPPose(0)
-            print('when executing pouring,failed to get pos record')
+        # 记录最终位置
+        final_tcp_pose = self.robot.GetActualTCPPose(0)
+        while type(final_tcp_pose) != tuple:
+            final_tcp_pose = self.robot.GetActualTCPPose(0)
+            print('Failed to get final TCP pose record')
             time.sleep(0.5)
-        pos_record = pos_record[1]
+        final_tcp_pose = final_tcp_pose[1]
         
-        max_angel = joint_pos[5] + 6.0
-        min_angel = joint_pos[5] - 6.0
-        # 固体抖动提速
-        if solid:
-            t=0.003 
-        else:
-            t=0.006
-        shakes = 0
+        # 设置最大和最小角度以进行固体抖动
+        max_shake_angle = final_joint_pos[5] + 6.0
+        min_shake_angle = final_joint_pos[5] - 6.0
+        
+        shake_count = 0
         if shake == 1:
             time.sleep(3)
-            while shakes < 300:
-                self.robot.ServoJ(joint_pos, 0.0, 0.0, t, 0.0, 0.0)
-                if joint_pos[5] > max_angel:
-                    i = -1
-                if joint_pos[5] < min_angel:
-                    i = 1
-                joint_pos[5] += i
+            while shake_count < 300:
+                self.robot.ServoJ(final_joint_pos, 0.0, 0.0, servo_cycle_time, 0.0, 0.0)
+                if final_joint_pos[5] > max_shake_angle:
+                    direction = -1
+                if final_joint_pos[5] < min_shake_angle:
+                    direction = 1
+                final_joint_pos[5] += direction
 
-                time.sleep(t)
-                shakes += 1
-            self.robot.MoveCart(pos_record, 0, 0, 0.0, 0.0, v, -1.0, -1)
-            
-        # 回到倾倒起点，有些场景下可能需要，暂时保留
-        # self.MoveL(0.0, 0.0, (300 - self.robot.GetActualTCPPose(0)[3]), 50.0)
-        # time.sleep(0.5)
+                time.sleep(servo_cycle_time)
+                shake_count += 1
         
-        # 是否需要上抬以规避倾倒仪器回归水平位时的碰撞
-        if upright == 0:
-            return
-        else:
-            P1 = self.robot.GetActualTCPPose(0)[1]
-            P1[2] += 60.0
-            if np.abs(P1[5]) > 80.0 and np.abs(P1[5]) < 170.0:
-                P1 = P1[0:3]
-                P1 += [90.0, 0.0, -90.0]
-            else:
-                P1 = P1[0:3]
-                P1 += [90.0, 0.0, 0.0]
-            self.robot.MoveCart(P1, 0, 0, 0.0, 0.0, v, -1.0, -1)
+        # 移动到记录的位置
+        self.robot.MoveCart(final_tcp_pose, 0, 0)
+
+        # 回归初始位置
+        self.robot.MoveCart(tcp_pose, 0, 0)
+            
 
 if __name__ == '__main__':
     exit()
