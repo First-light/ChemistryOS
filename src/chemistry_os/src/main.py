@@ -28,9 +28,8 @@ if __name__ == '__main__':
     main_parser.parse("filter airpump state=1")
     time.sleep(20)
     main_parser.parse("filter airpump state=1")
-
-
     time.sleep(1)
+
     # main_parser.parse("filter valve state=0")
     # time.sleep(1)
     # main_parser.parse("filter speed speed=600")
