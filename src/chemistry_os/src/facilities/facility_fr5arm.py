@@ -35,7 +35,7 @@ class Fr5Arm(Facility):
         try:
             ret, version = self.robot.GetSDKVersion()  # 查询SDK版本号
             if ret == 0:
-                print("FR5机械臂SDK版本号为", version)
+                self.log.info("FR5机械臂SDK版本号为", version)
             else:
                 raise RuntimeError(f"FR5机械臂查询失败，错误码为 {ret}")
             
@@ -44,7 +44,7 @@ class Fr5Arm(Facility):
             if isinstance(temp_ip, tuple) and len(temp_ip) == 2:
                 temp, ip_check = temp_ip
                 if temp == 0:
-                    print("FR5控制器IP为", ip_check)
+                    self.log.info("FR5控制器IP为", ip_check)
                 else:
                     raise RuntimeError(f"FR5机械臂IP检查错误,错误码为 {temp}")
             else:
@@ -52,14 +52,14 @@ class Fr5Arm(Facility):
                 raise RuntimeError(f"FR5机械臂IP检查错误,错误码为 {temp}")
             
         except RuntimeError as e:
-            print(e)
+            self.log.info(e)
             del self  # 删除对象引用
             return
         
         super().__init__(name, Fr5Arm.type)
         self.initial_offset = [0, 0, 0, 0, 0, 0]  # 机械臂初始位置与世界坐标系原点的偏差
         ret = self.robot.RobotEnable(1)  # 机器人上使能
-        print(name, "", "FR5机器人上使能", ret)
+        self.log.info(name, "", "FR5机器人上使能", ret)
         
         with open(self.position_file_path, 'r') as file:
             self.obj_status = json.load(file)
@@ -179,12 +179,6 @@ class Fr5Arm(Facility):
                              }, 
                              "Move to a specified position")
 
-    def cmd_error(self):
-        print("error")
-
-    def cmd_stop(self):
-        print("stop")
-
     def analyse_angle(self,x:float,y:float):
         # 计算极坐标中的 θ（与 x 轴的夹角，以弧度表示）
         theta = math.atan2(y, x)
@@ -227,7 +221,7 @@ class Fr5Arm(Facility):
                     break
             else:
                 if ret != -4:
-                    print("状态查询错误：错误码： ",ret)
+                    self.log.info("状态查询错误：错误码： ",ret)
                     self.shut_down()
                     res = 2
                     break
@@ -239,7 +233,7 @@ class Fr5Arm(Facility):
             ret = self.robot.MoveL(new_pose, 0, 0, vel=vel_t, acc =acc_t,blendR = 0.0)  # 笛卡尔空间直线运动
             if ret != 0:
                 self.message_head()
-                print("笛卡尔空间直线运动:错误码", ret)
+                self.log.info("笛卡尔空间直线运动:错误码", ret)
                 self.shut_down()
             self.move_listen()
 
@@ -250,23 +244,23 @@ class Fr5Arm(Facility):
                 ret = self.robot.MoveJ(new_joint, 0, 0, new_pose, vel=vel_t, acc=acc_t, blendT=0.0)  # 关节空间直线运动
                 if ret != 0:
                     self.message_head()
-                    print("关节空间直线运动:错误码: ", ret)
+                    self.log.info("关节空间直线运动:错误码: ", ret)
                     self.shut_down()
 
                 self.move_listen()
             else:
                 self.message_head()
                 if inverse_kin_result == -4:
-                    print("逆运动学计算失败，已到达目标位置")
+                    self.log.info("逆运动学计算失败，已到达目标位置")
                 else:
-                    print("逆运动学计算失败，错误码： ",inverse_kin_result)
+                    self.log.info("逆运动学计算失败，错误码： ",inverse_kin_result)
                     self.shut_down()
 
     def move_joint(self,new_joint:list,vel_t=default_speed,acc_t=default_acc):
         ret = self.robot.MoveJ(new_joint, 0, 0,vel=vel_t, acc=acc_t, blendT=0.0)  # 关节空间直线运动
         if ret != 0:
             self.message_head()
-            print("关节空间直线运动:错误码: ", ret)
+            self.log.info("关节空间直线运动:错误码: ", ret)
             self.shut_down()
 
         self.move_listen()
@@ -277,14 +271,14 @@ class Fr5Arm(Facility):
             joint_pos = self.robot.GetActualJointPosDegree(0)
             ret = joint_pos[0]
             if ret != 0 or type(joint_pos) != tuple:
-                print(f"joy数据获取失败,错误码：{ret}")
+                self.log.info(f"joy数据获取失败,错误码：{ret}")
             else:
                 return joint_pos[1]
         elif data_type == "tool":
             tool_pos = self.robot.GetActualToolFlangePose(0)
             ret = tool_pos[0]
             if ret != 0 or type(tool_pos) != tuple:
-                print(f"pos数据获取失败,错误码：{ret}")
+                self.log.info(f"pos数据获取失败,错误码：{ret}")
             else:
                 return tool_pos[1]
 
@@ -292,9 +286,9 @@ class Fr5Arm(Facility):
         old_pose = self.robot.GetActualToolFlangePose()
         new_list = [old_pose[1][i] + val for i , val in enumerate([x, y, z, r1, r2, r3])]
         new_pose = tuple(new_list)
-        print("新位姿",new_pose)
+        self.log.info("新位姿",new_pose)
         self.move(new_pose,type,vel,acc)
-        print("到达")
+        self.log.info("到达")
         mechanical_arm_status = {
             "type": DeviceType.MECHANICAL_ARM,
             "joint_angles": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -304,26 +298,26 @@ class Fr5Arm(Facility):
     def move_to(self,x=0, y=0, z=0, r1=0, r2=0, r3=0,offset = False,type = "MoveL",vel=default_speed,acc=default_acc):
         new_list = [val + (self.initial_offset[i] if offset else 0) for i, val in enumerate([x, y, z, r1, r2, r3])]
         new_pose = tuple(new_list)
-        print("新位姿",new_pose)
+        self.log.info("新位姿",new_pose)
         self.move(new_pose,type,vel,acc)
-        print("到达")
+        self.log.info("到达")
 
     def move_to_desc(self, desc:list, offset = False,type = "MoveL",vel=default_speed,acc=default_acc):
         new_list = [val + (self.initial_offset[i] if offset else 0) for i, val in enumerate(desc)]
         new_pose = tuple(new_list)
-        print("新位姿",new_pose)
+        self.log.info("新位姿",new_pose)
         self.move(new_pose,type,vel,acc)
-        print("到达")
+        self.log.info("到达")
 
     def move_circle(self,angle_j1:list = None):
         if angle_j1 == None:
-            print("未指定角度")
+            self.log.info("未指定角度")
         else:
-            print("新角度",angle_j1)
+            self.log.info("新角度",angle_j1)
             new_joint = self.get_pose("joy")
             new_joint[0] = angle_j1
             self.move_joint(new_joint)
-            print("到达")
+            self.log.info("到达")
 
     def move_circle_to(self,x=0, y=0, z=0, r1=0, r2=0, r3=0,offset = False,type = "MoveJ",vel=default_speed,acc=default_acc):
         self.move_circle_back()
@@ -336,12 +330,12 @@ class Fr5Arm(Facility):
 
         new_list = [val + (self.initial_offset[i] if offset else 0) for i, val in enumerate([x, y, z, r1, r2, r3])]
         new_pose = tuple(new_list)
-        print("新位姿",new_pose)
+        self.log.info("新位姿",new_pose)
         self.move(new_pose,type,vel,acc)
-        print("到达")
+        self.log.info("到达")
         
     def move_circle_back(self):
-        print("转移到安全区")
+        self.log.info("转移到安全区")
         new_pose = Fr5Arm.default_start_pose[:]
         old_pose = self.get_pose("tool")
         if self.analyse_radians(new_pose[0],new_pose[1]) < self.analyse_radians(old_pose[0],old_pose[1]):
@@ -354,14 +348,14 @@ class Fr5Arm(Facility):
             
             
             new_x,new_y = self.analyse_xy(self.analyse_radians(new_pose[0],new_pose[1]),old_j1)
-            print("新位置",new_x,new_y)
+            self.log.info("新位置",new_x,new_y)
             new_pose[0] = new_x
             new_pose[1] = new_y
             new_pose[3] = old_pose[3]
             new_pose[4] = old_pose[4]
             new_pose[5] = old_pose[5]
             self.move_to(new_pose[0],new_pose[1],new_pose[2],new_pose[3],new_pose[4],new_pose[5],type="MoveJ")
-            print("到达")
+            self.log.info("到达")
 
     def from_by(self,fx=0, fy=0, fz=0, f1=0, f2=0, f3=0,x=0, y=0, z=0, r1=0, r2=0, r3=0,offset = False,type:str= "MoveL",vel=default_speed,acc=default_acc):
         self.move_to(fx,fy,fz,f1,f2,f3,offset=offset,type="MoveJ",vel=vel,acc=acc)
@@ -553,27 +547,27 @@ class Fr5Arm(Facility):
         
 
     def reset_pose(self):
-        print("机械臂关节初始化")
+        self.log.info("机械臂关节初始化")
         self.move_joint(Fr5Arm.default_start_joint)
-        print("机械臂位姿初始化")
+        self.log.info("机械臂位姿初始化")
         pose = [Fr5Arm.default_start_pose[i] + self.initial_offset[i] for i in range(len(Fr5Arm.default_start_pose))]
         self.move_to(pose[0],pose[1],pose[2],pose[3],pose[4],pose[5],type="MoveJ")
         deg = self.analyse_angle(pose[0],pose[1])
         j1 = self.get_pose("joy")[0]
         Fr5Arm.angle_offset =j1 - deg
-        print(f"机械臂初始角机械偏移{Fr5Arm.angle_offset}")
-        print("完成")
+        self.log.info(f"机械臂初始角机械偏移{Fr5Arm.angle_offset}")
+        self.log.info("完成")
 
 
     def reset_gripper(self):
-        print("夹爪初始化")
+        self.log.info("夹爪初始化")
         self.robot.SetGripperConfig(4, 0, 0, 1)
         time.sleep(0.5)
         self.robot.ActGripper(1, 1)
         time.sleep(2)
         self.robot.MoveGripper(1, 100, 50, 10, 10000, 1)
         time.sleep(0.5)
-        print("完成")
+        self.log.info("完成")
         
     # def Release_DiGuan(self):
     #     self.robot.MoveGripper(1, 20, 20, 10, 10000, 1)
@@ -604,21 +598,20 @@ class Fr5Arm(Facility):
         
     def shut_down(self):
         ret = self.robot.RobotEnable(0)   #机器人下使能
-        self.message_head()
-        print("机器人下使能", ret)
+        self.log.info("机器人下使能", ret)
         self.state[0] == FacilityState.STOP
 
     def open_up(self):
         self.clear_error_code()
         ret = self.robot.RobotEnable(1)
         self.message_head()
-        print("机器人使能", ret)
+        self.log.info("机器人使能", ret)
         self.state[0] == FacilityState.IDLE
 
     def clear_error_code(self):
         ret = self.robot.ResetAllError()
         self.message_head()
-        print(f"清除错误码:{ret}")
+        self.log.info(f"清除错误码:{ret}")
 
     # def Catch_to_start(self,x,y,z):
     #     self.MoveTo(x,y+80,z+150,90,0,0)
