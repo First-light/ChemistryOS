@@ -51,8 +51,8 @@ from facilities.facility_pumps import PumpGroup
 from facilities.facility_bath import Bath
 
 class HN_SDK(Facility):
-    type = "sdk"
-    name = "Chemistry OS SDK"
+    type = "Chemistry OS SDK"
+    name = "sdk"
     version = "1.0.0"
     description = "A software development kit for Chemistry OS."
     
@@ -77,7 +77,7 @@ class HN_SDK(Facility):
         except ValueError as e:
             print(e)
 
-        super().__init__(name="Chemistry OS SDK", type = Fr5Arm.type)
+        super().__init__(name="sdk", type = Fr5Arm.type)
 
     def cmd_init(self):
         self.parser.register("name_catch", self.name_catch, {"name":''}, "fr5 catch named place")
@@ -403,7 +403,7 @@ class HN_SDK(Facility):
         self.name_put(name3)
 
     def fr5_gripper_activate(self):
-        self.fr5_A.gripper_activate()
+        self.fr5_A.reset_gripper()
 
     def fr5_Go_to_start_zone_0(self):
         self.fr5_A.Go_to_start_zone_0()
