@@ -52,6 +52,25 @@ class Facility(ABC):
 
     def cmd_stop(self):
         self.log.info("stop")
+        
+    def find_object_by_name(name: str, if_log: bool = False):
+        """
+        根据名称从 Facility.tuple_list 中找到对应的对象实例。
+        
+        :param name: 要查找的对象名称
+        :param log_output: 是否输出日志信息，默认为 False
+        :return: 对应的对象实例，如果未找到则返回 None
+        """
+        for i, tuple_t in enumerate(Facility.tuple_list):
+            obj_name = tuple_t[0]  # 对象名称
+            obj_instance = tuple_t[3]  # 对应的对象实例
+            if obj_name == name:
+                if if_log:
+                    logging.info(f"找到对象: {obj_name}")
+                return obj_instance
+        if if_log:
+            logging.warning(f"未找到名称为 {name} 的对象")
+        return None
 
     def log_init(self):
         """

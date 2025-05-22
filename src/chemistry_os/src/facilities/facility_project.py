@@ -7,6 +7,7 @@ import threading
 import time
 from parser import CommandParser
 from structs import ProjectState
+from structs import FacilityState
 
 
 class Project(Facility):
@@ -58,42 +59,46 @@ class Project(Facility):
             start_step_ok = self.json_check_start_step()
 
             if objects_ok and steps_ok and start_step_ok:
-                print("Self check passed. Project state set to READY.")
+                self.log.info("自检通过。项目状态设置为 READY。")
                 self.project_state = ProjectState.READY
             else:
-                print("Self check failed. Project state not set to READY.")
-        else :
-            print(f"No data loaded or data type:[{self.data_type}] not supported.")
+                self.log.warning("自检失败。项目状态未设置为 READY。")
+        else:
+            self.log.warning(f"未加载数据或数据类型:[{self.data_type}] 不支持。")
+
 
     def json_check_objects(self):
-        print("Self check for all objects...")
-        obj_name_list = []
-
-        for tuple_t in Facility.tuple_list:
-            name = tuple_t[0]
-            obj_name_list.append(name)
-
+        self.log.info("开始检查所有对象...")
         all_objects_exist = True
-        for file_obj_name in self.dict['objects']:
-            if any(obj_name == file_obj_name for obj_name in obj_name_list):
-                print(f"Object {file_obj_name} exists in the system.")
+
+        # 遍历 self.dict['objects'] 中的对象
+        for obj_name in self.dict['objects'].items():
+            # 在 Facility.tuple_list 中查找对应的对象
+            matching_tuple = next((tuple_t for tuple_t in Facility.tuple_list if tuple_t[0] == obj_name), None)
+
+            if matching_tuple:
+                obj_state_p = matching_tuple[3].state
+                # 检查对象状态是否为 IDLE
+                if obj_state_p[0] != FacilityState.IDLE:
+                    self.log.warning(f"对象 {obj_name} 当前状态不是空闲 (当前状态: {obj_state_p[0]})。")
+                    all_objects_exist = False
             else:
-                print(f"Object {file_obj_name} does not exist in the system.")
+                self.log.warning(f"对象 {obj_name} 不存在于系统中。")
                 all_objects_exist = False
 
         return all_objects_exist
 
     def json_check_step(self):
-        print("Self check for all steps...")
+        self.log.info("开始检查所有步骤...")
         sequence_steps = self.dict['configs']['sequence']
         process_steps = self.dict['process'].keys()
 
         all_steps_exist = True
         for step in sequence_steps:
             if step in process_steps:
-                print(f"Step {step} exists in the process.")
+                print(f"步骤 {step} 存在在流程库中.")
             else:
-                print(f"Step {step} does not exist in the process.")
+                print(f"！步骤 {step} 不在流程库中.")
                 all_steps_exist = False
 
         return all_steps_exist
@@ -113,10 +118,10 @@ class Project(Facility):
         total_steps = self.count_total_steps(self.dict['configs']['sequence'])
         
         if start_step < 1 or start_step > total_steps:
-            print(f"错误: 开始步骤 {start_step} 超出范围。有效范围是 1 到 {total_steps}。")
+            self.log.warning(f"错误: 开始步骤 {start_step} 超出范围。有效范围是 1 到 {total_steps}。")
             return False
         else:
-            print(f"开始步骤 {start_step} 检查通过。")
+            self.log.info(f"开始步骤 {start_step} 检查通过。")
             return True
 
     def executor_step_up(self,ret):
@@ -289,28 +294,28 @@ class Project(Facility):
 
     def cmd_load(self, file: str):
         if file == '':
-            print("Please input the file name.")
+            self.log.info("请输入文件名。")
             return
 
         # 获取文件后缀
         file_extension = os.path.splitext(file)[1]
         if file_extension == '':
-            print("Please provide a file with an extension.")
+            self.log.info("请提供带有后缀的文件。")
             return
 
         # 构建文件路径
-        file_path = os.path.join(os.path.dirname(__file__), 'projects/', file)
-        print("path: ", file_path)
+        file_path = os.path.join('src/chemistry_os/src/facilities/projects', file)
+        # self.log.info("路径: ", file_path)
 
         if not os.path.isfile(file_path):
-            print(f"File {file} does not exist.")
+            self.log.info(f"文件 {file} 不存在。")
             return
 
         # 根据文件后缀分类处理
         if file_extension == '.json':
             self.cmd_load_json(file_path)
         else:
-            print(f"Unsupported file type: {file_extension}")
+            self.log.info(f"不支持的文件类型: {file_extension}")
 
 
     def cmd_load_json(self, json_file_path: str):
@@ -321,21 +326,38 @@ class Project(Facility):
                 # print("JSON file content: ", data)
                 # 你可以在这里对解析后的 JSON 数据进行进一步处理
                 self.cmd_load_json_data(data)
+                self.executor_check_all()
 
         except json.JSONDecodeError as e:
-            print(f"Error decoding JSON file: {e}")
+            self.log.info(f"Error decoding JSON file: {e}")
 
 
 
     def cmd_load_json_data(self,data):
+        self.log.info("开始加载 JSON 数据...")
+        # 检查 JSON 数据的结构
         self.dict = data
         # 创建并启动线程
         self.data_type = "json"
         self.step = self.dict['configs']['startStep']
         self.max_step = self.count_total_steps(self.dict['configs']['sequence'])
-        self.executor_check_all()
 
-    def cmd_error(self):
-        pass
-    def cmd_stop(self):
-        pass
+        # 遍历 JSON 中的 objects
+        for obj_name, obj_params in self.dict.get('objects', {}).items():
+            # 在 Facility.tuple_list 中查找对应的对象
+            for i, tuple_t in enumerate(Facility.tuple_list):
+                name = tuple_t[0]
+                obj_instance = tuple_t[3]  # 对应的对象实例
+
+                if name == obj_name:
+                    # 将 JSON 中的参数赋值给对象
+                    for param_key, param_value in obj_params.items():
+                        if hasattr(obj_instance, param_key):
+                            setattr(obj_instance, param_key, param_value)
+                            self.log.info(f"设置对象 {name} 的参数 {param_key} 为 {param_value}")
+                        else:
+                            self.log.warning(f"对象 {name} 不存在参数 {param_key}")
+                    break
+            else:
+                self.log.warning(f"未找到名称为 {obj_name} 的对象，无法设置参数")
+

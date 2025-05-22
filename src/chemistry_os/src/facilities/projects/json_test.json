@@ -1,0 +1,174 @@
+{
+    "objects": {
+        "sdk": {
+            "type": "Chemistry OS SDK",
+            "parameters": {}
+        }
+    },
+    "configs": {
+        "sequence": [
+            "name_catch",
+            "bath_put",
+            "fr3_move_to_bath",
+            "add_solid",
+            "add_liquid_HCl",
+            "bath_open",
+            "bath_writetmp_0",
+            "add_liquid_KMnO4",
+            "bath_writetmp_25",
+            "interactable_countdown_1",
+            "bath_writetmp_0",
+            "add_liquid_H2O2",
+            "interactable_countdown_2",
+            "bath_writetmp_25",
+            "add_liquid_CH3CN",
+            "add_liquid_N2H4",
+            "interactable_countdown_3",
+            "bath_close",
+            "fr3_move_to_catch",
+            "bath_catch",
+            "name_put"
+        ],
+        "startStep": 1,
+        "endCondition": "completion"
+    },
+    "process": {
+        "name_catch": {
+            "object": "sdk",
+            "command": "name_catch",
+            "parameters": {
+                "name": "sanjinshaoping"
+            }
+        },
+        "bath_put": {
+            "object": "sdk",
+            "command": "bath_put",
+            "parameters": {
+                "name": "bath_fr5"
+            }
+        },
+        "fr3_move_to_bath": {
+            "object": "sdk",
+            "command": "fr3_move_to_bath",
+            "parameters": {}
+        },
+        "add_solid": {
+            "object": "sdk",
+            "command": "add_solid",
+            "parameters": {
+                "gram": "CompoundC_solid_add",
+                "tube_from": "test_tube",
+                "beaker_from": "beaker"
+            }
+        },
+        "add_liquid_HCl": {
+            "object": "sdk",
+            "command": "add_liquid",
+            "parameters": {
+                "name": "HCl",
+                "rpm": "HCl_rpm",
+                "volume": "HCL_volume_add"
+            }
+        },
+        "bath_open": {
+            "object": "sdk",
+            "command": "bath_open",
+            "parameters": {}
+        },
+        "bath_writetmp_0": {
+            "object": "sdk",
+            "command": "bath_writetmp",
+            "parameters": {
+                "tmp": "tmp_0"
+            }
+        },
+        "add_liquid_KMnO4": {
+            "object": "sdk",
+            "command": "add_liquid",
+            "parameters": {
+                "name": "KMnO4",
+                "rpm": "KMnO4_rpm",
+                "volume": "KMnO4_volume_add"
+            }
+        },
+        "bath_writetmp_25": {
+            "object": "sdk",
+            "command": "bath_writetmp",
+            "parameters": {
+                "tmp": "tmp_25"
+            }
+        },
+        "interactable_countdown_1": {
+            "object": "sdk",
+            "command": "interactable_countdown",
+            "parameters": {
+                "seconds": "reaction_time_1"
+            }
+        },
+        "add_liquid_H2O2": {
+            "object": "sdk",
+            "command": "add_liquid",
+            "parameters": {
+                "name": "H2O2",
+                "rpm": "H2O2_rpm",
+                "volume": "H2O2_volume_add"
+            }
+        },
+        "interactable_countdown_2": {
+            "object": "sdk",
+            "command": "interactable_countdown",
+            "parameters": {
+                "seconds": "reaction_time_2"
+            }
+        },
+        "add_liquid_CH3CN": {
+            "object": "sdk",
+            "command": "add_liquid",
+            "parameters": {
+                "name": "CH3CN",
+                "rpm": "CH3CN_rpm",
+                "volume": "CH3CN_volume_add"
+            }
+        },
+        "add_liquid_N2H4": {
+            "object": "sdk",
+            "command": "add_liquid",
+            "parameters": {
+                "name": "N2H4",
+                "rpm": "N2H4_rpm",
+                "volume": "N2H4_volume_add"
+            }
+        },
+        "interactable_countdown_3": {
+            "object": "sdk",
+            "command": "interactable_countdown",
+            "parameters": {
+                "seconds": "reaction_time_3"
+            }
+        },
+        "bath_close": {
+            "object": "sdk",
+            "command": "bath_close",
+            "parameters": {}
+        },
+        "fr3_move_to_catch": {
+            "object": "sdk",
+            "command": "fr3_move_to_catch",
+            "parameters": {}
+        },
+        "bath_catch": {
+            "object": "sdk",
+            "command": "bath_catch",
+            "parameters": {
+                "name": "bath_fr5"
+            }
+        },
+        "name_put": {
+            "object": "sdk",
+            "command": "name_put",
+            "parameters": {
+                "name": "sanjinshaoping"
+            }
+        }
+    }
+}
