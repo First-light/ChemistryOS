@@ -44,6 +44,7 @@ if __name__ == '__main__':
     main_parser = CommandParser()
     main_parser.parse("os project name=pro file=json_test.json")
     main_parser.parse("os check")
+    main_parser.parse("pro run")
     main_parser.start()
 
     # hn_sdk.name_catch('sanjinshaoping')
