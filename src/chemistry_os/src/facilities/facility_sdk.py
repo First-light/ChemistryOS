@@ -480,7 +480,7 @@ class HN_SDK(Facility):
     def fr3_init(self):
         self.fr3_put()
         if self.fr3_C.check_place==None:
-            self.fr5_Go_to_start_zone_0()
+            self.fr3_C.move_to_catch()
 
     def HN_init(self):
         self.fr5_init()
