@@ -25,7 +25,8 @@ class Fr5Arm(Facility):
     safe_place=[[-250.0, -250.0, 350.0, 90.0, 0.0, -90.0],
             [0.0, -250.0, 350.0, 90.0, 0.0, 0.0],
             [200.0, -100.0, 350.0, 90.0, 0.0, 90.0],
-            [100.0, 200.0, 400.0, 90.0, 0.0, 180.0]]
+            [100.0, 200.0, 400.0, 90.0, 0.0, 180.0],
+            [0.0, 400.0, 400.0, 90.0, 0.0, 90.0]]
     
     position_file_path = "src/chemistry_os/src/facilities/location/fr5.json"
 
@@ -736,12 +737,12 @@ class Fr5Arm(Facility):
 
                 time.sleep(servo_cycle_time)
                 shake_count += 1
-        
-        # 移动到记录的位置
-        self.robot.MoveCart(final_tcp_pose, 0, 0)
+
+        print(tcp_pose)
 
         # 回归初始位置
-        self.robot.MoveCart(tcp_pose, 0, 0)
+        self.move_to_desc(tcp_pose, vel=10)
+        time.sleep(1)
             
 
 if __name__ == '__main__':
