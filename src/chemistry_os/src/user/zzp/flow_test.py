@@ -37,9 +37,11 @@ if __name__ == '__main__':
     # 抓取三颈烧瓶
     hn_sdk.name_catch('sanjinshaoping')
     hn_sdk.bath_put('bath_fr5')
-    hn_sdk.fr3_move_to_bath()
+
     # 固液进料
     hn_sdk.add_solid(CompoundC_solid_add, 'test_tube', 'beaker')
+    
+    hn_sdk.fr3_move_to_bath()
     hn_sdk.add_liquid('HCl', HCl_rpm, HCL_volume_add)
     # 水浴
     hn_sdk.bath_open()

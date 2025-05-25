@@ -19,6 +19,12 @@ class Fr3Arm(Fr5Arm):
     angle_offset = 45.0
     saved_pose = [0,0,0,0,0,0]
 
+    places=[
+        [215.0,-225.0,160.0,90.0,-45.0,45.0], #bath
+        [215.0,-225.0,398.0,90.0,-45.0,45.0], #catch
+        []
+    ]
+
     def __init__(self, name: str, ip: str):
         self.robot = Robot.RPC(ip)
         self.name = name
@@ -74,6 +80,10 @@ class Fr3Arm(Fr5Arm):
         time.sleep(1)
 
     def move_to_bath(self):
+        self.move_to_desc([215.0,-225.0,160.0,90.0,-45.0,45.0],vel=5)
+        time.sleep(1)
+
+    def move_to_pour(self):
         self.move_to_desc([215.0,-225.0,160.0,90.0,-45.0,45.0],vel=5)
         time.sleep(1)
 

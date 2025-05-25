@@ -22,10 +22,12 @@ class Fr5Arm(Facility):
     angle_offset = 45.0
     saved_pose = [0,0,0,0,0,0]
 
-    safe_place=[[-250.0, -250.0, 350.0, 90.0, 0.0, -90.0],
-            [0.0, -250.0, 350.0, 90.0, 0.0, 0.0],
-            [200.0, -100.0, 350.0, 90.0, 0.0, 90.0],
-            [100.0, 200.0, 400.0, 90.0, 0.0, 180.0]]
+    safe_place=[
+        [-250.0, -250.0, 350.0, 90.0, 0.0, -90.0],
+        [0.0, -250.0, 350.0, 90.0, 0.0, 0.0],
+        [200.0, -100.0, 350.0, 90.0, 0.0, 90.0],
+        [100.0, 200.0, 400.0, 90.0, 0.0, 180.0]
+    ]
     
     position_file_path = "src/chemistry_os/src/facilities/location/fr5.json"
 
@@ -638,6 +640,17 @@ class Fr5Arm(Facility):
 
     def set_nowplace(self, nowplace:int):
         self.now_place = nowplace
+
+    def check_place(self):
+        now_place = self.robot.GetActualTCPPose(0)
+        for i,x in enumerate(self.safe_place):
+            for a, b in zip(x, now_place):
+                diff = abs(a - b)
+                if diff > 5:
+                    self.now_place = i
+                    return i
+        return None
+
 
     # radius=参数为容器半径mm，height=容器上平面离夹爪中心高度mm，direction=角度方向与增量，max_angle=倾倒最大角度，rate_percentage=运动速率的百分比
     def pour(self, radius, height, direction=-2, max_angle=90, rate_percentage=100.0, shake=1):
