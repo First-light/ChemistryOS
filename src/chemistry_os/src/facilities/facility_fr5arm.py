@@ -642,14 +642,29 @@ class Fr5Arm(Facility):
         self.now_place = nowplace
 
     def check_place(self):
-        now_place = self.robot.GetActualTCPPose(0)
-        for i,x in enumerate(self.safe_place):
-            for a, b in zip(x, now_place):
-                diff = abs(a - b)
+        _, now_place = self.robot.GetActualToolFlangePose(0)
+        for i, x in enumerate(self.safe_place):
+            pd = True
+            for idx, (a, b) in enumerate(zip(x, now_place)):
+                if idx >= 3:
+                    diff = min(abs(a - b), 360 - abs(a - b))
+                else:
+                    diff = abs(a - b)
                 if diff > 5:
-                    self.now_place = i
-                    return i
+                    pd = False
+                    break
+            if pd:
+                self.now_place = i
+                return i
         return None
+    
+    def fr5_init(self):
+        self.reset_gripper()
+        now_place = self.check_place()
+        if now_place==None:
+            self.Go_to_start_zone_0()
+        else:
+            self.move_to_desc(self.safe_place[now_place], type='MoveJ', vel=15)
 
 
     # radius=参数为容器半径mm，height=容器上平面离夹爪中心高度mm，direction=角度方向与增量，max_angle=倾倒最大角度，rate_percentage=运动速率的百分比

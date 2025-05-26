@@ -25,7 +25,10 @@ from facilities.facility_bath import Bath
 # add_Liquid=PumpGroup('add_Liquid')
 # add_Solid=Add_Solid('add_Solid')
 fr3_C = Fr3Arm("fr3C","192.168.58.3")
+fr3_C.fr3_init()
 # fr5_A = Fr5Arm("fr5A","192.168.58.2")
+# fr5_A.fr5_init()
+# fr5_A.move_to_safe_catch(3)
 # bath = Bath('bath')
 # hn_sdk=HN_SDK()
 
