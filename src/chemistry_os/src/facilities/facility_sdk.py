@@ -469,12 +469,10 @@ class HN_SDK(Facility):
         countdown(seconds)
 
     def fr5_init(self):
-        self.fr5_gripper_activate()
-        self.fr5_Go_to_start_zone_0()
+        self.fr5_A.fr5_init()
 
     def fr3_init(self):
-        self.fr3_move_to_catch()
-        self.fr3_put()
+        self.fr3_C.fr3_init()
 
     def HN_init(self):
         self.fr5_init()
