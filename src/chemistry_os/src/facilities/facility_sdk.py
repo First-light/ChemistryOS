@@ -186,6 +186,8 @@ class HN_SDK(Facility):
         time.sleep(1)
 
     def name_pour(self, name:str):
+        self.fr3_C.move_to_pour()
+
         obj_statu = self.fr5_A.obj_status[name]
 
         # #根据id确定安全位置, 移动到安全位置
@@ -217,6 +219,8 @@ class HN_SDK(Facility):
         #移动到安全位置
         self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=10)
         time.sleep(1)
+
+        self.fr3_C.move_to_catch()
 
     def bath_catch(self, name:str):
 
@@ -467,11 +471,13 @@ class HN_SDK(Facility):
 
     def fr5_init(self):
         self.fr5_gripper_activate()
-        self.fr5_Go_to_start_zone_0()
+        if self.fr5_A.check_place==None:
+            self.fr5_Go_to_start_zone_0()
 
     def fr3_init(self):
-        self.fr3_move_to_catch()
         self.fr3_put()
+        if self.fr3_C.check_place==None:
+            self.fr3_C.move_to_catch()
 
     def HN_init(self):
         self.fr5_init()
