@@ -27,9 +27,8 @@ class Fr3Arm(Fr5Arm):
 
     def __init__(self, name: str, ip: str):
         self.robot = Robot.RPC(ip)
-        self.name = name
         Facility.__init__(self, name, Fr3Arm.type)
-        self.type = Fr3Arm.type
+        self.arm_init()
         
     def reset_all(self):
         self.open_up()
@@ -68,7 +67,6 @@ class Fr3Arm(Fr5Arm):
 
     def clear_error_code(self):
         ret = self.robot.ResetAllError()
-        self.message_head()
         print(f"清除错误码:{ret}")
 
     def delay(self,sec:float):
