@@ -369,18 +369,18 @@ class HN_SDK(Facility):
     def add_solid(self, gram:float, tube_from:str, beaker_from:str, test_tube_add_place:str='test_tube_add_place', beaker_add_space:str='add_solid_place', pour_place:str='solid_pour_place'):
         self.name_catch(tube_from)
         self.name_put(test_tube_add_place, test_tube_add=True)
-        # self.name_catch_and_put(beaker_from, beaker_add_space)
+        self.name_catch_and_put(beaker_from, beaker_add_space)
 
-        # self.add_Solid.initialize_serial()
-        # self.add_Solid.turn_on()
-        # self.add_Solid.add_solid_series(gram)
-        # self.add_Solid.turn_off()
-        # self.add_Solid.release_serial()
+        self.add_Solid.initialize_serial()
+        self.add_Solid.turn_on()
+        self.add_Solid.add_solid_series(gram)
+        self.add_Solid.turn_off()
+        self.add_Solid.release_serial()
         self.name_catch(test_tube_add_place, test_tube_add=True)
         self.name_put(tube_from)
-        # self.name_catch(beaker_add_space)
-        # self.name_pour(pour_place)
-        # self.name_put(beaker_from)
+        self.name_catch(beaker_add_space)
+        self.name_pour(pour_place)
+        self.name_put(beaker_from)
 
     def fr3_move_to_catch(self):
         self.fr3_C.move_to_catch()
@@ -470,14 +470,10 @@ class HN_SDK(Facility):
         countdown(seconds)
 
     def fr5_init(self):
-        self.fr5_gripper_activate()
-        if self.fr5_A.check_place==None:
-            self.fr5_Go_to_start_zone_0()
+        self.fr5_A.fr5_init()
 
     def fr3_init(self):
-        self.fr3_put()
-        if self.fr3_C.check_place==None:
-            self.fr3_C.move_to_catch()
+        self.fr3_C.fr3_init()
 
     def HN_init(self):
         self.fr5_init()

@@ -19,10 +19,10 @@ class Fr3Arm(Fr5Arm):
     angle_offset = 45.0
     saved_pose = [0,0,0,0,0,0]
 
-    places=[
+    safe_place=[
         [215.0,-225.0,160.0,90.0,-45.0,45.0], #bath
         [215.0,-225.0,398.0,90.0,-45.0,45.0], #catch
-        []
+        [55.0,-225.0,398.0,90.0,-45.0,-45.0]
     ]
 
     def __init__(self, name: str, ip: str):
@@ -84,6 +84,14 @@ class Fr3Arm(Fr5Arm):
     def move_to_pour(self):
         self.move_to_desc([215.0,-225.0,160.0,90.0,-45.0,45.0],vel=5)
         time.sleep(1)
+
+    def fr3_init(self):
+        self.put()
+        now_place = self.check_place()
+        if now_place==None:
+            self.move_to_catch()
+        else:
+            self.move_to_desc(self.safe_place[now_place], type='MoveJ', vel=15)
 
 if __name__ == '__main__':
     exit()
