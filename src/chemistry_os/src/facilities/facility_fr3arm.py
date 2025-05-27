@@ -22,7 +22,7 @@ class Fr3Arm(Fr5Arm):
     safe_place=[
         [215.0,-225.0,160.0,90.0,-45.0,45.0], #bath
         [215.0,-225.0,398.0,90.0,-45.0,45.0], #catch
-        [55.0,-225.0,398.0,90.0,-45.0,-45.0]
+        [160.0,-280.0,398.0,90.0,-45.0,-45.0]  #pour
     ]
 
     def __init__(self, name: str, ip: str):
@@ -73,16 +73,16 @@ class Fr3Arm(Fr5Arm):
         print("delay ",sec)
         time.sleep(sec)
 
-    def move_to_catch(self):
-        self.move_to_desc([215.0,-225.0,398.0,90.0,-45.0,45.0],vel=5)
+    def move_to_bath(self):
+        self.move_to_desc(self.safe_place[0],vel=5)
         time.sleep(1)
 
-    def move_to_bath(self):
-        self.move_to_desc([215.0,-225.0,160.0,90.0,-45.0,45.0],vel=5)
+    def move_to_catch(self):
+        self.move_to_desc(self.safe_place[1],vel=5)
         time.sleep(1)
 
     def move_to_pour(self):
-        self.move_to_desc([215.0,-225.0,160.0,90.0,-45.0,45.0],vel=5)
+        self.move_to_desc(self.safe_place[2],vel=5)
         time.sleep(1)
 
     def fr3_init(self):
@@ -92,6 +92,23 @@ class Fr3Arm(Fr5Arm):
             self.move_to_catch()
         else:
             self.move_to_desc(self.safe_place[now_place], type='MoveJ', vel=15)
+
+    def move_to_safe_catch(self, aim_place:int):
+        if aim_place>self.now_place:
+            for i in range(self.now_place+1, aim_place+1):
+                desc_pos = self.safe_place[i]
+                print(i)
+                print(desc_pos)
+                self.move_to_desc(desc_pos, type='MoveL', vel=15)
+                time.sleep(1)
+        else:
+            for i in range(self.now_place-1, aim_place-1, -1):
+                desc_pos = self.safe_place[i]
+                print(i)
+                print(desc_pos)
+                self.move_to_desc(desc_pos, type='MoveL', vel=15)
+                time.sleep(1)
+        self.now_place = aim_place
 
 if __name__ == '__main__':
     exit()

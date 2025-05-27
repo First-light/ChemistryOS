@@ -20,7 +20,7 @@
         "catch_direction": [90.0, 0.0, 90.0],
         "safe_place_id": 2
     },
-    "add_solid_place": {
+    "beaker_add_space": {
         "destination": [610.0, -475.0, 130.0],
         "catch_pre_offset": 190.0,
         "put_height": 16.0,
@@ -28,7 +28,7 @@
         "safe_place_id": 2
     },
     "bath_fr5": {
-        "destination": [125.0, 625.0, 340.0],
+        "destination": [125.0, 627.0, 340.0],
         "bath_pre_offset": [60, 0, 0],
         "catch_pre_offset": 60.0,
         "put_height": 80.0,
@@ -70,25 +70,18 @@
         "catch_direction": [90.0, 0.0, 180.0],
         "safe_place_id": 3
     },
-    "solid_pour_place": {
-        "destination": [80, 528.0, 195.0],
-        "catch_pre_offset": 0.0,
-        "put_height": 100,
-        "catch_direction": [90.0, 0.0, 180.0],
-        "safe_place_id": 3
-    },
     "sanjinshaoping": {
-        "destination": [-470, -207.0, 170.0],
+        "destination": [-470, -210.0, 170.0],
         "catch_pre_offset": 60.0,
         "put_height": 120.0,
         "catch_direction": [90.0, 0.0, -90.0],
         "safe_place_id": 0
     },
-    "pour_place": {
-        "destination": [0.0, 420.0, 400.0],
+    "solid_pour_place": {
+        "destination": [0.0, 300.0, 330.0],
         "catch_pre_offset": 0,
-        "put_height": 30.0,
-        "catch_direction": [90.0, 0.0, 90.0],
-        "safe_place_id": 4
+        "put_height": 80.0,
+        "catch_direction": [90.0, 0.0, 180.0],
+        "safe_place_id": 3
     }
 }
