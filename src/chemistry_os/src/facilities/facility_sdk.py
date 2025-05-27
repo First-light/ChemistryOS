@@ -127,7 +127,6 @@ class HN_SDK(Facility):
             self.add_Solid.clip_open()
             # self.add_Solid.turn_off()
             self.add_Solid.release_serial()
-            input('ok?')
 
         input('ok?')
         self.fr5_A.catch()
@@ -217,12 +216,14 @@ class HN_SDK(Facility):
         time.sleep(1)
 
         #移动到安全位置
-        self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=10)
+        self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], type='MoveJ', vel=10)
         time.sleep(1)
 
         self.fr3_C.move_to_catch()
 
     def bath_catch(self, name:str):
+
+        self.fr3_C.move_to_safe_catch(1)
 
         obj_statu = self.fr5_A.obj_status[name]
 
@@ -260,6 +261,8 @@ class HN_SDK(Facility):
         time.sleep(1)
 
     def bath_put(self, name:str):
+
+        self.fr3_C.move_to_safe_catch(1)
 
         obj_statu = self.fr5_A.obj_status[name]
 
@@ -299,6 +302,8 @@ class HN_SDK(Facility):
         time.sleep(1)
 
     def add_liquid(self, name:str, rpm=150, volume=0.0, name_space='add_liquid_mode_place'):
+
+        self.fr3_C.move_to_safe_catch(0)
 
         obj_statu = self.fr5_A.obj_status[name]
 
@@ -366,7 +371,10 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=10)
         time.sleep(1)
 
-    def add_solid(self, gram:float, tube_from:str, beaker_from:str, test_tube_add_place:str='test_tube_add_place', beaker_add_space:str='add_solid_place', pour_place:str='solid_pour_place'):
+    def add_solid(self, gram:float, tube_from:str, beaker_from:str, test_tube_add_place:str='test_tube_add_place', beaker_add_space:str='beaker_add_space', pour_place:str='solid_pour_place'):
+        self.add_Solid.initialize_serial()
+        self.add_Solid.clip_open()
+        self.add_Solid.release_serial()
         self.name_catch(tube_from)
         self.name_put(test_tube_add_place, test_tube_add=True)
         self.name_catch_and_put(beaker_from, beaker_add_space)
@@ -376,11 +384,14 @@ class HN_SDK(Facility):
         self.add_Solid.add_solid_series(gram)
         self.add_Solid.turn_off()
         self.add_Solid.release_serial()
+
         self.name_catch(test_tube_add_place, test_tube_add=True)
         self.name_put(tube_from)
+        self.fr3_C.move_to_safe_catch(2)
         self.name_catch(beaker_add_space)
         self.name_pour(pour_place)
         self.name_put(beaker_from)
+        self.fr3_C.move_to_safe_catch(1)
 
     def fr3_move_to_catch(self):
         self.fr3_C.move_to_catch()
