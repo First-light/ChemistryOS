@@ -164,6 +164,10 @@ class HN_SDK(Facility):
         self.fr5_A.move_by(0, 0, -obj_statu['put_height'], vel=5)
 
         if test_tube_add:
+            self.add_Solid.initialize_serial()
+            self.add_Solid.clip_open()
+            self.add_Solid.release_serial()
+
             self.fr5_A.gripper_30()
             self.add_Solid.initialize_serial()
             # self.add_Solid.turn_on()
@@ -372,9 +376,6 @@ class HN_SDK(Facility):
         time.sleep(1)
 
     def add_solid(self, gram:float, tube_from:str, beaker_from:str, test_tube_add_place:str='test_tube_add_place', beaker_add_space:str='beaker_add_space', pour_place:str='solid_pour_place'):
-        self.add_Solid.initialize_serial()
-        self.add_Solid.clip_open()
-        self.add_Solid.release_serial()
         self.name_catch(tube_from)
         self.name_put(test_tube_add_place, test_tube_add=True)
         self.name_catch_and_put(beaker_from, beaker_add_space)
@@ -435,7 +436,7 @@ class HN_SDK(Facility):
         self.bath.power_ctr(0)
 
     def bath_writetmp(self, tmp:float):
-        Bath.interactable_writetmp(tmp)
+        self.bath.interactable_writetmp(tmp)
 
     def interactable_countdown(seconds:float):
     # 用于控制是否继续计时的事件

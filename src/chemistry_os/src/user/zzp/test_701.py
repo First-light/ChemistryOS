@@ -66,10 +66,10 @@ hn_sdk.name_pour('solid_pour_place')
 # hn_sdk.add_solid(0, 'test_tube', 'beaker')
 
 # add_Liquid.add_liquid('H2O2',150 ,10)
-hn_sdk.fr5_init()
-hn_sdk.fr3_init()
+# hn_sdk.fr5_init()
+# hn_sdk.fr3_init()
 
-hn_sdk.name_catch('beaker')
+# hn_sdk.name_catch('beaker')
 # hn_sdk.name_catch('test_tube')
 # hn_sdk.name_put('test_tube_add_place', test_tube_add=True)
 # fr3_C.move_to_catch()
