@@ -45,16 +45,19 @@ fr3_C = Fr3Arm("fr3C","192.168.58.3")
 fr5_A = Fr5Arm("fr5A","192.168.58.2")
 bath = Bath('bath')
 hn_sdk=HN_SDK()
-hn_sdk.fr3_init()
+hn_sdk.fr3_check_place()
 hn_sdk.fr5_init()
 
-
+# hn_sdk.name_catch('sanjinshaoping')
+# hn_sdk.bath_put('bath_fr5')
 # hn_sdk.name_catch('sanjinshaoping')
 # hn_sdk.bath_put('bath_fr5')
 # hn_sdk.name_catch_and_put('beaker', 'beaker_add_space')
 # fr3_C.move_to_safe_catch(2)
 # hn_sdk.name_catch('beaker')
-hn_sdk.name_pour('solid_pour_place')
+# hn_sdk.name_pour('solid_pour_place')
+hn_sdk.bath_catch('bath_fr5')
+hn_sdk.name_put('sanjinshaoping')
 
 # hn_sdk.add_liquid('HCl', HCl_rpm, HCL_volume_add)
 

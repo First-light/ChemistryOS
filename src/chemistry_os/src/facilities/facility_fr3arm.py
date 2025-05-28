@@ -85,13 +85,16 @@ class Fr3Arm(Fr5Arm):
         self.move_to_desc(self.safe_place[2],vel=5)
         time.sleep(1)
 
-    def fr3_init(self):
-        self.put()
+    def fr3_check_place(self):
         now_place = self.check_place()
         if now_place==None:
             self.move_to_catch()
         else:
             self.move_to_desc(self.safe_place[now_place], type='MoveJ', vel=15)
+            
+    def fr3_init(self):
+        self.put()
+        self.fr3_check_place()
 
     def move_to_safe_catch(self, aim_place:int):
         if aim_place>self.now_place:
