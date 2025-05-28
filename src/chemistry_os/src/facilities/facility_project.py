@@ -72,7 +72,7 @@ class Project(Facility):
         all_objects_exist = True
 
         # 遍历 self.dict['objects'] 中的对象
-        for obj_name in self.dict['objects'].items():
+        for obj_name in self.dict['objects']:
             # 在 Facility.tuple_list 中查找对应的对象
             matching_tuple = next((tuple_t for tuple_t in Facility.tuple_list if tuple_t[0] == obj_name), None)
 

@@ -1,15 +1,13 @@
 {
     "objects": {
         "sdk": {
-            "type": "Chemistry OS SDK",
-            "parameters": {}
+            "type": "Chemistry OS SDK"
         }
     },
     "configs": {
         "sequence": [
             "name_catch",
             "bath_put",
-            "fr3_move_to_bath",
             "add_solid",
             "add_liquid_HCl",
             "bath_open",
@@ -22,10 +20,8 @@
             "interactable_countdown_2",
             "bath_writetmp_25",
             "add_liquid_CH3CN",
-            "add_liquid_N2H4",
             "interactable_countdown_3",
             "bath_close",
-            "fr3_move_to_catch",
             "bath_catch",
             "name_put"
         ],
@@ -47,16 +43,11 @@
                 "name": "bath_fr5"
             }
         },
-        "fr3_move_to_bath": {
-            "object": "sdk",
-            "command": "fr3_move_to_bath",
-            "parameters": {}
-        },
         "add_solid": {
             "object": "sdk",
             "command": "add_solid",
             "parameters": {
-                "gram": "CompoundC_solid_add",
+                "gram": 0.5,
                 "tube_from": "test_tube",
                 "beaker_from": "beaker"
             }
@@ -66,8 +57,8 @@
             "command": "add_liquid",
             "parameters": {
                 "name": "HCl",
-                "rpm": "HCl_rpm",
-                "volume": "HCL_volume_add"
+                "rpm": 100,
+                "volume": 13.4
             }
         },
         "bath_open": {
@@ -79,7 +70,7 @@
             "object": "sdk",
             "command": "bath_writetmp",
             "parameters": {
-                "tmp": "tmp_0"
+                "tmp": 0
             }
         },
         "add_liquid_KMnO4": {
@@ -87,22 +78,22 @@
             "command": "add_liquid",
             "parameters": {
                 "name": "KMnO4",
-                "rpm": "KMnO4_rpm",
-                "volume": "KMnO4_volume_add"
+                "rpm": 15,
+                "volume": 26.76
             }
         },
         "bath_writetmp_25": {
             "object": "sdk",
             "command": "bath_writetmp",
             "parameters": {
-                "tmp": "tmp_25"
+                "tmp": 25
             }
         },
         "interactable_countdown_1": {
             "object": "sdk",
             "command": "interactable_countdown",
             "parameters": {
-                "seconds": "reaction_time_1"
+                "seconds": 7200
             }
         },
         "add_liquid_H2O2": {
@@ -110,15 +101,15 @@
             "command": "add_liquid",
             "parameters": {
                 "name": "H2O2",
-                "rpm": "H2O2_rpm",
-                "volume": "H2O2_volume_add"
+                "rpm": 30,
+                "volume": 10.0
             }
         },
         "interactable_countdown_2": {
             "object": "sdk",
             "command": "interactable_countdown",
             "parameters": {
-                "seconds": "reaction_time_2"
+                "seconds": 1200
             }
         },
         "add_liquid_CH3CN": {
@@ -126,34 +117,20 @@
             "command": "add_liquid",
             "parameters": {
                 "name": "CH3CN",
-                "rpm": "CH3CN_rpm",
-                "volume": "CH3CN_volume_add"
-            }
-        },
-        "add_liquid_N2H4": {
-            "object": "sdk",
-            "command": "add_liquid",
-            "parameters": {
-                "name": "N2H4",
-                "rpm": "N2H4_rpm",
-                "volume": "N2H4_volume_add"
+                "rpm": 30,
+                "volume": 20.0
             }
         },
         "interactable_countdown_3": {
             "object": "sdk",
             "command": "interactable_countdown",
             "parameters": {
-                "seconds": "reaction_time_3"
+                "seconds": 14400
             }
         },
         "bath_close": {
             "object": "sdk",
             "command": "bath_close",
-            "parameters": {}
-        },
-        "fr3_move_to_catch": {
-            "object": "sdk",
-            "command": "fr3_move_to_catch",
             "parameters": {}
         },
         "bath_catch": {
