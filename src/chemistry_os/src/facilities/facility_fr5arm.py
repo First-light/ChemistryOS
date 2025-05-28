@@ -283,7 +283,7 @@ class Fr5Arm(Facility):
         old_pose = self.robot.GetActualToolFlangePose()
         new_list = [old_pose[1][i] + val for i , val in enumerate([x, y, z, r1, r2, r3])]
         new_pose = tuple(new_list)
-        self.log.info("新位姿",new_pose)
+        self.log.info(f"新位姿: {new_pose}")
         self.move(new_pose,type,vel,acc)
         self.log.info("到达")
         mechanical_arm_status = {

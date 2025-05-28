@@ -487,6 +487,9 @@ class HN_SDK(Facility):
     def fr3_init(self):
         self.fr3_C.fr3_init()
 
+    def fr3_check_place(self):
+        self.fr3_C.fr3_check_place()
+
     def HN_init(self):
         self.fr5_init()
         self.fr3_init()
