@@ -555,7 +555,6 @@ class Fr5Arm(Facility):
         self.log.info(f"机械臂初始角机械偏移{Fr5Arm.angle_offset}")
         self.log.info("完成")
 
-
     def reset_gripper(self):
         self.log.info("夹爪初始化")
         self.robot.SetGripperConfig(4, 0, 0, 1)
@@ -660,6 +659,13 @@ class Fr5Arm(Facility):
     
     def fr5_init(self):
         self.reset_gripper()
+        now_place = self.check_place()
+        if now_place==None:
+            self.Go_to_start_zone_0()
+        else:
+            self.move_to_desc(self.safe_place[now_place], type='MoveJ', vel=15)
+
+    def fr5_check_place(self):
         now_place = self.check_place()
         if now_place==None:
             self.Go_to_start_zone_0()

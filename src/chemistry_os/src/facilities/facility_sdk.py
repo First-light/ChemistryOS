@@ -57,6 +57,7 @@ class HN_SDK(Facility):
     description = "A software development kit for Chemistry OS."
     
     def __init__(self):
+        super().__init__(name="sdk", type = HN_SDK.type)
 
         def get_facility_ref(name, expected_type):
             for facility in Facility.tuple_list:
@@ -77,7 +78,7 @@ class HN_SDK(Facility):
         except ValueError as e:
             print(e)
 
-        super().__init__(name="sdk", type = Fr5Arm.type)
+        
 
     def cmd_init(self):
         self.parser.register("name_catch", self.name_catch, {"name":''}, "fr5 catch named place")
@@ -85,8 +86,8 @@ class HN_SDK(Facility):
         self.parser.register("name_pour", self.name_pour, {"name":''}, "fr5 pour named place")
         self.parser.register("bath_catch", self.bath_catch, {"name":''}, "fr5 bath catch")
         self.parser.register("bath_put", self.bath_put, {"name":''}, "fr5 bath put")
-        self.parser.register("add_liquid", self.add_liquid, {"name":'', "rpm":150, "volume":0.0, "name_space":'add_liquid_mode_place'}, "add liquid to named place")
-        self.parser.register("add_solid", self.add_solid, {"name":'', "gram":0.0, "name_space":'add_solid_place'}, "add solid to named place")
+        self.parser.register("add_liquid", self.add_liquid, {"name":'', "rpm":150, "volume":0.0}, "add liquid to named place")  # 移除无效参数 name_space
+        self.parser.register("add_solid", self.add_solid, {"gram":0.0, "tube_from":'', "beaker_from":''}, "add solid to named place")  # 修正参数名
         self.parser.register("fr3_move_to_catch", self.fr3_move_to_catch, {}, "fr3 move to catch")
         self.parser.register("fr3_move_to_bath", self.fr3_move_to_bath, {}, "fr3 move to bath")
         self.parser.register("fr3_catch", self.fr3_catch, {}, "fr3 catch")
@@ -95,7 +96,7 @@ class HN_SDK(Facility):
         self.parser.register("name_catch_pour_put", self.name_catch_pour_put, {"name1":'', "name2":'', "name3":''}, "catch, pour and put")
         self.parser.register("fr5_gripper_activate", self.fr5_gripper_activate, {}, "activate fr5 gripper")
         self.parser.register("fr5_Go_to_start_zone_0", self.fr5_Go_to_start_zone_0, {}, "fr5 go to start zone 0")
-        self.parser.register("bath_init", self.bath_open, {}, "initialize bath")
+        self.parser.register("bath_open", self.bath_open, {}, "initialize bath")
         self.parser.register("bath_close", self.bath_close, {}, "close bath")
         self.parser.register("bath_writetmp", self.bath_writetmp, {"tmp":0.0}, "write temperature to bath")
         self.parser.register("interactable_countdown", self.interactable_countdown, {"seconds":0.0}, "start interactive countdown")

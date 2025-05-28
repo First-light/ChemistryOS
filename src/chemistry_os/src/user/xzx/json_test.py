@@ -44,35 +44,9 @@ if __name__ == '__main__':
     main_parser = CommandParser()
     main_parser.parse("os project name=pro file=json_test.json")
     main_parser.parse("os check")
-    main_parser.parse("pro run")
+    # main_parser.parse("pro run")
     main_parser.start()
 
-    # hn_sdk.name_catch('sanjinshaoping')
-    # hn_sdk.bath_put('bath_fr5')
-    # hn_sdk.fr3_move_to_bath()
-    # # 固液进料
-    # hn_sdk.add_solid(CompoundC_solid_add, 'test_tube', 'beaker')
-    # hn_sdk.add_liquid('HCl', HCl_rpm, HCL_volume_add)
-    # # 水浴
-    # hn_sdk.bath_open()
-    # hn_sdk.bath_writetmp(tmp_0)
-    # hn_sdk.add_liquid('KMnO4', KMnO4_rpm, KMnO4_volume_add)
-    # hn_sdk.bath_writetmp(tmp_25)
-    # hn_sdk.interactable_countdown(reaction_time_1)
-    # hn_sdk.bath_writetmp(tmp_0)
-    # hn_sdk.add_liquid('H2O2', H2O2_rpm, H2O2_volume_add)
-    # hn_sdk.interactable_countdown(reaction_time_2)
-
-    # hn_sdk.bath_writetmp(tmp_25)
-    # hn_sdk.add_liquid('CH3CN', CH3CN_rpm, CH3CN_volume_add)
-    # hn_sdk.add_liquid('N2H4', N2H4_rpm, N2H4_volume_add)
-    # hn_sdk.interactable_countdown(reaction_time_3)
-
-    # hn_sdk.bath_close()
-    # # 放置三颈烧瓶
-    # hn_sdk.fr3_move_to_catch()
-    # hn_sdk.bath_catch('bath_fr5')
-    # hn_sdk.name_put('sanjinshaoping')
 
     try:
         while True:
