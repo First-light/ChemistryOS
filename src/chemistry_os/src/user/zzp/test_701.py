@@ -45,8 +45,44 @@ fr3_C = Fr3Arm("fr3C","192.168.58.3")
 fr5_A = Fr5Arm("fr5A","192.168.58.2")
 bath = Bath('bath')
 hn_sdk=HN_SDK()
-hn_sdk.fr3_check_place()
-hn_sdk.fr5_init()
+
+# hn_sdk.bath_close()
+add_Solid.initialize_serial()
+# add_Solid.clip_open()
+# time.sleep(1)
+# print(add_Solid.ser.read_all())
+for _ in range(10):
+    print(add_Solid._read_raw_frame())
+
+print(add_Solid._read_needed_frame())
+add_Solid.release_serial()
+
+# add_Solid.initialize_serial()
+# add_Solid.clip_close()
+# add_Solid.release_serial()
+
+add_Solid.initialize_serial()
+# # add_Solid.turn_on()
+# # add_Solid.add_solid_series(0.5)
+add_Solid.turn_off()
+add_Solid.release_serial()
+
+# add_Solid.initialize_serial()
+# add_Solid.clip_open()
+# add_Solid.release_serial()
+
+# add_Liquid.add_liquid('HCl', 150, HCL_volume_add)
+
+# hn_sdk.bath_open()
+# hn_sdk.bath_writetmp(tmp_0)
+
+# add_Liquid.add_liquid("KMnO4", 150, KMnO4_volume_add)
+
+hn_sdk.bath_writetmp(tmp_25)
+hn_sdk.bath_close()
+
+# hn_sdk.fr3_check_place()
+# hn_sdk.fr5_init()
 
 # hn_sdk.name_catch('sanjinshaoping')
 # hn_sdk.bath_put('bath_fr5')
@@ -56,8 +92,8 @@ hn_sdk.fr5_init()
 # fr3_C.move_to_safe_catch(2)
 # hn_sdk.name_catch('beaker')
 # hn_sdk.name_pour('solid_pour_place')
-hn_sdk.bath_catch('bath_fr5')
-hn_sdk.name_put('sanjinshaoping')
+# hn_sdk.bath_catch('bath_fr5')
+# hn_sdk.name_put('sanjinshaoping')
 
 # hn_sdk.add_liquid('HCl', HCl_rpm, HCL_volume_add)
 
