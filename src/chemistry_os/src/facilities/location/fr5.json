@@ -63,6 +63,13 @@
         "catch_direction": [90.0, 0.0, 180.0],
         "safe_place_id": 3
     },
+    "N2H4": {
+        "destination": [-50.0, 385.0, 115.0],
+        "catch_pre_offset": 60.0,
+        "put_height": 180.0,
+        "catch_direction": [90.0, 0.0, 180.0],
+        "safe_place_id": 3
+    },
     "add_liquid_mode_place": {
         "destination": [80, 528.0, 195.0],
         "catch_pre_offset": 0.0,
@@ -77,11 +84,25 @@
         "catch_direction": [90.0, 0.0, -90.0],
         "safe_place_id": 0
     },
+    "solid_pour_place_old": {
+        "destination": [0.0, 300.0, 330.0],
+        "catch_pre_offset": 0,
+        "put_height": 80.0,
+        "catch_direction": [90.0, 0.0, 180.0],
+        "safe_place_id": 3
+    },
     "solid_pour_place": {
         "destination": [0.0, 300.0, 330.0],
         "catch_pre_offset": 0,
         "put_height": 80.0,
         "catch_direction": [90.0, 0.0, 180.0],
         "safe_place_id": 3
+    },
+    "pour_shaoping_place": {
+        "destination": [0.0, 300.0, 330.0],
+        "catch_pre_offset": 0,
+        "put_height": 80.0,
+        "catch_direction": [90.0, 0.0, -90.0],
+        "safe_place_id": 4
     }
 }
