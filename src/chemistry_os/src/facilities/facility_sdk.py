@@ -166,7 +166,9 @@ class HN_SDK(Facility):
 
         if test_tube_add:
             self.add_Solid.initialize_serial()
+            self.add_Solid.turn_on()
             self.add_Solid.clip_open()
+            self.add_Solid.turn_off()
             self.add_Solid.release_serial()
 
             self.fr5_A.gripper_30()
