@@ -10,6 +10,7 @@ import math
 import numpy as np
 from facility import Facility
 from structs import FacilityState
+from exceptions import *
 
 class Fr5Arm(Facility):
     type = "fr5arm"
@@ -26,7 +27,7 @@ class Fr5Arm(Facility):
         [-250.0, -250.0, 350.0, 90.0, 0.0, -90.0],
         [0.0, -250.0, 350.0, 90.0, 0.0, 0.0],
         [200.0, -150.0, 350.0, 90.0, 0.0, 90.0],
-        [100.0, 200.0, 400.0, 90.0, 0.0, 180.0]
+        [100.0, 200.0, 400.0, 90.0, 0.0, 180.0],
     ]
     
     position_file_path = "src/chemistry_os/src/facilities/location/fr5.json"
@@ -34,6 +35,9 @@ class Fr5Arm(Facility):
     def __init__(self, name: str, ip: str):
         super().__init__(name, Fr5Arm.type)
         self.robot = Robot.RPC(ip)
+        with open(self.position_file_path, 'r') as file:
+            self.obj_status = json.load(file)
+        self.obj_status_init()
         self.arm_init()
 
     def arm_init(self):
@@ -48,6 +52,7 @@ class Fr5Arm(Facility):
                 temp, ip_check = temp_ip
                 if temp == 0:
                     self.log.info("FR5控制器IP查询成功")
+                    self.state[0] = FacilityState.IDLE
                 else:
                     raise RuntimeError(f"FR5机械臂IP检查错误，错误码: {temp}")
             else:
@@ -63,10 +68,8 @@ class Fr5Arm(Facility):
         self.initial_offset = [0, 0, 0, 0, 0, 0]  # 机械臂初始位置与世界坐标系原点的偏差
         self.open_up()
 
-        with open(self.position_file_path, 'r') as file:
-            self.obj_status = json.load(file)
-        self.obj_status_init()
-
+    def continue_facility(self):
+        self.arm_init()
 
     def obj_status_init(self):
         for obj_name, obj_info in self.obj_status.items():
@@ -227,6 +230,8 @@ class Fr5Arm(Facility):
                     res = 2
                     break
             time.sleep(0.005)
+        if res==2:
+            raise SystemError("fr5机械臂运动异常，已关闭")
         return res
 
     def move(self, new_pose: list, type="MoveL", vel_t=default_speed, acc_t=default_acc):
@@ -253,6 +258,7 @@ class Fr5Arm(Facility):
                 else:
                     self.log.info(f"逆运动学计算失败，错误码: {inverse_kin_result}")
                     self.shut_down()
+                self.move_listen()
 
     def move_joint(self, new_joint: list, vel_t=default_speed, acc_t=default_acc):
         ret = self.robot.MoveJ(new_joint, 0, 0, vel=vel_t, acc=acc_t, blendT=0.0)  # 关节空间直线运动

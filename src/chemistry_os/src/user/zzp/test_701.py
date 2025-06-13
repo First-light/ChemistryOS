@@ -46,26 +46,28 @@ fr5_A = Fr5Arm("fr5A","192.168.58.2")
 bath = Bath('bath')
 hn_sdk=HN_SDK()
 
+# fr5_A.fr5_init()
+# fr5_A.move_to_safe_catch(2)
+
 # hn_sdk.bath_close()
-add_Solid.initialize_serial()
+# add_Solid.initialize_serial()
 # add_Solid.clip_open()
 # time.sleep(1)
 # print(add_Solid.ser.read_all())
-for _ in range(10):
-    print(add_Solid._read_raw_frame())
+# for _ in range(10):
+#     print(add_Solid._read_raw_frame())
 
-print(add_Solid._read_needed_frame())
+# print(add_Solid._read_needed_frame())
+# add_Solid.release_serial()
+add_Solid.initialize_serial()
+add_Solid.clip_close()
 add_Solid.release_serial()
 
 # add_Solid.initialize_serial()
-# add_Solid.clip_close()
-# add_Solid.release_serial()
-
-add_Solid.initialize_serial()
 # # add_Solid.turn_on()
 # # add_Solid.add_solid_series(0.5)
-add_Solid.turn_off()
-add_Solid.release_serial()
+# add_Solid.turn_off()
+# add_Solid.release_serial()
 
 # add_Solid.initialize_serial()
 # add_Solid.clip_open()
@@ -78,8 +80,8 @@ add_Solid.release_serial()
 
 # add_Liquid.add_liquid("KMnO4", 150, KMnO4_volume_add)
 
-hn_sdk.bath_writetmp(tmp_25)
-hn_sdk.bath_close()
+# hn_sdk.bath_writetmp(tmp_25)
+# hn_sdk.bath_close()
 
 # hn_sdk.fr3_check_place()
 # hn_sdk.fr5_init()

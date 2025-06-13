@@ -7,7 +7,7 @@
         "safe_place_id": 0
     },
     "beaker": {
-        "destination": [-470.0, -73.0, 65.0],
+        "destination": [-466.0, -38.0, 100.0],
         "catch_pre_offset": 70.0,
         "put_height": 50,
         "catch_direction": [90.0, 0.0, -90.0],
@@ -99,10 +99,10 @@
         "safe_place_id": 3
     },
     "pour_shaoping_place": {
-        "destination": [0.0, 300.0, 330.0],
+        "destination": [410.0, 250.0, 170.0],
         "catch_pre_offset": 0,
         "put_height": 80.0,
-        "catch_direction": [90.0, 0.0, -90.0],
-        "safe_place_id": 4
+        "catch_direction": [90.0, 0.0, 90.0],
+        "safe_place_id": 2
     }
 }
