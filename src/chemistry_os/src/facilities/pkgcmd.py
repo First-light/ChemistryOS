@@ -63,7 +63,7 @@ class PkgCmdParser:
         handler = self.commands[command_name]["function"]
         args = tokens[1:]
         params = self.commands[command_name]["params"].copy()
-
+        # print(params)
         if not params:
             handler()  # 无参数指令直接执行
         else:

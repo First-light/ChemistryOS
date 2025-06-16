@@ -25,7 +25,7 @@ class Fr5Arm(Facility):
     safe_place=[
         [-250.0, -250.0, 350.0, 90.0, 0.0, -90.0],
         [0.0, -250.0, 350.0, 90.0, 0.0, 0.0],
-        [200.0, -100.0, 350.0, 90.0, 0.0, 90.0],
+        [200.0, -150.0, 350.0, 90.0, 0.0, 90.0],
         [100.0, 200.0, 400.0, 90.0, 0.0, 180.0]
     ]
     
@@ -570,7 +570,6 @@ class Fr5Arm(Facility):
         self.log.info(f"机械臂初始角机械偏移{Fr5Arm.angle_offset}")
         self.log.info("完成")
 
-
     def reset_gripper(self):
         self.log.info("夹爪初始化")
         self.robot.SetGripperConfig(4, 0, 0, 1)
@@ -681,6 +680,13 @@ class Fr5Arm(Facility):
         else:
             self.move_to_desc(self.safe_place[now_place], type='MoveJ', vel=15)
 
+    def fr5_check_place(self):
+        now_place = self.check_place()
+        if now_place==None:
+            self.Go_to_start_zone_0()
+        else:
+            self.move_to_desc(self.safe_place[now_place], type='MoveJ', vel=15)
+
 
     # radius=参数为容器半径mm，height=容器上平面离夹爪中心高度mm，direction=角度方向与增量，max_angle=倾倒最大角度，rate_percentage=运动速率的百分比
     def pour(self, radius, height, direction=-2, max_angle=90, rate_percentage=100.0, shake=1):
@@ -782,9 +788,9 @@ class Fr5Arm(Facility):
 
         print(tcp_pose)
 
-        # 回归初始位置
-        self.move_to_desc(tcp_pose, vel=10)
-        time.sleep(1)
+        # # 回归初始位置
+        # self.move_to_desc(tcp_pose, vel=10)
+        # time.sleep(1)
             
 
 if __name__ == '__main__':

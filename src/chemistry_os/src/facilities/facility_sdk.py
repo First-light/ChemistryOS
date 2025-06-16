@@ -57,6 +57,7 @@ class HN_SDK(Facility):
     description = "A software development kit for Chemistry OS."
     
     def __init__(self):
+        super().__init__(name="sdk", type = HN_SDK.type)
 
         def get_facility_ref(name, expected_type):
             for facility in Facility.tuple_list:
@@ -85,8 +86,8 @@ class HN_SDK(Facility):
         self.parser.register("name_pour", self.name_pour, {"name":''}, "fr5 pour named place")
         self.parser.register("bath_catch", self.bath_catch, {"name":''}, "fr5 bath catch")
         self.parser.register("bath_put", self.bath_put, {"name":''}, "fr5 bath put")
-        self.parser.register("add_liquid", self.add_liquid, {"name":'', "rpm":150, "volume":0.0, "name_space":'add_liquid_mode_place'}, "add liquid to named place")
-        self.parser.register("add_solid", self.add_solid, {"name":'', "gram":0.0, "name_space":'add_solid_place'}, "add solid to named place")
+        self.parser.register("add_liquid", self.add_liquid, {"name":'', "rpm":150, "volume":0.0}, "add liquid to named place")  # 移除无效参数 name_space
+        self.parser.register("add_solid", self.add_solid, {"gram":0.0, "tube_from":'', "beaker_from":''}, "add solid to named place")  # 修正参数名
         self.parser.register("fr3_move_to_catch", self.fr3_move_to_catch, {}, "fr3 move to catch")
         self.parser.register("fr3_move_to_bath", self.fr3_move_to_bath, {}, "fr3 move to bath")
         self.parser.register("fr3_catch", self.fr3_catch, {}, "fr3 catch")
@@ -95,7 +96,7 @@ class HN_SDK(Facility):
         self.parser.register("name_catch_pour_put", self.name_catch_pour_put, {"name1":'', "name2":'', "name3":''}, "catch, pour and put")
         self.parser.register("fr5_gripper_activate", self.fr5_gripper_activate, {}, "activate fr5 gripper")
         self.parser.register("fr5_Go_to_start_zone_0", self.fr5_Go_to_start_zone_0, {}, "fr5 go to start zone 0")
-        self.parser.register("bath_init", self.bath_open, {}, "initialize bath")
+        self.parser.register("bath_open", self.bath_open, {}, "initialize bath")
         self.parser.register("bath_close", self.bath_close, {}, "close bath")
         self.parser.register("bath_writetmp", self.bath_writetmp, {"tmp":0.0}, "write temperature to bath")
         self.parser.register("interactable_countdown", self.interactable_countdown, {"seconds":0.0}, "start interactive countdown")
@@ -123,11 +124,10 @@ class HN_SDK(Facility):
         if test_tube_add:
             self.fr5_A.gripper_30()
             self.add_Solid.initialize_serial()
-            # self.add_Solid.turn_on()
+            self.add_Solid.turn_on()
             self.add_Solid.clip_open()
-            # self.add_Solid.turn_off()
+            self.add_Solid.turn_off()
             self.add_Solid.release_serial()
-            input('ok?')
 
         input('ok?')
         self.fr5_A.catch()
@@ -165,11 +165,17 @@ class HN_SDK(Facility):
         self.fr5_A.move_by(0, 0, -obj_statu['put_height'], vel=5)
 
         if test_tube_add:
+            self.add_Solid.initialize_serial()
+            self.add_Solid.turn_on()
+            self.add_Solid.clip_open()
+            self.add_Solid.turn_off()
+            self.add_Solid.release_serial()
+
             self.fr5_A.gripper_30()
             self.add_Solid.initialize_serial()
-            # self.add_Solid.turn_on()
+            self.add_Solid.turn_on()
             self.add_Solid.clip_close()
-            # self.add_Solid.turn_off()
+            self.add_Solid.turn_off()
             self.add_Solid.release_serial()
             input('ok?')
 
@@ -217,12 +223,14 @@ class HN_SDK(Facility):
         time.sleep(1)
 
         #移动到安全位置
-        self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=10)
+        self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], type='MoveJ', vel=10)
         time.sleep(1)
 
         self.fr3_C.move_to_catch()
 
     def bath_catch(self, name:str):
+
+        self.fr3_C.move_to_safe_catch(1)
 
         obj_statu = self.fr5_A.obj_status[name]
 
@@ -260,6 +268,8 @@ class HN_SDK(Facility):
         time.sleep(1)
 
     def bath_put(self, name:str):
+
+        self.fr3_C.move_to_safe_catch(1)
 
         obj_statu = self.fr5_A.obj_status[name]
 
@@ -299,6 +309,8 @@ class HN_SDK(Facility):
         time.sleep(1)
 
     def add_liquid(self, name:str, rpm=150, volume=0.0, name_space='add_liquid_mode_place'):
+
+        self.fr3_C.move_to_safe_catch(0)
 
         obj_statu = self.fr5_A.obj_status[name]
 
@@ -366,7 +378,7 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=10)
         time.sleep(1)
 
-    def add_solid(self, gram:float, tube_from:str, beaker_from:str, test_tube_add_place:str='test_tube_add_place', beaker_add_space:str='add_solid_place', pour_place:str='solid_pour_place'):
+    def add_solid(self, gram:float, tube_from:str, beaker_from:str, test_tube_add_place:str='test_tube_add_place', beaker_add_space:str='beaker_add_space', pour_place:str='solid_pour_place'):
         self.name_catch(tube_from)
         self.name_put(test_tube_add_place, test_tube_add=True)
         self.name_catch_and_put(beaker_from, beaker_add_space)
@@ -376,11 +388,14 @@ class HN_SDK(Facility):
         self.add_Solid.add_solid_series(gram)
         self.add_Solid.turn_off()
         self.add_Solid.release_serial()
+
         self.name_catch(test_tube_add_place, test_tube_add=True)
         self.name_put(tube_from)
+        self.fr3_C.move_to_safe_catch(2)
         self.name_catch(beaker_add_space)
         self.name_pour(pour_place)
         self.name_put(beaker_from)
+        self.fr3_C.move_to_safe_catch(1)
 
     def fr3_move_to_catch(self):
         self.fr3_C.move_to_catch()
@@ -424,7 +439,7 @@ class HN_SDK(Facility):
         self.bath.power_ctr(0)
 
     def bath_writetmp(self, tmp:float):
-        Bath.interactable_writetmp(tmp)
+        self.bath.interactable_writetmp(tmp)
 
     def interactable_countdown(seconds:float):
     # 用于控制是否继续计时的事件
@@ -474,6 +489,9 @@ class HN_SDK(Facility):
 
     def fr3_init(self):
         self.fr3_C.fr3_init()
+
+    def fr3_check_place(self):
+        self.fr3_C.fr3_check_place()
 
     def HN_init(self):
         self.fr5_init()
