@@ -34,12 +34,12 @@ if __name__ == '__main__':
     hn_sdk=HN_SDK()
     # 机械臂初始化
     hn_sdk.HN_init()
-    # # 抓取三颈烧瓶
-    hn_sdk.name_catch('sanjinshaoping')
-    hn_sdk.bath_put('bath_fr5')
-
-    # 固液进料
+    # 固体进料
     hn_sdk.add_solid(CompoundC_solid_add, 'test_tube', 'beaker')
+    # 抓取三颈烧瓶
+    hn_sdk.name_catch('pour_shaoping_place')
+    hn_sdk.bath_put('bath_fr5')
+    # 液体进料
     hn_sdk.add_liquid('HCl', HCl_rpm, HCL_volume_add)
     # 水浴
     hn_sdk.bath_open()
@@ -53,11 +53,11 @@ if __name__ == '__main__':
 
     hn_sdk.bath_writetmp(tmp_25)
     hn_sdk.add_liquid('CH3CN', CH3CN_rpm, CH3CN_volume_add)
-    # hn_sdk.add_liquid('N2H4', N2H4_rpm, N2H4_volume_add)
+    hn_sdk.add_liquid('N2H4', N2H4_rpm, N2H4_volume_add)
     hn_sdk.interactable_countdown(reaction_time_3)
 
     hn_sdk.bath_close()
     # 放置三颈烧瓶
     hn_sdk.bath_catch('bath_fr5')
-    hn_sdk.name_put('sanjinshaoping')
+    hn_sdk.name_put('pour_shaoping_place')
 
