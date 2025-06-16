@@ -72,7 +72,7 @@ class Project(Facility):
         all_objects_exist = True
 
         # 遍历 self.dict['objects'] 中的对象
-        for obj_name in self.dict['objects'].items():
+        for obj_name in self.dict['objects'].keys():
             # 在 Facility.tuple_list 中查找对应的对象
             matching_tuple = next((tuple_t for tuple_t in Facility.tuple_list if tuple_t[0] == obj_name), None)
 
@@ -353,7 +353,7 @@ class Project(Facility):
                     # 将 JSON 中的参数赋值给对象
                     for param_key, param_value in obj_params.items():
                         if hasattr(obj_instance, param_key):
-                            setattr(obj_instance, param_key, param_value)
+                            # setattr(obj_instance, param_key, param_value)
                             self.log.info(f"设置对象 {name} 的参数 {param_key} 为 {param_value}")
                         else:
                             self.log.warning(f"对象 {name} 不存在参数 {param_key}")

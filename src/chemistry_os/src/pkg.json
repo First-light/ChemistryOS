@@ -1,0 +1,79 @@
+{
+    "timestamp": "2025-06-13T12:00:00Z",
+    "packet_id": 1,
+    "configs": {
+        "requires_response": true, 
+        "max_wait_time": 30, 
+        "retry_attempts": 3 
+    },
+    "data": {
+      "concentration":{
+        "value": 0.5,
+        "unit": "mol/L"
+      },
+      "pH":{
+        "value": 7.0,
+        "unit": "none"
+      },
+      "project":{
+        "objects": {
+            "fr5A": {
+                "type": "temp",
+                "param1": 1,
+                "param2": 2
+            },
+            "fr5B": {
+                "type": "temp",
+                "param1": 3,
+                "param2": 4
+            },
+            "fr5C": {
+                "type": "temp",
+                "param1": 5,
+                "param2": 6
+            }
+        },
+        "configs": {
+            "sequence": [
+                "step1",
+                "step2",
+                "step1",
+                "step3"
+            ],
+            "startStep": 1,
+            "endCondition": "completion"
+        },
+        "process": {
+            "step1": {
+                "object": "fr5A",
+                "command": "output",
+                "parameters": {
+                    "param1": 8,
+                    "param2": 9
+                }
+            },
+            "step2": {
+                "object": "fr5B",
+                "command": "message",
+                "parameters": {}
+            },
+            "step3": {
+                "object": "fr5C",
+                "command": "message",
+                "parameters": {}
+            }
+        }
+      },
+      "feeding_peristaltic_pump_status": {
+        "type": "DeviceType.FEEDING_PUMP",
+        "status": "Running_status.ON",
+        "speed": 100,
+        "runtime": 300,
+        "remaining_time": 600,
+        "fed_amount": 500,
+        "total_amount": 1000,
+        "remaining_amount": 500
+
+      }
+    }
+  }

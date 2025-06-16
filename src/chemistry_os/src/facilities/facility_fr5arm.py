@@ -35,6 +35,21 @@ class Fr5Arm(Facility):
         super().__init__(name, Fr5Arm.type)
         self.robot = Robot.RPC(ip)
         self.arm_init()
+        self.data_dict = {
+            "type": DeviceType.MECHANICAL_ARM,
+            "joint_angles": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            "gripper_status": Gripper_status.OPEN,
+        }
+
+    def dict_update_angles(self):
+        """
+        更新机械臂数据
+        """
+        joint_angles = self.robot.GetActualJointPosDegree(0)
+        # tool_pose = self.get_pose("tool")
+        # print(joint_angles)
+        self.data_dict["joint_angles"] = joint_angles
+
 
     def arm_init(self):
         ret, version = self.robot.GetSDKVersion()  # 查询SDK版本号
@@ -215,7 +230,7 @@ class Fr5Arm(Facility):
                 self.shut_down()
                 res = 2
                 break
-
+            self.dict_update_angles()
             ret = self.robot.GetRobotMotionDone()  # 查询机器人运动完成状态
             if isinstance(ret, (list, tuple)):
                 if ret[1] != 0:
@@ -283,7 +298,7 @@ class Fr5Arm(Facility):
         old_pose = self.robot.GetActualToolFlangePose()
         new_list = [old_pose[1][i] + val for i , val in enumerate([x, y, z, r1, r2, r3])]
         new_pose = tuple(new_list)
-        self.log.info("新位姿",new_pose)
+        self.log.info(f"新位姿: {new_pose}")
         self.move(new_pose,type,vel,acc)
         self.log.info("到达")
         mechanical_arm_status = {

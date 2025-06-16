@@ -1,8 +1,7 @@
 {
     "objects": {
         "sdk": {
-            "type": "Chemistry OS SDK",
-            "parameters": {}
+            "type": "Chemistry OS SDK"
         }
     },
     "configs": {
