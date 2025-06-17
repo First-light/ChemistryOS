@@ -80,11 +80,9 @@ class CommandParser:
             print(f"Unknown facility: {objectname}")
             return 1
         else:
-            try:
-                ret = cmd(command)
-                return ret
-            except SystemError as e:
-                Facility.stop_all()
+            ret = cmd(command)
+            return ret
+
         
 
 

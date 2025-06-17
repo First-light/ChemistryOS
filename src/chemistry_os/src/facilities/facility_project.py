@@ -1,5 +1,6 @@
 import sys
 sys.path.append('src/chemistry_os/src')
+from exceptions import HNSystemError
 from facility import Facility
 import os
 import json
@@ -169,8 +170,17 @@ class Project(Facility):
                 parameters_str = " ".join([f"{key}={value}" for key, value in parameters.items()])
                 # 将object, command, parameters串成字符串
                 result_str = f"{obj} {command} {parameters_str}"
-                ret = self.sub_parser.parse(result_str)
-                self.executor_step_up(ret)
+
+                try:
+                    ret = self.sub_parser.parse(result_str)
+                    self.executor_step_up(ret)
+                except HNSystemError as e:
+                    print('handle error:', e)
+                    self.cmd_project_stop()
+                    for tuple_t in Facility.tuple_list:
+                        name = tuple_t[0]
+                        if name == obj:
+                            tuple_t[3].state[0] = FacilityState.STOP
                 break
         
         
@@ -269,11 +279,14 @@ class Project(Facility):
             return
         
         elif self.project_state == ProjectState.INIT:
-            self.executor_check_all
+            self.executor_check_all()
 
-        elif self.project_state == ProjectState.READY :
+        elif self.project_state == ProjectState.READY:
             print("running")
             self.project_state = ProjectState.RUNNING
+
+        elif self.project_state == ProjectState.PAUSE:
+            print("PAUSE状态，无法运行。")
         
 
     # stop 即流程控制器不继续派发流程

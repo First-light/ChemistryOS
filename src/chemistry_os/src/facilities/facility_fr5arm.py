@@ -633,6 +633,7 @@ class Fr5Arm(Facility):
                 print(i)
                 print(desc_pos)
                 self.move_to_desc(desc_pos, type='MoveJ', vel=15)
+                self.now_place = i
                 time.sleep(1)
         else:
             for i in range(self.now_place-1, aim_place-1, -1):
@@ -640,8 +641,10 @@ class Fr5Arm(Facility):
                 print(i)
                 print(desc_pos)
                 self.move_to_desc(desc_pos, type='MoveJ', vel=15)
+                self.now_place = i
                 time.sleep(1)
         self.now_place = aim_place
+        # raise HNSystemError('test')
 
     def set_nowplace(self, nowplace:int):
         self.now_place = nowplace

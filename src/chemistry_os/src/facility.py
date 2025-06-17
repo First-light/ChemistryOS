@@ -42,41 +42,6 @@ class Facility(ABC):
     def cmd_public_init(self):
         self.parser.register("delay", self.delay,{"sec": 0},"Delay for a specified time")
 
-    @classmethod
-    def stop_all(cls):
-        for entry in cls.tuple_list:
-            if len(entry) >= 4:
-                instance:Facility = entry[3]
-                if hasattr(instance, 'state') and isinstance(instance.state, list):
-                    if len(instance.state) > 0:
-                        instance.shut_down()
-                        print(f"Stopped {instance.name}")
-                    else:
-                        print(f"Instance {instance.name} has no state[0]")
-                else:
-                    print(f"Instance {instance.name} does not have a valid 'state' attribute")
-            else:
-                print("Invalid entry in tuple_list")
-
-    @classmethod
-    def continue_all(cls):
-        for entry in cls.tuple_list:
-            if len(entry) >= 4:
-                instance:Facility = entry[3]
-                if hasattr(instance, 'state') and isinstance(instance.state, list):
-                    if len(instance.state) > 0:
-                        instance.continue_facility()
-                        print(f"Stopped {instance.name}")
-                    else:
-                        print(f"Instance {instance.name} has no state[0]")
-                else:
-                    print(f"Instance {instance.name} does not have a valid 'state' attribute")
-            else:
-                print("Invalid entry in tuple_list")
-    
-    def shut_down(self):
-        pass
-
     # 命令初始化的函数
     @abstractmethod
     def cmd_init(self):
