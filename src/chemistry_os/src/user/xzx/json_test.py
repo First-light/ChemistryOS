@@ -41,6 +41,11 @@ if __name__ == '__main__':
     # 抓取三颈烧瓶
 
     main_sys = System("os")
+
+    main_server = TCPServer()
+    main_server.register("example_unit", 5,fr5_A.data_dict)
+    main_server.start()
+
     main_parser = CommandParser()
     main_parser.parse("os project name=pro file=json_test.json")
     main_parser.parse("os check")

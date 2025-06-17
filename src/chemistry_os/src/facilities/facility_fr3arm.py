@@ -29,6 +29,11 @@ class Fr3Arm(Fr5Arm):
         self.robot = Robot.RPC(ip)
         Facility.__init__(self, name, Fr3Arm.type)
         self.arm_init()
+        self.data_dict = {
+            "type": 2,
+            "joint_angles": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            "gripper_status": 0,
+        }
         
     def reset_all(self):
         self.open_up()

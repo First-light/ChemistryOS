@@ -39,6 +39,21 @@ class Fr5Arm(Facility):
             self.obj_status = json.load(file)
         self.obj_status_init()
         self.arm_init()
+        self.data_dict = {
+            "type": DeviceType.MECHANICAL_ARM,
+            "joint_angles": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            "gripper_status": Gripper_status.OPEN,
+        }
+
+    def dict_update_angles(self):
+        """
+        更新机械臂数据
+        """
+        joint_angles = self.robot.GetActualJointPosDegree(0)
+        # tool_pose = self.get_pose("tool")
+        # print(joint_angles)
+        self.data_dict["joint_angles"] = joint_angles
+
 
     def arm_init(self):
         ret, version = self.robot.GetSDKVersion()  # 查询SDK版本号
@@ -218,7 +233,7 @@ class Fr5Arm(Facility):
                 self.shut_down()
                 res = 2
                 break
-
+            self.dict_update_angles()
             ret = self.robot.GetRobotMotionDone()  # 查询机器人运动完成状态
             if isinstance(ret, (list, tuple)):
                 if ret[1] != 0:

@@ -78,8 +78,8 @@ class HN_SDK(Facility):
 
         except ValueError as e:
             print(e)
-
-        
+    
+        super().__init__(name="sdk", type = HN_SDK.type)
 
     def cmd_init(self):
         self.parser.register("name_catch", self.name_catch, {"name":''}, "fr5 catch named place")
