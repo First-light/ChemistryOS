@@ -181,11 +181,8 @@ class HN_SDK(Facility):
 
         if test_tube_add:
             self.fr5_A.gripper_30()
-            self.add_Solid.initialize_serial()
-            self.add_Solid.turn_on()
-            self.add_Solid.clip_open()
-            self.add_Solid.turn_off()
-            self.add_Solid.release_serial()
+            with self.add_Solid:
+                self.add_Solid.clip_open()
 
         input('ok?')
         self.fr5_A.catch()
@@ -223,18 +220,9 @@ class HN_SDK(Facility):
         self.fr5_A.move_by(0, 0, -obj_statu['put_height'], vel=5)
 
         if test_tube_add:
-            self.add_Solid.initialize_serial()
-            self.add_Solid.turn_on()
-            self.add_Solid.clip_open()
-            self.add_Solid.turn_off()
-            self.add_Solid.release_serial()
-
             self.fr5_A.gripper_30()
-            self.add_Solid.initialize_serial()
-            self.add_Solid.turn_on()
-            self.add_Solid.clip_close()
-            self.add_Solid.turn_off()
-            self.add_Solid.release_serial()
+            with self.add_Solid:
+                self.add_Solid.clip_close()
             input('ok?')
 
         self.fr5_A.put()
@@ -441,19 +429,16 @@ class HN_SDK(Facility):
         self.name_put(test_tube_add_place, test_tube_add=True)
         self.name_catch_and_put(beaker_from, beaker_add_space)
 
-        self.add_Solid.initialize_serial()
-        self.add_Solid.turn_on()
-        self.add_Solid.add_solid_series(gram)
-        self.add_Solid.turn_off()
-        self.add_Solid.release_serial()
+        with self.add_Solid:
+            self.add_Solid.add_solid_series(gram)
 
         self.name_catch(test_tube_add_place, test_tube_add=True)
         self.name_put(tube_from)
-        self.fr3_C.move_to_safe_catch(2)
+        # self.fr3_C.move_to_safe_catch(2)
         self.name_catch(beaker_add_space)
         self.name_pour(pour_place)
         self.name_put(beaker_from)
-        self.fr3_C.move_to_safe_catch(1)
+        # # self.fr3_C.move_to_safe_catch(1)
 
     def fr3_move_to_catch(self):
         self.fr3_C.move_to_catch()

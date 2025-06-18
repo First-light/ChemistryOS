@@ -14,16 +14,16 @@
         "safe_place_id": 0
     },
     "test_tube_add_place": {
-        "destination": [610.0, -239.0, 290.0],
+        "destination": [610.0, -239.0, 390.0],
         "catch_pre_offset": 150.0,
         "put_height": 70.0,
         "catch_direction": [90.0, 0.0, 90.0],
         "safe_place_id": 2
     },
     "beaker_add_space": {
-        "destination": [610.0, -475.0, 130.0],
+        "destination": [612.0, -481.0, 138.0],
         "catch_pre_offset": 190.0,
-        "put_height": 16.0,
+        "put_height": 30.0,
         "catch_direction": [90.0, 0.0, 90.0],
         "safe_place_id": 2
     },
@@ -92,15 +92,15 @@
         "safe_place_id": 3
     },
     "solid_pour_place": {
-        "destination": [0.0, 300.0, 330.0],
-        "catch_pre_offset": 0,
+        "destination": [410.0, 247.0, 168.0],
+        "catch_pre_offset": 120,
         "put_height": 80.0,
         "catch_direction": [90.0, 0.0, 180.0],
         "safe_place_id": 3
     },
     "pour_shaoping_place": {
-        "destination": [410.0, 250.0, 170.0],
-        "catch_pre_offset": 0,
+        "destination": [410.0, 247.0, 168.0],
+        "catch_pre_offset": 120,
         "put_height": 80.0,
         "catch_direction": [90.0, 0.0, 90.0],
         "safe_place_id": 2

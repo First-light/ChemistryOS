@@ -32,12 +32,13 @@ if __name__ == '__main__':
     fr5_A = Fr5Arm("fr5A","192.168.58.2")
     bath = Bath('bath')
     hn_sdk=HN_SDK()
+    
     # 机械臂初始化
     hn_sdk.HN_init()
     # # 抓取三颈烧瓶
     hn_sdk.name_catch('sanjinshaoping')
     hn_sdk.bath_put('bath_fr5')
-    exit()
+    
     # 固液进料
     hn_sdk.add_solid(CompoundC_solid_add, 'test_tube', 'beaker')
     hn_sdk.add_liquid('HCl', HCl_rpm, HCL_volume_add)

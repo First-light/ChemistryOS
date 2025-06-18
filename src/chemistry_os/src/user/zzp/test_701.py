@@ -37,7 +37,10 @@ reaction_time_3 = 14400
 # # controller.turn_off()
 # controller.release_serial()
 # exit(0)
-
+fr5_A = Fr5Arm("fr5A","192.168.58.2")
+fr5_A.check_place()
+fr5_A.move_to_safe_catch(3)
+exit()
 
 add_Liquid=PumpGroup('add_Liquid')
 add_Solid=Add_Solid('add_Solid')
