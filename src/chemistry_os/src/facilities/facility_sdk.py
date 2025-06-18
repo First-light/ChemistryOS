@@ -56,6 +56,39 @@ class HN_SDK(Facility):
     name = "sdk"
     version = "1.0.0"
     description = "A software development kit for Chemistry OS."
+    compound_c = 0.50
+    liquid_config = {
+        'HCl': {
+            'temp': 0,
+            'rpm': 100,
+            'volume': lambda c: 26.8 * c,
+            'reaction_time':0
+        },
+        'KMnO4': {
+            'temp': 25,
+            'rpm': 15,
+            'volume': lambda c: 53.52 * c,
+            'reaction_time':7200
+        },
+        'H2O2': {
+            'temp': 0,
+            'rpm': 30,
+            'volume': lambda c: 20.0 * c,
+            'reaction_time':1200
+        },
+        'CH3CN': {
+            'temp': 25,
+            'rpm': 30,
+            'volume': 20.0,
+            'reaction_time':0
+        },
+        'N2H4': {
+            'temp': 25,
+            'rpm': 30,
+            'volume': 0.4854,
+            'reaction_time':14400
+        },
+    }
     
     def __init__(self):
         super().__init__(name="sdk", type = HN_SDK.type)
@@ -85,7 +118,8 @@ class HN_SDK(Facility):
         self.parser.register("name_pour", self.name_pour, {"name":''}, "fr5 pour named place")
         self.parser.register("bath_catch", self.bath_catch, {"name":''}, "fr5 bath catch")
         self.parser.register("bath_put", self.bath_put, {"name":''}, "fr5 bath put")
-        self.parser.register("add_liquid", self.add_liquid, {"name":'', "rpm":150, "volume":0.0}, "add liquid to named place")  # 移除无效参数 name_space
+        self.parser.register("add_liquid", self.add_liquid, {"name":'', "rpm":150, "volume":0.0}, "add liquid to named place")
+        self.parser.register("add_liquid_bath", self.add_liquid_bath, {"name":''}, "add liquid to named place and bath")
         self.parser.register("add_solid", self.add_solid, {"gram":0.0, "tube_from":'', "beaker_from":''}, "add solid to named place")  # 修正参数名
         self.parser.register("fr3_move_to_catch", self.fr3_move_to_catch, {}, "fr3 move to catch")
         self.parser.register("fr3_move_to_bath", self.fr3_move_to_bath, {}, "fr3 move to bath")
@@ -103,6 +137,31 @@ class HN_SDK(Facility):
         self.parser.register("fr3_init", self.fr3_init, {}, "initialize fr3")
         self.parser.register("HN_init", self.HN_init, {}, "initialize HN")
 
+
+    def add_liquid_bath(self, liquid_name):
+        """
+        添加液体并设置水浴温度
+        :param liquid_name: 液体名称
+        """
+        config = self.liquid_config.get(liquid_name)
+        if not config:
+            raise ValueError(f"未知液体: {liquid_name}")
+
+        # 设置水浴温度
+        self.bath_writetmp(config['temp'])
+
+        # 计算体积（如果体积是函数，则调用函数计算）
+        if callable(config['volume']):
+            volume = config['volume'](self.compound_c)
+        else:
+            volume = config['volume']
+
+        # 添加液体
+        self.add_liquid(liquid_name, config['rpm'], volume)
+        reaction_time = config['volume']
+
+        # 反应时间
+        self.interactable_countdown(reaction_time)
 
     def name_catch(self, name:str, test_tube_add:bool = False):
 
