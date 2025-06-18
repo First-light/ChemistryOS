@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from typing import Optional, List
 
 import serial
+from serial.serialutil import SerialException
 
 from facility import Facility
 
@@ -171,6 +172,8 @@ class Add_Solid(Facility):
         self._thread: Optional['Add_Solid.SerialHandlerThread'] = None
         self._mode = None
         self._change_mode(initial_mode)
+
+        self._first_run = True
 
         # FIFO 队列，保存最近10帧状态
         self.fifo_frame: deque['Add_Solid.McuStatusCommandTypedef'] = deque(maxlen=10)
@@ -576,6 +579,13 @@ class Add_Solid(Facility):
                 waiting_time=7
         ))
 
+    def idle(self) -> bool:
+        """发送空指令，保持 MCU 处于空闲状态。"""
+        return self.send_command(Add_Solid.McuControlCommandTypedef(
+                addr=self.addr,
+                cmd=Add_Solid.CommandCode.IDLE
+        ))
+
     def read_frame(self, timeout: Optional[float] = None) -> Optional['Add_Solid.McuStatusCommandTypedef']:
         if self._thread.is_alive() and not self._thread._stop_status and self._mode == Add_Solid.ThreadMode.MCU_MODE:
             if not timeout:
@@ -606,6 +616,20 @@ class Add_Solid(Facility):
             logging.error(f"关闭串口 {self.comm} 时发生错误: {e}")
             return False
 
+    def __enter__(self):
+        self.initialize_serial()
+        if self._first_run:
+            self._first_run = False
+            self.idle()
+        self.turn_on()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        try:
+            self.turn_off()
+            return not exc_type or issubclass(exc_type, SerialException)
+        finally:
+            self.release_serial()
+
 # 测试读取功能正常：20250425
 # len = 8 读天平
 # len = 13 天平回数据
@@ -613,7 +637,7 @@ class Add_Solid(Facility):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     controller = Add_Solid(comm='/dev/ttyUSB0', baud_rate=9600, addr=0x01)
-    controller.initialize_serial()
+    # controller.initialize_serial()
     # frame = controller._thread._read_frame()
     # logging.debug(frame)
     #
@@ -637,20 +661,29 @@ if __name__ == '__main__':
     # send_cmd = AddSolid.McuControlCommandTypedef(addr=0x01, cmd=AddSolid.CommandCode.TURN_OFF)
     # logging.debug(controller._thread._send_frame(send_cmd.build_frame()))
     # logging.debug(controller._thread._read_frame()) # 超时
+
+
     print(controller.read_frame() is None)
-    controller.turn_on()
+    # controller.turn_on()
     # controller.clip_open()
 
     # controller.clip_close()
-    controller.tube_hor()
+    # controller.tube_hor()
     # logging.debug(controller.read_frame())
     # controller.add_solid_series(0.5)
     # logging.debug('fine')
     # monitor_and_plot_weight(controller)
     # controller.wait_until_idle()
     # time.sleep(0)
-    print(controller.read_frame())
-    controller.tube_ver()
+    # print(controller.read_frame())
+    # controller.tube_ver()
     # controller.clip_open()
 
-    controller.turn_off()
+    # controller.turn_off()
+
+    with controller:
+        controller.clip_open()
+        controller.tube_hor()
+        controller.add_solid_series(0.5)
+        controller.tube_ver()
+        controller.clip_close()
