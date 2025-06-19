@@ -49,9 +49,9 @@ class Fr5Arm(Facility):
         """
         更新机械臂数据
         """
-        joint_angles = self.robot.GetActualJointPosDegree(0)
+        joint_angles = self.robot.GetActualJointPosDegree(flag = 0)
         # tool_pose = self.get_pose("tool")
-        # print(joint_angles)
+        print(joint_angles)
         self.data_dict["joint_angles"] = joint_angles
 
 
@@ -233,7 +233,6 @@ class Fr5Arm(Facility):
                 self.shut_down()
                 res = 2
                 break
-            self.dict_update_angles()
             ret = self.robot.GetRobotMotionDone()  # 查询机器人运动完成状态
             if isinstance(ret, (list, tuple)):
                 if ret[1] != 0:
@@ -244,7 +243,9 @@ class Fr5Arm(Facility):
                     self.shut_down()
                     res = 2
                     break
-            time.sleep(0.005)
+            time.sleep(0.05)
+            # self.dict_update_angles()
+            # time.sleep(0.05)
         if res==2:
             raise SystemError("fr5机械臂运动异常，已关闭")
         return res
@@ -284,7 +285,7 @@ class Fr5Arm(Facility):
         self.move_listen()
 
 
-    def get_pose(self, data_type: str):
+    def get_pose(self, data_type: str = None):
         if data_type == "joy":
             joint_pos = self.robot.GetActualJointPosDegree(0)
             ret = joint_pos[0]
@@ -299,6 +300,9 @@ class Fr5Arm(Facility):
                 self.log.info(f"工具位姿数据获取失败，错误码: {ret}")
             else:
                 return tool_pos[1]
+        elif data_type == None:
+            joint_pos = self.robot.robot_state_pkg.jt_cur_pos
+            return joint_pos
 
     def move_by(self,x=0, y=0, z=0, r1=0, r2=0, r3=0,type = "MoveL",vel=default_speed,acc=default_acc):
         old_pose = self.robot.GetActualToolFlangePose()

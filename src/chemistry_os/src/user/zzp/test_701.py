@@ -50,8 +50,12 @@ bath = Bath('bath')
 hn_sdk=HN_SDK()
 
 hn_sdk.fr5_init()
-fr5_A.catch()
+# fr5_A.catch()
+# hn_sdk.name_pour('solid_pour_place')
+# exit()
+hn_sdk.name_catch('beaker_add_space')
 hn_sdk.name_pour('solid_pour_place')
+hn_sdk.name_put('beaker')
 
 # fr5_A.fr5_init()
 # fr5_A.move_to_safe_catch(2)

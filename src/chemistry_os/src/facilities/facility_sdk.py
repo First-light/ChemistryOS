@@ -269,7 +269,7 @@ class HN_SDK(Facility):
         time.sleep(1)
 
         #移动到安全位置
-        self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], type='MoveJ', vel=10)
+        self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=10)
         time.sleep(1)
 
         # self.fr3_C.move_to_catch()
