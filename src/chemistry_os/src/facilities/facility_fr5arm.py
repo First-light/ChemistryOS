@@ -698,7 +698,7 @@ class Fr5Arm(Facility):
 
 
     # radius=参数为容器半径mm，height=容器上平面离夹爪中心高度mm，direction=角度方向与增量，max_angle=倾倒最大角度，rate_percentage=运动速率的百分比
-    def pour(self, radius, height, direction=-2, max_angle=90, rate_percentage=100.0, shake=1):
+    def pour(self, radius, height, direction=2, max_angle=90, rate_percentage=100.0, shake=1):
         # 将速率百分比转换为小数形式
         rate_decimal = rate_percentage / 100
         

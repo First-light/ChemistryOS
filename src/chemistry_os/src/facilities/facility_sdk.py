@@ -238,7 +238,7 @@ class HN_SDK(Facility):
         time.sleep(1)
 
     def name_pour(self, name:str):
-        self.fr3_C.move_to_pour()
+        # self.fr3_C.move_to_pour()
 
         obj_statu = self.fr5_A.obj_status[name]
 
@@ -254,12 +254,12 @@ class HN_SDK(Facility):
         time.sleep(1)
 
         #旋转30度
-        self.fr5_A.move_by(0,0,0,0,30,0)
+        self.fr5_A.move_by(0,0,0,0,-30,0)
 
         #下降，完成放置
         self.fr5_A.move_by(0, 0, -obj_statu['put_height'], vel=10)
 
-        self.fr5_A.pour(22.3, 36.5)
+        self.fr5_A.pour(22.3, 50.0)
 
         self.fr5_A.move_by(0, 0, obj_statu['put_height'], vel=10)
         time.sleep(1)
@@ -272,7 +272,7 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], type='MoveJ', vel=10)
         time.sleep(1)
 
-        self.fr3_C.move_to_catch()
+        # self.fr3_C.move_to_catch()
 
     def bath_catch(self, name:str):
 

@@ -92,7 +92,7 @@
         "safe_place_id": 3
     },
     "solid_pour_place": {
-        "destination": [410.0, 247.0, 168.0],
+        "destination": [450.0, 150.0, 150.0],
         "catch_pre_offset": 120,
         "put_height": 80.0,
         "catch_direction": [90.0, 0.0, 180.0],
