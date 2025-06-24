@@ -3,6 +3,7 @@ import threading
 import json
 import datetime
 import time
+import os
 from typing import Dict, Any, Callable, Optional, Union
 from facility import Facility
 
@@ -68,7 +69,7 @@ class TCPServer(Facility):
             self.log.error(f"服务器启动失败: {str(e)}")
             self.stop()
 
-    def data_log_save(self, data: str, data_type:str):
+    def data_log_save(self, data: str, data_type: str):
         if isinstance(data, bytes):
             decoded_data = data.decode('utf-8')
         else:
@@ -77,8 +78,13 @@ class TCPServer(Facility):
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         data_saved = f"[{timestamp}][{self.name}][{data_type}]: {decoded_data}"
         
+        # 获取项目根目录路径
+        project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        log_dir = os.path.join(project_root, "log")
+        os.makedirs(log_dir, exist_ok=True)  # 确保 log 文件夹存在
+
         # 将数据写入文件
-        with open(f"src/chemistry_os/src/log/connect_{self.file_timestape}.log", "a", encoding="utf-8") as file:
+        with open(os.path.join(log_dir, f"connect_{self.file_timestape}.log"), "a", encoding="utf-8") as file:
             file.write(f"{data_saved}\n")
 
     def data_normal_save(self, data: str, end_str: str = ""):
@@ -86,8 +92,14 @@ class TCPServer(Facility):
             decoded_data = data.decode('utf-8')
         else:
             decoded_data = data
+        
+        # 获取项目根目录路径
+        project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        log_dir = os.path.join(project_root, "log")
+        os.makedirs(log_dir, exist_ok=True)  # 确保 log 文件夹存在
+
         # 将数据写入文件
-        with open(f"src/chemistry_os/src/log/data_{self.file_timestape}.log", "a", encoding="utf-8") as file:
+        with open(os.path.join(log_dir, f"data_{self.file_timestape}.log"), "a", encoding="utf-8") as file:
             file.write(f"{decoded_data}{end_str}")
 
     def receive_data(self):

@@ -49,9 +49,7 @@ class Fr5Arm(Facility):
         """
         更新机械臂数据
         """
-        joint_angles = self.robot.GetActualJointPosDegree(flag = 0)
-        # tool_pose = self.get_pose("tool")
-        print(joint_angles)
+        joint_angles = [self.robot.robot_state_pkg.jt_cur_pos[i] for i in range(6)]
         self.data_dict["joint_angles"] = joint_angles
 
 
@@ -243,9 +241,7 @@ class Fr5Arm(Facility):
                     self.shut_down()
                     res = 2
                     break
-            time.sleep(0.05)
-            # self.dict_update_angles()
-            # time.sleep(0.05)
+            time.sleep(0.001)
         if res==2:
             raise SystemError("fr5机械臂运动异常，已关闭")
         return res
