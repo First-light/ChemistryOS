@@ -43,6 +43,7 @@ class Fr5Arm(Facility):
             "type": DeviceType.MECHANICAL_ARM,
             "joint_angles": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
             "gripper_status": Gripper_status.OPEN,
+            
         }
 
     def dict_update_angles(self):
@@ -198,6 +199,67 @@ class Fr5Arm(Facility):
                              }, 
                              "Move to a specified position")
         self.parser.register("init",self.arm_init,{},"Init arm")
+        self.parser.register("move_close", self.MoveClose,
+                         {
+                             "x": 0.0,  # 世界坐标系x
+                             "y": 0.0,  # 世界坐标系y
+                             "z": 0.0,  # 世界坐标系z
+                             "angle_a": 0.0,  # 俯仰角度
+                             "angle_c": 0.0,  # 偏航角度
+                             "angle_b": 0.0,  # 滚转角度
+                             "s": 0.0   # 距离
+                         },
+                         "Move close to a specified position")
+        self.parser.register("move_pose", self.MovePose,
+                            {
+                                "pose": "default"  # 机械臂姿态
+                            },
+                            "Set the pose of the arm")
+
+        self.parser.register("fr5_init", self.fr5_init,
+                            {},
+                            "Initialize FR5 arm")
+
+        self.parser.register("fr5_check_place", self.fr5_check_place,
+                            {},
+                            "Check and move FR5 arm to a safe place")
+
+        self.parser.register("pour", self.pour,
+                            {
+                                "radius": 0.0,  # 容器半径
+                                "height": 0.0,  # 容器高度
+                                "direction": 2,  # 倾倒方向
+                                "max_angle": 90,  # 最大倾倒角度
+                                "rate_percentage": 100.0,  # 倾倒速率百分比
+                                "shake": 1  # 是否抖动
+                            },
+                            "Pour liquid from the container")
+
+        self.parser.register("move_to_safe_catch", self.move_to_safe_catch,
+                            {
+                                "aim_place": 0  # 目标安全位置索引
+                            },
+                            "Move to a safe place for catching")
+
+        self.parser.register("set_nowplace", self.set_nowplace,
+                            {
+                                "nowplace": 0  # 当前安全位置索引
+                            },
+                            "Set the current safe place index")
+
+        self.parser.register("check_place", self.check_place,
+                            {},
+                            "Check the current safe place index")
+        self.parser.register("gripper_half", self.gripper_half, {}, "Set gripper to half open")
+        self.parser.register("gripper_15", self.gripper_15, {}, "Set gripper to 15 open")
+        self.parser.register("gripper_30", self.gripper_30, {}, "Set gripper to 30 open")
+        self.parser.register("go_to_start_zone_0", self.Go_to_start_zone_0,
+                            {
+                                "v": 10.0,  # 速度
+                                "open": 1   # 是否打开夹爪
+                            },
+                            "Reset the arm to the start zone")
+        self.parser.register("reset_gripper", self.reset_gripper, {}, "reset_gripper")
 
     def analyse_angle(self,x:float,y:float):
         # 计算极坐标中的 θ（与 x 轴的夹角，以弧度表示）
@@ -222,6 +284,7 @@ class Fr5Arm(Facility):
 
     def move_listen(self):
         res = 0
+        consecutive_non_zero_count = 0
         while True:
             if self.state[0] == FacilityState.ERROR:
                 self.shut_down()
@@ -234,16 +297,20 @@ class Fr5Arm(Facility):
             ret = self.robot.GetRobotMotionDone()  # 查询机器人运动完成状态
             if isinstance(ret, (list, tuple)):
                 if ret[1] != 0:
-                    break
+                    consecutive_non_zero_count += 1 # 连续5次非0状态 因为开始运动时受到的第一个结果是运动完成
+                    if consecutive_non_zero_count >= 5:
+                        break
+                else:
+                    consecutive_non_zero_count = 0
             else:
                 if ret != -4:
-                    self.log.info(f"状态查询错误，错误码: {ret}")
+                    self.log.info(f"{self.name}状态查询错误，错误码: {ret}")
                     self.shut_down()
                     res = 2
                     break
-            time.sleep(0.001)
+            time.sleep(0.002)
         if res==2:
-            raise SystemError("fr5机械臂运动异常，已关闭")
+            raise SystemError(f"{self.name}机械臂运动异常，已关闭")
         return res
 
     def move(self, new_pose: list, type="MoveL", vel_t=default_speed, acc_t=default_acc):
@@ -296,22 +363,23 @@ class Fr5Arm(Facility):
                 self.log.info(f"工具位姿数据获取失败，错误码: {ret}")
             else:
                 return tool_pos[1]
+            
+        elif data_type == "new_tool":
+            tool_pos = self.robot.robot_state_pkg.tl_cur_pos
+            return tool_pos
+
         elif data_type == None:
             joint_pos = self.robot.robot_state_pkg.jt_cur_pos
             return joint_pos
 
     def move_by(self,x=0, y=0, z=0, r1=0, r2=0, r3=0,type = "MoveL",vel=default_speed,acc=default_acc):
-        old_pose = self.robot.GetActualToolFlangePose()
+        old_pose = self.robot.GetActualToolFlangePose(flag=0)#阻塞
         new_list = [old_pose[1][i] + val for i , val in enumerate([x, y, z, r1, r2, r3])]
         new_pose = tuple(new_list)
         self.log.info(f"新位姿: {new_pose}")
         self.move(new_pose,type,vel,acc)
         self.log.info("到达")
-        mechanical_arm_status = {
-            "type": DeviceType.MECHANICAL_ARM,
-            "joint_angles": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            "gripper_status": Gripper_status.OPEN
-        }
+
 
     def move_to(self,x=0, y=0, z=0, r1=0, r2=0, r3=0,offset = False,type = "MoveL",vel=default_speed,acc=default_acc):
         new_list = [val + (self.initial_offset[i] if offset else 0) for i, val in enumerate([x, y, z, r1, r2, r3])]
@@ -582,7 +650,7 @@ class Fr5Arm(Facility):
         time.sleep(0.5)
         self.robot.ActGripper(1, 1)
         time.sleep(1.5)
-        self.robot.MoveGripper(1, 100, 50, 10, 10000, 1)
+        self.robot.MoveGripper(1, 100, 50, 10, 10000, 1, 0, 0, 0, 0)
         time.sleep(0.5)
         self.log.info("夹爪初始化完成")
         
@@ -594,23 +662,23 @@ class Fr5Arm(Facility):
     #     time.sleep(2.0)
 
     def catch(self):
-        self.robot.MoveGripper(1, 0, 50, 5, 10000, 1)
+        self.robot.MoveGripper(1, 0, 50, 5, 10000, 1, 0, 0, 0, 0)
         time.sleep(2.0)
 
     def put(self):
-        self.robot.MoveGripper(1, 100, 50, 10, 10000, 1)   
+        self.robot.MoveGripper(1, 100, 50, 10, 10000, 1, 0, 0, 0, 0)
         time.sleep(2.0)
 
     def gripper_half(self):
-        self.robot.MoveGripper(1, 50, 50, 10, 10000, 1)
+        self.robot.MoveGripper(1, 50, 50, 10, 10000, 1, 0, 0, 0, 0)
         time.sleep(2.0)
 
     def gripper_15(self):
-        self.robot.MoveGripper(1, 15, 50, 10, 10000, 1)
+        self.robot.MoveGripper(1, 15, 50, 10, 10000, 1, 0, 0, 0, 0)
         time.sleep(2.0)
-    
+
     def gripper_30(self):
-        self.robot.MoveGripper(1, 30, 50, 10, 10000, 1)
+        self.robot.MoveGripper(1, 30, 50, 10, 10000, 1, 0, 0, 0, 0)
         time.sleep(2.0)
         
     def shut_down(self):

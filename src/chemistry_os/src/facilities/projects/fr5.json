@@ -1,0 +1,75 @@
+{
+    "objects": {
+        "fr5A": {
+            "type": "fr5arm",
+            "ip": "192.168.58.2"
+        }
+    },
+    "configs": {
+        "sequence": [
+            "xyz-test"
+        ],
+        "startStep": 1,
+        "endCondition": "completion"
+    },
+    "process": {
+        "xyz-test": {
+            "sequence": [
+                "x30",
+                "y30",
+                "x-30",
+                "y-30",
+                "z30",
+                "x30",
+                "z-30",
+                "x-30",
+                "y-30",
+                "z30",
+                "y30",
+                "z-30"
+            ]
+        },
+        "x30": {
+            "object": "fr5A",
+            "command": "moveby",
+            "parameters": {
+                "x": 30
+            }
+        },
+        "x-30": {
+            "object": "fr5A",
+            "command": "moveby",
+            "parameters": {
+                "x": -30
+            }
+        },
+        "y30": {
+            "object": "fr5A",
+            "command": "moveby",
+            "parameters": {
+                "y": 30
+            }
+        },
+        "y-30": {
+            "object": "fr5A",
+            "command": "moveby",
+            "parameters": { 
+                "y": -30
+            }
+        },
+        "z30": {
+            "object": "fr5A",
+            "command": "moveby",    
+            "parameters": {
+                "z": 30
+            }
+        },
+        "z-30": {
+            "object": "fr5A",
+            "command": "moveby",
+            "parameters": {
+                "z": -30
+            }
+        }
+    }
+}

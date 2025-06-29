@@ -32,18 +32,18 @@ if __name__ == '__main__':
 
     add_Liquid=PumpGroup('add_Liquid')
     add_Solid=Add_Solid('add_Solid')
-    # fr5_C = Fr3Arm("fr3C","192.168.58.3")
+    fr5_C = Fr3Arm("fr3C","192.168.58.3")
     fr5_A = Fr5Arm("fr5A","192.168.58.2")
     bath = Bath('bath')
-    # hn_sdk=HN_SDK()
+    hn_sdk=HN_SDK()
     # 机械臂初始化
-    # hn_sdk.HN_init()
+    hn_sdk.HN_init()
     # 抓取三颈烧瓶
 
     main_sys = System("os")
 
     main_server = TCPServer()
-    main_server.register("example_unit", 5,fr5_A.data_dict)
+    main_server.register("example_unit", 5,fr5_A.data_dict,)
     main_server.start()
 
     main_parser = CommandParser()

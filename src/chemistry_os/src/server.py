@@ -31,7 +31,7 @@ class TCPServer(Facility):
         self.rx_buffer = []
         self.callback = None
         self.pkg_ID = 0
-        self.loop_time = 0.1  # 发送和接收数据的循环时间间隔
+        self.loop_time = 0.01  # 发送和接收数据的循环时间间隔
         self.units_init()
         self.file_timestape = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
