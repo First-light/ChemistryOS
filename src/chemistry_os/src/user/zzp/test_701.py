@@ -48,17 +48,25 @@ fr3_C = Fr3Arm("fr3C","192.168.58.3")
 fr5_A = Fr5Arm("fr5A","192.168.58.2")
 bath = Bath('bath')
 hn_sdk=HN_SDK()
-with add_Solid:
-    add_Solid.clip_open()
+# with add_Solid:
+#     add_Solid.clip_open()
 
-exit()
+# exit()
 hn_sdk.fr5_init()
+fr5_A.move_to_safe_catch(2)
+
+# hn_sdk.name_catch('test_tube_add_place')
+# hn_sdk.name_put('test_tube_put')
+# with add_Solid:
+#     # add_Solid.clip_open()
+#     add_Solid.clip_close()
+    # add_Solid.add_solid_series(0.5)
 # fr5_A.catch()
 # hn_sdk.name_pour('solid_pour_place')
 # exit()
-hn_sdk.name_catch('beaker_add_space')
-hn_sdk.name_pour('solid_pour_place')
-hn_sdk.name_put('beaker')
+# hn_sdk.name_catch('beaker_add_space')
+# hn_sdk.name_pour('solid_pour_place')
+# hn_sdk.name_put('beaker')
 
 # fr5_A.fr5_init()
 # fr5_A.move_to_safe_catch(2)

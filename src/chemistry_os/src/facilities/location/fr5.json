@@ -6,6 +6,13 @@
         "catch_direction": [90.0, 0.0, -90.0],
         "safe_place_id": 0
     },
+    "test_tube_put": {
+        "destination": [-445.0, -450.0, 163.0],
+        "catch_pre_offset": 70.0,
+        "put_height": 90,
+        "catch_direction": [90.0, 0.0, -90.0],
+        "safe_place_id": 0
+    },
     "beaker": {
         "destination": [-466.0, -38.0, 100.0],
         "catch_pre_offset": 70.0,
@@ -14,9 +21,9 @@
         "safe_place_id": 0
     },
     "test_tube_add_place": {
-        "destination": [610.0, -239.0, 390.0],
+        "destination": [606.0, -239.0, 292.0],
         "catch_pre_offset": 150.0,
-        "put_height": 70.0,
+        "put_height": 113.0,
         "catch_direction": [90.0, 0.0, 90.0],
         "safe_place_id": 2
     },
