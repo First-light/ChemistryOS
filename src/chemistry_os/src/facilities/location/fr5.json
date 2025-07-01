@@ -85,31 +85,31 @@
         "safe_place_id": 3
     },
     "sanjinshaoping": {
+        "destination": [-455, -529.5, 168.0],
+        "catch_pre_offset": 60.0,
+        "put_height": 140.0,
+        "catch_direction": [90.0, 0.0, -90.0],
+        "safe_place_id": 0
+    },
+    "sanjinshaoping_wash_1": {
         "destination": [-470, -210.0, 170.0],
         "catch_pre_offset": 60.0,
         "put_height": 120.0,
         "catch_direction": [90.0, 0.0, -90.0],
         "safe_place_id": 0
     },
-    "solid_pour_place_old": {
-        "destination": [0.0, 300.0, 330.0],
-        "catch_pre_offset": 0,
-        "put_height": 80.0,
-        "catch_direction": [90.0, 0.0, 180.0],
-        "safe_place_id": 3
+    "sanjinshaoping_wash_2": {
+        "destination": [-470, -210.0, 170.0],
+        "catch_pre_offset": 60.0,
+        "put_height": 120.0,
+        "catch_direction": [90.0, 0.0, -90.0],
+        "safe_place_id": 0
     },
     "solid_pour_place": {
         "destination": [450.0, 150.0, 150.0],
         "catch_pre_offset": 120,
         "put_height": 80.0,
-        "catch_direction": [90.0, 0.0, 180.0],
-        "safe_place_id": 3
-    },
-    "pour_shaoping_place": {
-        "destination": [410.0, 247.0, 168.0],
-        "catch_pre_offset": 120,
-        "put_height": 80.0,
-        "catch_direction": [90.0, 0.0, 90.0],
-        "safe_place_id": 2
+        "catch_direction": [90.0, 0.0, 0.0],
+        "safe_place_id": 1
     }
 }

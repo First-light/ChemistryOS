@@ -44,7 +44,7 @@ reaction_time_3 = 14400
 
 add_Liquid=PumpGroup('add_Liquid')
 add_Solid=Add_Solid('add_Solid')
-fr3_C = Fr3Arm("fr3C","192.168.58.3")
+# fr5_C = Fr5Arm("fr5C","192.168.58.3")
 fr5_A = Fr5Arm("fr5A","192.168.58.2")
 bath = Bath('bath')
 hn_sdk=HN_SDK()
@@ -53,7 +53,9 @@ hn_sdk=HN_SDK()
 
 # exit()
 hn_sdk.fr5_init()
-fr5_A.move_to_safe_catch(2)
+hn_sdk.name_catch('sanjinshaoping')
+# fr5_A.fr5_check_place()
+fr5_A.move_to_safe_catch(3)
 
 # hn_sdk.name_catch('test_tube_add_place')
 # hn_sdk.name_put('test_tube_put')

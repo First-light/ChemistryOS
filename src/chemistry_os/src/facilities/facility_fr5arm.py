@@ -27,6 +27,7 @@ class Fr5Arm(Facility):
         [-250.0, -250.0, 350.0, 90.0, 0.0, -90.0],
         [0.0, -250.0, 350.0, 90.0, 0.0, 0.0],
         [200.0, -150.0, 350.0, 90.0, 0.0, 90.0],
+        [450.0 ,40.0 ,230.0, 90.0, 0.0, 180.0],
         [100.0, 200.0, 400.0, 90.0, 0.0, 180.0],
     ]
     
@@ -315,7 +316,7 @@ class Fr5Arm(Facility):
 
     def move(self, new_pose: list, type="MoveL", vel_t=default_speed, acc_t=default_acc):
         if type == "MoveL":
-            ret = self.robot.MoveL(new_pose, 0, 0, vel=vel_t, acc=acc_t, blendR=0.0)  # 笛卡尔空间直线运动
+            ret = self.robot.MoveL(new_pose, 0, 0, vel=vel_t, acc=acc_t, blendR=-1.0)  # 笛卡尔空间直线运动
             if ret != 0:
                 self.log.info(f"笛卡尔空间直线运动失败，错误码: {ret}")
                 self.shut_down()
@@ -325,7 +326,7 @@ class Fr5Arm(Facility):
             inverse_kin_result = self.robot.GetInverseKin(0, new_pose, -1)
             if isinstance(inverse_kin_result, (list, tuple)) and len(inverse_kin_result) > 1:
                 new_joint = list(inverse_kin_result[1])
-                ret = self.robot.MoveJ(new_joint, 0, 0, new_pose, vel=vel_t, acc=acc_t, blendT=0.0)  # 关节空间直线运动
+                ret = self.robot.MoveJ(new_joint, 0, 0, new_pose, vel=vel_t, acc=acc_t, blendT=-1.0)  # 关节空间直线运动
                 if ret != 0:
                     self.log.info(f"关节空间直线运动失败，错误码: {ret}")
                     self.shut_down()

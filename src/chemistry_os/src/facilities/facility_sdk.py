@@ -106,7 +106,7 @@ class HN_SDK(Facility):
             self.fr5_A: Fr5Arm = get_facility_ref("fr5A", Fr5Arm)
             self.add_Liquid: PumpGroup = get_facility_ref("add_Liquid", PumpGroup)
             self.add_Solid: Add_Solid = get_facility_ref("add_Solid", Add_Solid)
-            self.fr3_C: Fr3Arm = get_facility_ref("fr3C", Fr3Arm)
+            # self.fr3_C: Fr3Arm = get_facility_ref("fr3C", Fr3Arm)
             self.bath: Bath = get_facility_ref("bath", Bath)
 
         except ValueError as e:
