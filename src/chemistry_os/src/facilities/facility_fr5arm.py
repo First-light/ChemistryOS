@@ -1,3 +1,4 @@
+import heapq
 import json
 import sys
 
@@ -27,9 +28,16 @@ class Fr5Arm(Facility):
         [-250.0, -250.0, 350.0, 90.0, 0.0, -90.0],
         [0.0, -250.0, 350.0, 90.0, 0.0, 0.0],
         [200.0, -150.0, 350.0, 90.0, 0.0, 90.0],
-        [450.0, 50.0 ,230.0, 90.0, 0.0, 180.0],
         [100.0, 200.0, 400.0, 90.0, 0.0, 180.0],
-    ]  
+        [450.0, 50.0 ,230.0, 90.0, 0.0, 180.0],
+    ]
+    graph = {
+        0: {1: 1},
+        1: {0: 1, 2: 1},
+        2: {1: 1, 3: 1, 4: 1},
+        3: {2: 1},
+        4: {2: 1},
+    }
     
     position_file_path = "src/chemistry_os/src/facilities/location/fr5.json"
 
@@ -710,25 +718,71 @@ class Fr5Arm(Facility):
         self.robot.MoveCart(self.safe_place[0], 0, 0, vel = v)
         self.now_place=0
 
-    def move_to_safe_catch(self, aim_place:int):
-        if aim_place>self.now_place:
-            for i in range(self.now_place+1, aim_place+1):
-                desc_pos = self.safe_place[i]
-                print(i)
-                print(desc_pos)
-                self.move_to_desc(desc_pos, type='MoveJ', vel=15)
-                self.now_place = i
-                time.sleep(1)
-        else:
-            for i in range(self.now_place-1, aim_place-1, -1):
-                desc_pos = self.safe_place[i]
-                print(i)
-                print(desc_pos)
-                self.move_to_desc(desc_pos, type='MoveJ', vel=15)
-                self.now_place = i
-                time.sleep(1)
-        self.now_place = aim_place
+    # def move_to_safe_catch(self, aim_place:int):
+    #     if aim_place>self.now_place:
+    #         for i in range(self.now_place+1, aim_place+1):
+    #             desc_pos = self.safe_place[i]
+    #             print(i)
+    #             print(desc_pos)
+    #             self.move_to_desc(desc_pos, type='MoveJ', vel=15)
+    #             self.now_place = i
+    #             time.sleep(1)
+    #     else:
+    #         for i in range(self.now_place-1, aim_place-1, -1):
+    #             desc_pos = self.safe_place[i]
+    #             print(i)
+    #             print(desc_pos)
+    #             self.move_to_desc(desc_pos, type='MoveJ', vel=15)
+    #             self.now_place = i
+    #             time.sleep(1)
+    #     self.now_place = aim_place
         # raise HNSystemError('test')
+
+    def find_shortest_path(self, start: int, end: int) -> list:
+        distances = {node: float('infinity') for node in self.graph}
+        distances[start] = 0
+        previous_nodes = {node: None for node in self.graph}
+        priority_queue = [(0, start)] # (distance, node)
+
+        while priority_queue:
+            current_distance, current_node = heapq.heappop(priority_queue)
+            if current_distance > distances[current_node]:
+                continue
+            for neighbor, weight in self.graph[current_node].items():
+                distance = current_distance + weight
+                if distance < distances[neighbor]:
+                    distances[neighbor] = distance
+                    previous_nodes[neighbor] = current_node
+                    heapq.heappush(priority_queue, (distance, neighbor))
+        path = []
+        current = end
+        while current is not None:
+            path.insert(0, current)
+            current = previous_nodes[current]
+
+        if path[0] == start:
+            return path
+        else:
+            return []
+
+    def move_to_safe_catch(self, aim_place: int):
+        if self.now_place == aim_place:
+            return
+        path = self.find_shortest_path(self.now_place, aim_place)
+
+        if not path:
+            raise HNSystemError(f"No path found from {self.now_place} to {aim_place}.")
+
+        self.log.info(f"最短路径: {path}")
+
+        for i, place_index in enumerate(path):
+            if i == 0:
+                continue
+
+            desc_pos = self.safe_place[place_index]
+            self.move_to_desc(desc_pos, type='MoveJ', vel=15)
+            self.now_place = place_index
+            time.sleep(1)
 
     def set_nowplace(self, nowplace:int):
         self.now_place = nowplace

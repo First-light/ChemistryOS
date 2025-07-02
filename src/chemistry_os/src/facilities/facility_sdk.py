@@ -140,28 +140,38 @@ class HN_SDK(Facility):
     def wash(self):
         self.name_catch("sanjinshaoping")
         self.move_wash('sanjinshaoping_wash_1')
+        self.move_wash('sanjinshaoping_wash_2')
 
     def move_wash(self, wash_place):
         obj_statu = self.fr5_A.obj_status[wash_place]
         #根据id确定安全位置, 移动到安全位置
         self.fr5_A.move_to_safe_catch(obj_statu['safe_place_id'])
 
+        xyz_horizon = [obj_statu['destination'][0], obj_statu['destination'][1], obj_statu['destination'][2] + obj_statu['put_height']]
+        desc_pre = list(map(lambda x, y: x + y, dest_horizon, obj_statu['catch_pre_xyz_offset'])) + obj_statu['catch_direction']
+        dest_horizon = xyz_horizon + obj_statu['catch_direction']
+
         #移动到准备位置
-        desc_pos_aim = list(map(lambda x, y: x + y, obj_statu['destination'], obj_statu['catch_pre_xyz_offset'])) + obj_statu['catch_direction']
-        self.fr5_A.move_to_desc(desc_pos_aim, vel=10)
+        self.fr5_A.move_to_desc(desc_pre, vel=10)
         time.sleep(1)
 
-        #靠近，完成抓取
+        #移动到下方位置
+        self.fr5_A.move_to_desc(dest_horizon, vel=10)
+        time.sleep(1)
+
+        #上升
         desc_pos_aim = obj_statu['destination'] + obj_statu['catch_direction']
         self.fr5_A.move_to_desc(desc_pos_aim, vel=10)
         time.sleep(1)
 
         input('ok?')
-        self.fr5_A.catch()
+
+        #下降
+        self.fr5_A.move_to_desc(dest_horizon, vel=10)
         time.sleep(1)
 
-        #抬起
-        self.fr5_A.move_by(0, 0, obj_statu['put_height'], vel=10)
+        #移动到准备位置
+        self.fr5_A.move_to_desc(desc_pre, vel=10)
         time.sleep(1)
 
         #移动到安全位置
