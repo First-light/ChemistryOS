@@ -137,6 +137,37 @@ class HN_SDK(Facility):
         self.parser.register("fr3_init", self.fr3_init, {}, "initialize fr3")
         self.parser.register("HN_init", self.HN_init, {}, "initialize HN")
 
+    def wash(self):
+        self.name_catch("sanjinshaoping")
+        self.move_wash('sanjinshaoping_wash_1')
+
+    def move_wash(self, wash_place):
+        obj_statu = self.fr5_A.obj_status[wash_place]
+        #根据id确定安全位置, 移动到安全位置
+        self.fr5_A.move_to_safe_catch(obj_statu['safe_place_id'])
+
+        #移动到准备位置
+        desc_pos_aim = list(map(lambda x, y: x + y, obj_statu['destination'], obj_statu['catch_pre_xyz_offset'])) + obj_statu['catch_direction']
+        self.fr5_A.move_to_desc(desc_pos_aim, vel=10)
+        time.sleep(1)
+
+        #靠近，完成抓取
+        desc_pos_aim = obj_statu['destination'] + obj_statu['catch_direction']
+        self.fr5_A.move_to_desc(desc_pos_aim, vel=10)
+        time.sleep(1)
+
+        input('ok?')
+        self.fr5_A.catch()
+        time.sleep(1)
+
+        #抬起
+        self.fr5_A.move_by(0, 0, obj_statu['put_height'], vel=10)
+        time.sleep(1)
+
+        #移动到安全位置
+        self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=10)
+        time.sleep(1)
+
 
     def add_liquid_bath(self, liquid_name):
         """

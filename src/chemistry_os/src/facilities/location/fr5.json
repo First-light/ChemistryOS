@@ -92,18 +92,20 @@
         "safe_place_id": 0
     },
     "sanjinshaoping_wash_1": {
-        "destination": [-470, -210.0, 170.0],
+        "destination": [456.0, 167.0, 170.0],
         "catch_pre_offset": 60.0,
-        "put_height": 120.0,
-        "catch_direction": [90.0, 0.0, -90.0],
-        "safe_place_id": 0
+        "put_height_1": 120.0,
+        "put_height_2": 25.0,
+        "catch_direction": [90.0, 0.0, 180.0],
+        "safe_place_id": 3
     },
     "sanjinshaoping_wash_2": {
         "destination": [-470, -210.0, 170.0],
         "catch_pre_offset": 60.0,
-        "put_height": 120.0,
-        "catch_direction": [90.0, 0.0, -90.0],
-        "safe_place_id": 0
+        "put_height_1": 120.0,
+        "put_height_2": 25.0,
+        "catch_direction": [90.0, 0.0, 180.0],
+        "safe_place_id": 3
     },
     "solid_pour_place": {
         "destination": [450.0, 150.0, 150.0],
