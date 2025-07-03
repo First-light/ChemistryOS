@@ -35,48 +35,44 @@ class Fr3Arm(Fr5Arm):
             "gripper_status": 0,
         }
         
-    def reset_all(self):
-        self.open_up()
-        self.reset_pose()
-        self.reset_gripper()
+    # def reset_all(self):
+    #     self.open_up()
+    #     self.reset_pose()
+    #     self.reset_gripper()
         
 
-    def reset_pose(self):
-        print("机械臂关节初始化")
-        self.move_joint(Fr3Arm.default_start_joint)
-        print("机械臂位姿初始化")
-        pose = [Fr3Arm.default_start_pose[i] + self.initial_offset[i] for i in range(len(Fr3Arm.default_start_pose))]
-        self.move_to(pose[0],pose[1],pose[2],pose[3],pose[4],pose[5],type="MoveJ")
-        deg = self.analyse_angle(pose[0],pose[1])
-        j1 = self.get_pose("joy")[0]
-        Fr3Arm.angle_offset =j1 - deg
-        print(f"机械臂初始角机械偏移{Fr3Arm.angle_offset}")
-        print("完成")
+    # def reset_pose(self):
+    #     print("机械臂关节初始化")
+    #     self.move_joint(Fr3Arm.default_start_joint)
+    #     print("机械臂位姿初始化")
+    #     pose = [Fr3Arm.default_start_pose[i] + self.initial_offset[i] for i in range(len(Fr3Arm.default_start_pose))]
+    #     self.move_to(pose[0],pose[1],pose[2],pose[3],pose[4],pose[5],type="MoveJ")
+    #     deg = self.analyse_angle(pose[0],pose[1])
+    #     j1 = self.get_pose("joy")[0]
+    #     Fr3Arm.angle_offset =j1 - deg
+    #     print(f"机械臂初始角机械偏移{Fr3Arm.angle_offset}")
+    #     print("完成")
 
-    def reset_gripper(self):
-        print("夹爪初始化")
-        self.catch()   
-        self.put()
-        print("完成")
+    # def reset_gripper(self):
+    #     print("夹爪初始化")
+    #     self.catch()   
+    #     self.put()
+    #     print("完成")
 
-    def catch(self):
-        self.robot.SetToolDO(0,1,0,0)
-        self.robot.SetToolDO(1,0,0,0)
-        time.sleep(1)
+    # def catch(self):
+    #     self.robot.SetToolDO(0,1,0,0)
+    #     self.robot.SetToolDO(1,0,0,0)
+    #     time.sleep(1)
 
 
-    def put(self):
-        self.robot.SetToolDO(0,0,0,0)
-        self.robot.SetToolDO(1,1,0,0)
-        time.sleep(1)
+    # def put(self):
+    #     self.robot.SetToolDO(0,0,0,0)
+    #     self.robot.SetToolDO(1,1,0,0)
+    #     time.sleep(1)
 
-    def clear_error_code(self):
-        ret = self.robot.ResetAllError()
-        print(f"清除错误码:{ret}")
-
-    def delay(self,sec:float):
-        print("delay ",sec)
-        time.sleep(sec)
+    # def delay(self,sec:float):
+    #     print("delay ",sec)
+    #     time.sleep(sec)
 
     def move_to_bath(self):
         self.move_to_desc(self.safe_place[0],vel=5)

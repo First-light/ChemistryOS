@@ -16,15 +16,16 @@ sys.path.append('src/chemistry_os/src')
 if __name__ == '__main__':
     filter = Filter("filter", "/dev/ttyUSB0",sub_address = 0x01)
     main_sys = System("os")
-    fr5 = Fr5Arm("fr5A","192.168.58.2")
+    fr3 = Fr3Arm("fr3","192.168.58.3")
+    fr3.reset_gripper()
     # fr5.Go_to_start_zone_0()
 
 
     main_server = TCPServer()
-    main_server.register("example_unit", 5,fr5.data_dict, fr5.dict_update_angles)
+    # main_server.register("example_unit", 5,fr3.data_dict, fr5.dict_update_angles)
     main_server.start()
     main_parser = CommandParser()
-    main_parser.parse("os project name=pro file=fr5.json")
+    # main_parser.parse("os project name=pro file=fr5.json")
     main_parser.parse("os check")
     main_parser.start()
 
