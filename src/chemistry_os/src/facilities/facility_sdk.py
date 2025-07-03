@@ -141,6 +141,7 @@ class HN_SDK(Facility):
         self.name_catch("sanjinshaoping")
         self.move_wash('sanjinshaoping_wash_1')
         self.move_wash('sanjinshaoping_wash_2')
+        self.name_put("sanjinshaoping")
 
     def move_wash(self, wash_place):
         obj_statu = self.fr5_A.obj_status[wash_place]
