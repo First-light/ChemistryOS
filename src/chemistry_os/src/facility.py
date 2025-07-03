@@ -72,6 +72,8 @@ class Facility(ABC):
             logging.warning(f"未找到名称为 {name} 的对象")
         return None
 
+
+    
     def log_init(self):
         """
         初始化日志记录器，支持控制台和文件输出，并确保日志目录和文件存在

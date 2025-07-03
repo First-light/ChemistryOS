@@ -1,3 +1,5 @@
+import sys
+sys.path.append('src/chemistry_os/src')
 import socket
 import threading
 import json

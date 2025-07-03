@@ -161,17 +161,17 @@ class HN_SDK(Facility):
         time.sleep(1)
 
         #上升
-        dest_safe = [obj_statu['destination'][0], obj_statu['destination'][1], obj_statu['destination'][2] + obj_statu['safe_height']]+ obj_statu['catch_direction']
+        dest_safe = obj_statu['destination'] + obj_statu['catch_direction']
         self.fr5_A.move_to_desc(dest_safe, vel=5)
         input('safe?')
-        desc_pos_aim = obj_statu['destination'] + obj_statu['catch_direction']
-        self.fr5_A.move_to_desc(desc_pos_aim, vel=5)
+        dest = [obj_statu['destination'][0], obj_statu['destination'][1], obj_statu['destination'][2] + obj_statu['second_height']] + obj_statu['catch_direction']
+        self.fr5_A.move_to_desc(dest, vel=5)
         time.sleep(1)
 
         input('ok?')
 
-        #下降
-        self.fr5_A.move_to_desc(dest_horizon, vel=5)
+        #移动到下方位置
+        self.fr5_A.move_to_desc(dest_horizon, vel=10)
         time.sleep(1)
 
         #移动到准备位置

@@ -658,9 +658,9 @@ class Fr5Arm(Facility):
         self.robot.SetGripperConfig(4, 0, 0, 1)
         time.sleep(0.5)
         self.robot.ActGripper(1, 1)
-        time.sleep(1.5)
-        self.robot.MoveGripper(1, 100, 50, 10, 10000, 1, 0, 0, 0, 0)
-        time.sleep(0.5)
+        time.sleep(4.0)
+        # self.robot.MoveGripper(1, 100, 50, 10, 10000, 0, 0, 0, 0, 0)
+        # time.sleep(0.5)
         self.log.info("夹爪初始化完成")
         
     # def Release_DiGuan(self):
@@ -671,24 +671,24 @@ class Fr5Arm(Facility):
     #     time.sleep(2.0)
 
     def catch(self):
-        self.robot.MoveGripper(1, 0, 50, 5, 10000, 1, 0, 0, 0, 0)
-        time.sleep(2.0)
+        self.robot.MoveGripper(1, 0, 50, 5, 10000, 0, 0, 0, 0, 0)
+        time.sleep(0.5)
 
     def put(self):
-        self.robot.MoveGripper(1, 100, 50, 10, 10000, 1, 0, 0, 0, 0)
-        time.sleep(2.0)
+        self.robot.MoveGripper(1, 100, 50, 10, 10000, 0, 0, 0, 0, 0)
+        time.sleep(0.5)
 
     def gripper_half(self):
-        self.robot.MoveGripper(1, 50, 50, 10, 10000, 1, 0, 0, 0, 0)
-        time.sleep(2.0)
+        self.robot.MoveGripper(1, 50, 50, 10, 10000, 0, 0, 0, 0, 0)
+        time.sleep(0.5)
 
     def gripper_15(self):
-        self.robot.MoveGripper(1, 15, 50, 10, 10000, 1, 0, 0, 0, 0)
-        time.sleep(2.0)
+        self.robot.MoveGripper(1, 15, 50, 10, 10000, 0, 0, 0, 0, 0)
+        time.sleep(0.5)
 
     def gripper_30(self):
-        self.robot.MoveGripper(1, 30, 50, 10, 10000, 1, 0, 0, 0, 0)
-        time.sleep(2.0)
+        self.robot.MoveGripper(1, 30, 50, 10, 10000, 0, 0, 0, 0, 0)
+        time.sleep(0.5)
         
     def shut_down(self):
         ret = self.robot.RobotEnable(0)  # 机器人下使能
