@@ -796,7 +796,7 @@ class Fr5Arm(Facility):
                     diff = min(abs(a - b), 360 - abs(a - b))
                 else:
                     diff = abs(a - b)
-                if diff > 5:
+                if diff > 20:
                     pd = False
                     break
             if pd:

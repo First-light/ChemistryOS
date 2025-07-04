@@ -40,6 +40,7 @@ if __name__ == '__main__':
     # 机械臂初始化
     hn_sdk.fr5_init()
     
+    
     hn_sdk.wash()
     main_parser = CommandParser()
     main_parser.start()

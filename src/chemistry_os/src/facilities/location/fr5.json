@@ -95,7 +95,7 @@
         "destination": [456.0, 167.0, 350.0],
         "catch_pre_offset": 60.0,
         "put_height": -120.0,
-        "second_height": 25.0,
+        "second_height": 85.0,
         "catch_direction": [90.0, 0.0, 180.0],
         "safe_place_id": 4
     },
@@ -103,7 +103,7 @@
         "destination": [568.0, 169.0, 350.0],
         "catch_pre_offset": 60.0,
         "put_height": -120.0,
-        "second_height": 25.0,
+        "second_height": 85.0,
         "catch_direction": [90.0, 0.0, 180.0],
         "safe_place_id": 4
     },
