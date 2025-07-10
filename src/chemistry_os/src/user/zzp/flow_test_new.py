@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
     add_Liquid=PumpGroup('add_Liquid')
     add_Solid=Add_Solid('add_Solid')
-    fr3_C = Fr3Arm("fr3C","192.168.58.3")
+    fr5_C = Fr5Arm("fr5C","192.168.58.3")
     fr5_A = Fr5Arm("fr5A","192.168.58.2")
     bath = Bath('bath')
     hn_sdk=HN_SDK()

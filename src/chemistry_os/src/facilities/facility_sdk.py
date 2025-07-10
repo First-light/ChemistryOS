@@ -106,7 +106,7 @@ class HN_SDK(Facility):
             self.fr5_A: Fr5Arm = get_facility_ref("fr5A", Fr5Arm)
             self.add_Liquid: PumpGroup = get_facility_ref("add_Liquid", PumpGroup)
             self.add_Solid: Add_Solid = get_facility_ref("add_Solid", Add_Solid)
-            # self.fr3_C: Fr3Arm = get_facility_ref("fr3C", Fr3Arm)
+            self.fr5_C: Fr5Arm = get_facility_ref("fr5C", Fr5Arm)
             self.bath: Bath = get_facility_ref("bath", Bath)
 
         except ValueError as e:
@@ -121,10 +121,6 @@ class HN_SDK(Facility):
         self.parser.register("add_liquid", self.add_liquid, {"name":'', "rpm":150, "volume":0.0}, "add liquid to named place")
         self.parser.register("add_liquid_bath", self.add_liquid_bath, {"name":''}, "add liquid to named place and bath")
         self.parser.register("add_solid", self.add_solid, {"gram":0.0, "tube_from":'', "beaker_from":''}, "add solid to named place")  # 修正参数名
-        self.parser.register("fr3_move_to_catch", self.fr3_move_to_catch, {}, "fr3 move to catch")
-        self.parser.register("fr3_move_to_bath", self.fr3_move_to_bath, {}, "fr3 move to bath")
-        self.parser.register("fr3_catch", self.fr3_catch, {}, "fr3 catch")
-        self.parser.register("fr3_put", self.fr3_put, {}, "fr3 put")
         self.parser.register("name_catch_and_put", self.name_catch_and_put, {"name1":'', "name2":''}, "fr5 catch name1 and put name2")
         self.parser.register("name_catch_pour_put", self.name_catch_pour_put, {"name1":'', "name2":'', "name3":''}, "catch, pour and put")
         self.parser.register("fr5_gripper_activate", self.fr5_gripper_activate, {}, "activate fr5 gripper")
@@ -133,8 +129,8 @@ class HN_SDK(Facility):
         self.parser.register("bath_close", self.bath_close, {}, "close bath")
         self.parser.register("bath_writetmp", self.bath_writetmp, {"tmp":0.0}, "write temperature to bath")
         self.parser.register("interactable_countdown", self.interactable_countdown, {"seconds":0.0}, "start interactive countdown")
-        self.parser.register("fr5_init", self.fr5_init, {}, "initialize fr5")
-        self.parser.register("fr3_init", self.fr3_init, {}, "initialize fr3")
+        self.parser.register("fr5A_init", self.fr5A_init, {}, "initialize fr5A")
+        self.parser.register("fr5C_init", self.fr5C_init, {}, "initialize fr5C")
         self.parser.register("HN_init", self.HN_init, {}, "initialize HN")
 
     def wash(self):
@@ -189,6 +185,7 @@ class HN_SDK(Facility):
         添加液体并设置水浴温度
         :param liquid_name: 液体名称
         """
+        self.fr5_C.move_to_safe_catch(1)
         config = self.liquid_config.get(liquid_name)
         if not config:
             raise ValueError(f"未知液体: {liquid_name}")
@@ -322,7 +319,7 @@ class HN_SDK(Facility):
 
     def bath_catch(self, name:str):
 
-        self.fr3_C.move_to_safe_catch(1)
+        self.fr5_C.move_to_safe_catch(1)
 
         obj_statu = self.fr5_A.obj_status[name]
 
@@ -341,10 +338,13 @@ class HN_SDK(Facility):
 
         self.fr5_A.gripper_15()
         time.sleep(1)
-        self.fr3_C.put()
+        self.fr5_C.gripper_15()
         time.sleep(1)
         self.fr5_A.catch()
         time.sleep(1)
+        self.fr5_C.put()
+        time.sleep(1)
+        
 
         #移动到准备位置
         desc_pos_aim_xyz = list(map(lambda x, y: x + y, obj_statu['destination'], obj_statu['bath_pre_offset']))
@@ -361,7 +361,7 @@ class HN_SDK(Facility):
 
     def bath_put(self, name:str):
 
-        self.fr3_C.move_to_safe_catch(1)
+        self.fr5_C.move_to_safe_catch(0)
 
         obj_statu = self.fr5_A.obj_status[name]
 
@@ -384,9 +384,11 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(desc_pos_aim, vel=10)
         time.sleep(1)
 
+        self.fr5_C.gripper_15()
+        time.sleep(1)
         self.fr5_A.gripper_15()
         time.sleep(1)
-        self.fr3_C.catch()
+        self.fr5_C.catch()
         time.sleep(1)
         self.fr5_A.put()
         time.sleep(1)
@@ -402,7 +404,7 @@ class HN_SDK(Facility):
 
     def add_liquid(self, name:str, rpm=150, volume=0.0, name_space='add_liquid_mode_place'):
 
-        self.fr3_C.move_to_safe_catch(0)
+        self.fr5_C.move_to_safe_catch(0)
 
         obj_statu = self.fr5_A.obj_status[name]
 
@@ -485,18 +487,6 @@ class HN_SDK(Facility):
         self.name_pour(pour_place)
         self.name_put(beaker_from)
         # # self.fr3_C.move_to_safe_catch(1)
-
-    def fr3_move_to_catch(self):
-        self.fr3_C.move_to_catch()
-
-    def fr3_move_to_bath(self):
-        self.fr3_C.move_to_bath()
-
-    def fr3_catch(self):
-        self.fr3_C.catch()
-
-    def fr3_put(self):
-        self.fr3_C.put()
     
     def name_catch_and_put(self, name1:str, name2:str):
         self.name_catch(name1)
@@ -573,20 +563,17 @@ class HN_SDK(Facility):
         # 启动倒计时
         countdown(seconds)
 
-    def fr5_init(self):
+    def fr5A_init(self):
         self.fr5_A.fr5_init()
+
+    def fr5C_init(self):
+        self.fr5_C.fr5_init()
 
     def fr5_check_place(self):
         self.fr5_A.fr5_check_place()
 
-    def fr3_init(self):
-        self.fr3_C.fr3_init()
-
-    def fr3_check_place(self):
-        self.fr3_C.fr3_check_place()
-
     def HN_init(self):
-        self.fr5_init()
-        self.fr3_init()
+        self.fr5A_init()
+        self.fr5C_init()
 
     

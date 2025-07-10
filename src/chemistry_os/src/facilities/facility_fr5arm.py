@@ -24,36 +24,27 @@ class Fr5Arm(Facility):
     angle_offset = 45.0
     saved_pose = [0,0,0,0,0,0]
 
-    safe_place=[
-        [-250.0, -250.0, 350.0, 90.0, 0.0, -90.0],
-        [0.0, -250.0, 350.0, 90.0, 0.0, 0.0],
-        [200.0, -150.0, 350.0, 90.0, 0.0, 90.0],
-        [100.0, 200.0, 400.0, 90.0, 0.0, 180.0],
-        [450.0, 50.0 ,230.0, 90.0, 0.0, 180.0],
-    ]
-    graph = {
-        0: {1: 1},
-        1: {0: 1, 2: 1},
-        2: {1: 1, 3: 1, 4: 1},
-        3: {2: 1},
-        4: {2: 1},
-    }
-    
-    position_file_path = "src/chemistry_os/src/facilities/location/fr5.json"
-
     def __init__(self, name: str, ip: str):
         super().__init__(name, Fr5Arm.type)
         self.robot = Robot.RPC(ip)
+        if self.name=='fr5A':
+            self.position_file_path = "src/chemistry_os/src/facilities/location/fr5A.json"
+        elif self.name=='fr5C':
+            self.position_file_path = "src/chemistry_os/src/facilities/location/fr5C.json"
+
         with open(self.position_file_path, 'r') as file:
-            self.obj_status = json.load(file)
+            text = json.load(file)
+            self.obj_status = text['obj_status']
+            self.safe_place = text['safe_place']
+            self.graph = {int(k): {int(inner_k): inner_v for inner_k, inner_v in v.items()} for k, v in text['graph'].items()}
         self.obj_status_init()
         self.arm_init()
         self.data_dict = {
             "type": DeviceType.MECHANICAL_ARM,
             "joint_angles": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
             "gripper_status": Gripper_status.OPEN,
-            
         }
+        self.process_display_dict = {}
 
     def dict_update_angles(self):
         """
@@ -806,11 +797,7 @@ class Fr5Arm(Facility):
     
     def fr5_init(self):
         self.reset_gripper()
-        now_place = self.check_place()
-        if now_place==None:
-            self.Go_to_start_zone_0()
-        else:
-            self.move_to_desc(self.safe_place[now_place], type='MoveJ', vel=15)
+        self.fr5_check_place()
 
     def fr5_check_place(self):
         now_place = self.check_place()

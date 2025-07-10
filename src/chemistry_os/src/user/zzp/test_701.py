@@ -52,7 +52,7 @@ hn_sdk=HN_SDK()
 #     add_Solid.clip_open()
 
 # exit()
-hn_sdk.fr5_init()
+hn_sdk.fr5A_init()
 fr5_A.move_to_safe_catch(3)
 # fr5_A.catch()
 # hn_sdk.name_catch('sanjinshaoping')

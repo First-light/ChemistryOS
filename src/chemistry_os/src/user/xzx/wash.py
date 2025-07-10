@@ -38,7 +38,7 @@ if __name__ == '__main__':
     hn_sdk=HN_SDK()
     
     # 机械臂初始化
-    hn_sdk.fr5_init()
+    hn_sdk.fr5A_init()
     
     
     hn_sdk.wash()
