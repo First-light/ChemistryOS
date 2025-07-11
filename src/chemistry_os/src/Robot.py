@@ -1,1 +1,0 @@
-/home/hn/HN/ChemistryOS/lib/fairino/Robot.py

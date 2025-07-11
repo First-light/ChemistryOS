@@ -1,12 +1,13 @@
 import heapq
 import json
 import sys
-
+import sys
+sys.path.append('lib/fairino')  # 添加lib/fairino到模块搜索路径
+from Robot import Robot  # 导入Robot模块
 sys.path.append('src/chemistry_os/src')
 from user.zzp.simple_client import TCPClient
 from user.zzp.unity import DeviceType,Gripper_status,Running_status,Weighing_status,Tube_position
 import time
-import Robot # type: ignore # 根目录在src下
 import math
 import numpy as np
 from facility import Facility
