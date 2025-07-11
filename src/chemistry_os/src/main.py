@@ -12,7 +12,7 @@ import sys
 sys.path.append('src/chemistry_os/src')
 
 if __name__ == '__main__':
-    filter = Filter("filter", "/dev/ttyUSB0",sub_address = 0x01)
+    filter = Filter("filter", "/dev/ttyUSB0")
     main_sys = System("os")
     fr5 = Fr5Arm("fr5A","192.168.58.2")
 
