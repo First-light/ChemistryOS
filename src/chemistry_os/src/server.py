@@ -8,6 +8,7 @@ import time
 import os
 from typing import Dict, Any, Callable, Optional, Union
 from facility import Facility
+from structs import ServerMod
 
 class TCPServer(Facility):
     """
@@ -45,7 +46,7 @@ class TCPServer(Facility):
         # self.register("temperature_unit", 10, {"temperature": 25.0})
         # self.register("pressure_unit", 3, {"pressure": 101.3})
 
-    def start(self):
+    def start(self,T: float = 0.01):
         """
         启动TCP服务端，开始监听连接并处理数据。
         """
@@ -63,6 +64,10 @@ class TCPServer(Facility):
 
             self.log.info(f"服务器启动成功，监听地址: {self.host}:{self.port}")
             self.log.info("等待客户端连接...")
+
+            # 设置循环时间
+            self.loop_time = T
+
             # 启动接收和发送线程
             threading.Thread(target=self.receive_data, daemon=True).start()
             threading.Thread(target=self.send_data, daemon=True).start()
@@ -76,15 +81,17 @@ class TCPServer(Facility):
             decoded_data = data.decode('utf-8')
         else:
             decoded_data = data
+        
         # 添加时间戳
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         data_saved = f"[{timestamp}][{self.name}][{data_type}]: {decoded_data}"
         
         # 获取项目根目录路径
-        project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        log_dir = os.path.join(project_root, "log")
-        os.makedirs(log_dir, exist_ok=True)  # 确保 log 文件夹存在
-
+        base_dir = sys.path[0]  # 获取当前项目的根目录
+        log_dir = os.path.join(base_dir, 'log')  # 将日志目录设置为项目根目录下的 log 文件夹
+        # 确保日志目录存在
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)  # 如果目录不存在，则创建
         # 将数据写入文件
         with open(os.path.join(log_dir, f"connect_{self.file_timestape}.log"), "a", encoding="utf-8") as file:
             file.write(f"{data_saved}\n")
@@ -96,13 +103,107 @@ class TCPServer(Facility):
             decoded_data = data
         
         # 获取项目根目录路径
-        project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        log_dir = os.path.join(project_root, "log")
-        os.makedirs(log_dir, exist_ok=True)  # 确保 log 文件夹存在
+        base_dir = sys.path[0]  # 获取当前项目的根目录
+        log_dir = os.path.join(base_dir, 'log')  # 将日志目录设置为项目根目录下的 log 文件夹
+        # 确保日志目录存在
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)  # 如果目录不存在，则创建
 
         # 将数据写入文件
-        with open(os.path.join(log_dir, f"data_{self.file_timestape}.log"), "a", encoding="utf-8") as file:
+        with open(os.path.join(log_dir, f"connect_data_{self.file_timestape}.log"), "a", encoding="utf-8") as file:
             file.write(f"{decoded_data}{end_str}")
+
+    def _handle_buffer_full(self):
+        """处理接收缓冲区已满的情况"""
+        self.log.warning("接收缓冲区已满，停止接收新数据")
+        time.sleep(0.5)  # 防止过度占用 CPU
+
+    def _decode_unicode_json(self, data):
+        """解码包含Unicode转义字符的JSON数据"""
+        try:
+            decoded_data = data.decode('utf-8')
+            # 如果数据看起来像 JSON，尝试解析并重新格式化（不转义中文）
+            if decoded_data.strip().startswith('{') and decoded_data.strip().endswith('}'):
+                parsed_json = json.loads(decoded_data)
+                decoded_data = json.dumps(parsed_json, ensure_ascii=False)
+            return decoded_data
+        except (json.JSONDecodeError, ValueError):
+            # 如果不是有效的 JSON，保持原样
+            return data.decode('utf-8')
+
+    def _find_json_packets(self, data_str):
+        """从数据字符串中提取所有完整的JSON数据包"""
+        packets = []
+        brace_count = 0
+        start_pos = 0
+        current_pos = 0
+        
+        while current_pos < len(data_str):
+            char = data_str[current_pos]
+            
+            if char == '{':
+                if brace_count == 0:
+                    start_pos = current_pos
+                brace_count += 1
+            elif char == '}':
+                brace_count -= 1
+                if brace_count == 0:
+                    # 找到一个完整的JSON数据包
+                    packet = data_str[start_pos:current_pos + 1]
+                    packets.append(packet)
+            
+            current_pos += 1
+        
+        return packets
+
+    def _process_single_json_packet(self, packet):
+        """处理单个JSON数据包"""
+        try:
+            parsed_json = json.loads(packet)
+            decoded_packet = json.dumps(parsed_json, ensure_ascii=False)
+            self.data_log_save(decoded_packet, "receive")
+            return True
+        except (json.JSONDecodeError, ValueError):
+            # 如果不是有效的JSON，记录原始数据
+            self.data_log_save(packet, "receive")
+            return False
+
+    def _process_received_data(self, data):
+        """处理接收到的数据，按单个JSON数据包分别处理"""
+        decoded_data = data.decode('utf-8')
+        self.rx_buffer.append(decoded_data)
+        
+        # 查找并处理JSON数据包
+        packets = []
+        brace_count = 0
+        start_pos = 0
+        
+        #json切分，寻找完整的JSON数据包
+        for i, char in enumerate(decoded_data):
+            if char == '{':
+                if brace_count == 0:
+                    start_pos = i
+                brace_count += 1
+            elif char == '}':
+                brace_count -= 1
+                if brace_count == 0:
+                    packets.append(decoded_data[start_pos:i + 1])
+        
+        # 处理找到的数据包
+
+        if packets:
+            for packet in packets:
+                try:
+                    parsed_json = json.loads(packet)
+                    decoded_packet = json.dumps(parsed_json, ensure_ascii=False)
+                    self.data_log_save(decoded_packet, "receive")
+                except (json.JSONDecodeError, ValueError):
+                    self.data_log_save(packet, "receive")
+        else:
+            # 如果没有找到完整的JSON数据包，记录原始数据
+            self.data_log_save(decoded_data, "receive")
+
+        
 
     def receive_data(self):
         """
@@ -114,13 +215,12 @@ class TCPServer(Facility):
                     # 检查 rx_buffer 是否已满
                     if len(self.rx_buffer) >= self.buffer_size:
                         self.log.warning("接收缓冲区已满，停止接收新数据")
-                        time.sleep(0.5)  # 防止过度占用 CPU
+                        time.sleep(0.5)
                         continue
 
                     data = self.client_socket.recv(self.buffer_size)
                     if data:
-                        self.rx_buffer.append(data.decode('utf-8'))
-                        self.data_log_save(data,"receive")
+                        self._process_received_data(data)
 
                 except Exception as e:
                     self.log.error(f"接收数据失败: {str(e)}")
@@ -152,7 +252,6 @@ class TCPServer(Facility):
                     self.data_log_save(data,"send")
                     self.data_normal_save(data, end_str="\n")  # 保存数据到文件
                     self.client_socket.sendall(data.encode('utf-8'))
-                    # self.log.info(f"发送数据: {data}")
                 except Exception as e:
                     self.log.error(f"发送数据失败: {str(e)}")
                     self.disconnect_client()
@@ -171,27 +270,16 @@ class TCPServer(Facility):
 
         try:
             # 初始化数据包
-            # packet = {
-            #     "timestamp": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),  # 当前时间戳
-            #     "packet_id": self.pkg_ID,  # 包编号，递增
-            #     "configs": {
-            #         "requires_response": True,  # 是否需要回应
-            #         "max_wait_time": 30,  # 最大等待时间
-            #         "retry_attempts": 3  # 最大重试次数
-            #     },
-            #     "data": {}  # 数据内容
-            # }
-            packet = {}
-            #     "timestamp": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),  # 当前时间戳
-            #     "packet_id": self.pkg_ID,  # 包编号，递增
-            #     "configs": {
-            #         "requires_response": True,  # 是否需要回应
-            #         "max_wait_time": 30,  # 最大等待时间
-            #         "retry_attempts": 3  # 最大重试次数
-            #     },
-            #     "data": {}  # 数据内容
-            # }
-
+            packet = {
+                "timestamp": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),  # 当前时间戳
+                "packet_id": self.pkg_ID,  # 包编号，递增
+                "configs": {
+                    "requires_response": True,  # 是否需要回应
+                    "max_wait_time": 30,  # 最大等待时间
+                    "retry_attempts": 3  # 最大重试次数
+                },
+                "data": {}  # 数据内容
+            }
             # 标记是否有数据单元达到响应条件
             has_response = False
 
@@ -200,22 +288,25 @@ class TCPServer(Facility):
                 name, cycle_count, max_count, data_dict,func = unit
 
                 if cycle_count[0] >= max_count:
-
-                    cycle_count[0] = 0  # 到达最大计数时置零
-                    # packet["data"][name] = data_dict  # 添加数据到包中
                     func()  # 调用函数获取最新数据
-                    packet = data_dict  # 添加数据到包中
+                    cycle_count[0] = 0  # 到达最大计数时置零
+                    if "server_mod" in data_dict:
+                        if data_dict["server_mod"] == ServerMod.SKIP.value:
+                            continue  # 跳过添加数据包的操作
+                        elif data_dict["server_mod"] == ServerMod.ADJUST.value:
+                            data_dict["server_mod"] = ServerMod.SKIP.value  # 调整值为1
+                    packet["data"][name] = data_dict  # 添加数据到包中
                     has_response = True  # 至少有一个单元达到响应条件
                 else:
                     cycle_count[0] += 1
 
 
             if has_response:
-                self.tx_buffer.append(json.dumps(packet))
+                self.tx_buffer.append(json.dumps(packet, ensure_ascii=False))
                 if end_str:  # 如果提供了结束符，则添加到发送缓冲区
                     self.tx_buffer.append(end_str)  # 添加结束符到发送缓冲区
                 self.pkg_ID += 1  # 包编号递增
-                # self.log.info(f"数据包已生成并存储到发送缓冲区: {packet}")
+                # print(f"数据包已生成并存储到发送缓冲区: {packet}")# 不储存到log
         except Exception as e:
             self.log.error(f"生成数据包失败: {str(e)}")
 
