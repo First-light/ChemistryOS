@@ -38,6 +38,7 @@ if __name__ == '__main__':
     hn_sdk.add_solid(CompoundC_solid_add, 'test_tube', 'beaker')
     # 抓取三颈烧瓶
     hn_sdk.move_shaoping_A2C()
+    hn_sdk.bath_open()
     # 液体进料
     hn_sdk.add_liquid_bath('HCl')
     hn_sdk.add_liquid_bath('KMnO4')

@@ -191,7 +191,7 @@ class HN_SDK(Facility):
         :param liquid_name: 液体名称
         """
         self.flowdisplay.process_display_dict['Process'] = '添加液体并反应'
-        self.fr5_C.move_to_safe_catch(1)
+        self.fr5_C.move_to_shuiyu()
         config = self.liquid_config.get(liquid_name)
         if not config:
             raise ValueError(f"未知液体: {liquid_name}")
@@ -213,13 +213,14 @@ class HN_SDK(Facility):
         self.interactable_countdown(reaction_time)
 
     def name_catch(self, name:str, test_tube_add:bool = False):
+        obj_statu = self.fr5_A.obj_status[name]
         self.flowdisplay.process_display_dict['Action'] = '机械臂抓取'
         Info = {
-            '抓取位置' : name
+            '抓取位置' : obj_statu['name']
         }
         self.flowdisplay.process_display_dict['Info'] = Info
 
-        obj_statu = self.fr5_A.obj_status[name]
+        
         #根据id确定安全位置, 移动到安全位置
         self.fr5_A.move_to_safe_catch(obj_statu['safe_place_id'])
 
@@ -251,13 +252,12 @@ class HN_SDK(Facility):
         time.sleep(1)
         
     def name_put(self, name:str, test_tube_add:bool = False):
+        obj_statu = self.fr5_A.obj_status[name]
         self.flowdisplay.process_display_dict['Action'] = '机械臂放置'
         Info = {
-            '放置位置' : name
+            '放置位置' : obj_statu['name']
         }
         self.flowdisplay.process_display_dict['Info'] = Info
-
-        obj_statu = self.fr5_A.obj_status[name]
 
         # #根据id确定安全位置, 移动到安全位置
         self.fr5_A.move_to_safe_catch(obj_statu['safe_place_id'])
@@ -298,13 +298,12 @@ class HN_SDK(Facility):
         time.sleep(1)
 
     def name_pour(self, name:str):
+        obj_statu = self.fr5_A.obj_status[name]
         self.flowdisplay.process_display_dict['Action'] = '固体倾倒'
         Info = {
-            '倾倒位置' : name,
+            '倾倒位置' : obj_statu['name']
         }
         self.flowdisplay.process_display_dict['Info'] = Info
-
-        obj_statu = self.fr5_A.obj_status[name]
 
         # #根据id确定安全位置, 移动到安全位置
         self.fr5_A.move_to_safe_catch(obj_statu['safe_place_id'])
@@ -339,16 +338,15 @@ class HN_SDK(Facility):
         # self.fr3_C.move_to_catch()
 
     def bath_catch(self, name:str):
+        obj_statu = self.fr5_A.obj_status[name]
         self.flowdisplay.process_display_dict['Action'] = '机械臂交接'
         Info = {
             '交接单位' : '三颈烧瓶',
-            '交接方向' : 'fr5_C to fr5_A',
+            '交接方向' : obj_statu['name']
         }
         self.flowdisplay.process_display_dict['Info'] = Info
 
-        self.fr5_C.move_to_safe_catch(1)
-
-        obj_statu = self.fr5_A.obj_status[name]
+        self.fr5_C.move_to_shuiyu()
 
         #根据id确定安全位置, 移动到安全位置
         self.fr5_A.move_to_safe_catch(obj_statu['safe_place_id'])
@@ -387,16 +385,15 @@ class HN_SDK(Facility):
         time.sleep(1)
 
     def bath_put(self, name:str):
+        obj_statu = self.fr5_A.obj_status[name]
         self.flowdisplay.process_display_dict['Action'] = '机械臂交接'
         Info = {
             '交接单位' : '三颈烧瓶',
-            '交接方向' : 'fr5_A to fr5_C',
+            '交接方向' : obj_statu['name']
         }
         self.flowdisplay.process_display_dict['Info'] = Info
 
-        self.fr5_C.move_to_safe_catch(0)
-
-        obj_statu = self.fr5_A.obj_status[name]
+        self.fr5_C.move_to_catch()
 
         #根据id确定安全位置, 移动到安全位置
         self.fr5_A.move_to_safe_catch(obj_statu['safe_place_id'])
@@ -437,9 +434,14 @@ class HN_SDK(Facility):
 
     def add_liquid(self, name:str, rpm=150, volume=0.0, name_space='add_liquid_mode_place'):
 
-        self.fr5_C.move_to_safe_catch(0)
+        self.fr5_C.move_to_catch()
 
         obj_statu = self.fr5_A.obj_status[name]
+        self.flowdisplay.process_display_dict['Action'] = '机械臂抓取'
+        Info = {
+            '抓取位置' : obj_statu['name']
+        }
+        self.flowdisplay.process_display_dict['Info'] = Info
 
         #根据id确定安全位置, 移动到安全位置
         self.fr5_A.move_to_safe_catch(obj_statu['safe_place_id'])
@@ -482,6 +484,11 @@ class HN_SDK(Facility):
         self.fr5_A.move_by(0, 0, obj_statu['put_height'], vel=10)
 
         obj_statu = self.fr5_A.obj_status[name]
+        self.flowdisplay.process_display_dict['Action'] = '机械臂放置'
+        Info = {
+            '放置位置' : obj_statu['name']
+        }
+        self.flowdisplay.process_display_dict['Info'] = Info
         #计算物体位置
         dest = [obj_statu['destination'][0], obj_statu['destination'][1], obj_statu['destination'][2] + obj_statu['put_height']]
 
@@ -516,11 +523,9 @@ class HN_SDK(Facility):
 
         self.name_catch(test_tube_add_place, test_tube_add=True)
         self.name_put(tube_from)
-        # self.fr3_C.move_to_safe_catch(2)
         self.name_catch(beaker_add_space)
         self.name_pour(pour_place)
         self.name_put(beaker_from)
-        # # self.fr3_C.move_to_safe_catch(1)
     
     def name_catch_and_put(self, name1:str, name2:str):
         self.name_catch(name1)
@@ -538,6 +543,8 @@ class HN_SDK(Facility):
         self.fr5_A.Go_to_start_zone_0()
 
     def bath_open(self):
+        self.flowdisplay.process_display_dict['Action'] = '水浴锅开启'
+        self.flowdisplay.process_display_dict['Info'] = {}
         self.bath.power_ctr(1)
         self.bath.mix_ctr(1)
         self.bath.circle_ctr(1)# 允许circle
@@ -545,6 +552,8 @@ class HN_SDK(Facility):
         self.bath.cold_ctr(1)# 允许制冷
 
     def bath_close(self):
+        self.flowdisplay.process_display_dict['Action'] = '水浴锅关闭'
+        self.flowdisplay.process_display_dict['Info'] = {}
         self.bath.mix_ctr(0)
         self.bath.circle_ctr(0)# 禁止circle
         self.bath.hot_ctr(0)# 禁止加热
@@ -554,8 +563,15 @@ class HN_SDK(Facility):
     def bath_writetmp(self, tmp:float):
         self.bath.interactable_writetmp(tmp)
 
-    def interactable_countdown(seconds:float):
+    def interactable_countdown(self, seconds:float):
     # 用于控制是否继续计时的事件
+
+        self.flowdisplay.process_display_dict['Action'] = '反应'
+        Info = {
+            '剩余时间': '',
+        }
+        self.flowdisplay.process_display_dict['Info'] = Info
+        
         stop_event = threading.Event()
         countdown_finished_event = threading.Event()
 
@@ -571,6 +587,10 @@ class HN_SDK(Facility):
                 finish_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(end_time))
                 # 打印剩余时间和预计完成时间
                 print(f"剩余时间: {int(remaining_time)} 秒 | 预计结束时间: {finish_time}, 输入 \'q\' 以跳过", end="\r")
+                Info = {
+                    '剩余时间': remaining_time,
+                }
+                self.flowdisplay.process_display_dict['Info'] = Info
                 time.sleep(1)
                 seconds -= 1
 
@@ -599,10 +619,12 @@ class HN_SDK(Facility):
 
     def fr5A_init(self):
         self.flowdisplay.process_display_dict['Action'] = 'fr5_A初始化'
+        self.flowdisplay.process_display_dict['Info'] = {}
         self.fr5_A.fr5_init()
 
     def fr5C_init(self):
         self.flowdisplay.process_display_dict['Action'] = 'fr5_C初始化'
+        self.flowdisplay.process_display_dict['Info'] = {}
         self.fr5_C.fr5_init()
 
     def fr5_check_place(self):

@@ -5,35 +5,40 @@
             "catch_pre_offset": 70.0,
             "put_height": 90,
             "catch_direction": [90.0, 0.0, -90.0],
-            "safe_place_id": 0
+            "safe_place_id": 0,
+            "name": "试管架"
         },
         "test_tube_put": {
             "destination": [-445.0, -450.0, 163.0],
             "catch_pre_offset": 70.0,
             "put_height": 90,
             "catch_direction": [90.0, 0.0, -90.0],
-            "safe_place_id": 0
+            "safe_place_id": 0,
+            "name": "试管架"
         },
         "beaker": {
             "destination": [-466.0, -38.0, 100.0],
             "catch_pre_offset": 70.0,
             "put_height": 50,
             "catch_direction": [90.0, 0.0, -90.0],
-            "safe_place_id": 0
+            "safe_place_id": 0,
+            "name": "烧杯架"
         },
         "test_tube_add_place": {
             "destination": [606.0, -239.0, 292.0],
             "catch_pre_offset": 150.0,
             "put_height": 113.0,
             "catch_direction": [90.0, 0.0, 90.0],
-            "safe_place_id": 2
+            "safe_place_id": 2,
+            "name": "固体进料-试管架"
         },
         "beaker_add_space": {
             "destination": [612.0, -481.0, 138.0],
             "catch_pre_offset": 190.0,
             "put_height": 30.0,
             "catch_direction": [90.0, 0.0, 90.0],
-            "safe_place_id": 2
+            "safe_place_id": 2,
+            "name": "固体进料-称量位置"
         },
         "bath_fr5": {
             "destination": [125.0, 627.0, 340.0],
@@ -41,56 +46,64 @@
             "catch_pre_offset": 60.0,
             "put_height": 80.0,
             "catch_direction": [90.0, 0.0, 180.0],
-            "safe_place_id": 3
+            "safe_place_id": 3,
+            "name": "fr5_A to fr5_C"
         },
         "HCl": {
             "destination": [190.0, 385.0, 115.0],
             "catch_pre_offset": 60.0,
             "put_height": 180.0,
             "catch_direction": [90.0, 0.0, 180.0],
-            "safe_place_id": 3
+            "safe_place_id": 3,
+            "name": "液体进料器-稀盐酸"
         },
         "KMnO4": {
             "destination": [130.0, 385.0, 115.0],
             "catch_pre_offset": 60.0,
             "put_height": 180.0,
             "catch_direction": [90.0, 0.0, 180.0],
-            "safe_place_id": 3
+            "safe_place_id": 3,
+            "name": "液体进料器-高锰酸钾"
         },
         "H2O2": {
             "destination": [70.0, 385.0, 115.0],
             "catch_pre_offset": 60.0,
             "put_height": 180.0,
             "catch_direction": [90.0, 0.0, 180.0],
-            "safe_place_id": 3
+            "safe_place_id": 3,
+            "name": "液体进料器-双氧水"
         },
         "CH3CN": {
             "destination": [10.0, 385.0, 115.0],
             "catch_pre_offset": 60.0,
             "put_height": 180.0,
             "catch_direction": [90.0, 0.0, 180.0],
-            "safe_place_id": 3
+            "safe_place_id": 3,
+            "name": "液体进料器-乙腈"
         },
         "N2H4": {
             "destination": [-50.0, 385.0, 115.0],
             "catch_pre_offset": 60.0,
             "put_height": 180.0,
             "catch_direction": [90.0, 0.0, 180.0],
-            "safe_place_id": 3
+            "safe_place_id": 3,
+            "name": "液体进料器-水合肼"
         },
         "add_liquid_mode_place": {
             "destination": [80, 528.0, 195.0],
             "catch_pre_offset": 0.0,
             "put_height": 100,
             "catch_direction": [90.0, 0.0, 180.0],
-            "safe_place_id": 3
+            "safe_place_id": 3,
+            "name": "液体进料-滴加位"
         },
         "sanjinshaoping": {
             "destination": [-455, -529.5, 168.0],
             "catch_pre_offset": 60.0,
             "put_height": 140.0,
             "catch_direction": [90.0, 0.0, -90.0],
-            "safe_place_id": 0
+            "safe_place_id": 0,
+            "name": "三颈烧瓶抓取位"
         },
         "sanjinshaoping_wash_1": {
             "destination": [456.0, 167.0, 350.0],
@@ -98,7 +111,8 @@
             "put_height": -120.0,
             "second_height": 85.0,
             "catch_direction": [90.0, 0.0, 180.0],
-            "safe_place_id": 4
+            "safe_place_id": 4,
+            "name": "浓盐酸冲洗处"
         },
         "sanjinshaoping_wash_2": {
             "destination": [568.0, 169.0, 350.0],
@@ -106,14 +120,16 @@
             "put_height": -120.0,
             "second_height": 85.0,
             "catch_direction": [90.0, 0.0, 180.0],
-            "safe_place_id": 4
+            "safe_place_id": 4,
+            "name": "冰水冲洗处"
         },
         "solid_pour_place": {
             "destination": [450.0, 150.0, 150.0],
             "catch_pre_offset": 120,
             "put_height": 80.0,
             "catch_direction": [90.0, 0.0, 0.0],
-            "safe_place_id": 1
+            "safe_place_id": 1,
+            "name": "固体进料-倾倒三颈烧瓶位"
         }
     },
     "safe_place": [
