@@ -12,6 +12,7 @@ import serial
 from serial.serialutil import SerialException
 
 from facility import Facility
+from facilities.facility_flowdisplay import Flowdisplay
 
 # --- 配置常量 ---
 # 可以移到 AddSolid 的 __init__ 或作为类变量，这里为方便演示先放外面
@@ -177,6 +178,19 @@ class Add_Solid(Facility):
 
         # FIFO 队列，保存最近10帧状态
         self.fifo_frame: deque['Add_Solid.McuStatusCommandTypedef'] = deque(maxlen=10)
+
+        def get_facility_ref(name, expected_type):
+            for facility in Facility.tuple_list:
+                if facility[0] == name and isinstance(facility[3], expected_type):
+                    return facility[3]  # 返回实例化的对象引用
+            print(f"错误：对象 {name} 不存在于 Facility.tuple_list 中，或类型不匹配。")
+            print(Facility.tuple_list)
+            raise ValueError(f"对象 {name} 不存在于 Facility.tuple_list 中，或类型不匹配。")
+        
+        try:
+            self.flowdisplay: Flowdisplay = get_facility_ref("flowdisplay", Flowdisplay)
+        except ValueError as e:
+            print(e)
 
     def _calculate_timing(self):
         bits_per_char = 1 + self.bytesize + (0 if self.parity == serial.PARITY_NONE else 1) + self.stopbits
@@ -567,6 +581,12 @@ class Add_Solid(Facility):
 
     def add_solid_series(self, weight: float) -> bool:
         """开始添加指定重量的固体系列操作。"""
+        self.flowdisplay.process_display_dict['Action'] = '固体振动进料'
+        Info = {
+            '现有重量' : '0 g',
+            '目标重量' : str(weight) + ' g'
+        }
+        self.flowdisplay.process_display_dict['Info'] = Info
         if self._mode == Add_Solid.ThreadMode.HOST_MODE:
             raise Exception("当前模式为 HOST_MODE，无法执行添加固体系列操作。")
             if not self.turn_on():

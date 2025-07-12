@@ -4,6 +4,7 @@ import serial
 import time
 from facility import Facility
 from tools.events import event_countdown
+from facilities.facility_flowdisplay import Flowdisplay
 
 class PumpGroup(Facility):
 
@@ -12,6 +13,19 @@ class PumpGroup(Facility):
 
     def __init__(self, name: str):
         super().__init__(name, PumpGroup.type)
+
+        def get_facility_ref(name, expected_type):
+            for facility in Facility.tuple_list:
+                if facility[0] == name and isinstance(facility[3], expected_type):
+                    return facility[3]  # 返回实例化的对象引用
+            print(f"错误：对象 {name} 不存在于 Facility.tuple_list 中，或类型不匹配。")
+            print(Facility.tuple_list)
+            raise ValueError(f"对象 {name} 不存在于 Facility.tuple_list 中，或类型不匹配。")
+        
+        try:
+            self.flowdisplay: Flowdisplay = get_facility_ref("flowdisplay", Flowdisplay)
+        except ValueError as e:
+            print(e)
 
     def cmd_init(self):
         """
@@ -141,6 +155,14 @@ class PumpGroup(Facility):
     # 新版函数通过体积和转速计算需求的时间（根据9.13测试的数据），接受以下参数：
     # rpm转速round per minute,volume体积(ml)
     def add_liquid(self, name, rpm, volume):
+        self.flowdisplay.process_display_dict['Action'] = '液体进料'
+        Info = {
+            '进料液体': name,
+            '进料转速': '',
+            '目标体积': ''
+        }
+        self.flowdisplay.process_display_dict['Info'] = Info
+
         if name=='HCl':
             addr=0x02
         elif name=='KMnO4':
@@ -154,7 +176,12 @@ class PumpGroup(Facility):
         speed = 0.0675 * rpm# 滴加速率：ml/min，测试日期9.13 0.0525
         tim = volume / speed * 60 # 滴加时间
         self.log.info(f"滴加液体为{name},体积为{volume}ml,转速为{rpm}rpm，预期需要{tim}s")
-        
+        Info = {
+            '进料液体': name,
+            '进料转速': rpm,
+            '目标体积': volume,
+        }
+        self.flowdisplay.process_display_dict['Info'] = Info
         self.writespeed(addr, rpm*10)
         time.sleep(1)
         self.startadd(addr)

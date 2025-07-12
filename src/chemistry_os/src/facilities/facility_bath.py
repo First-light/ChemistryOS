@@ -12,7 +12,7 @@ import threading
 import sys
 import select
 from pymodbus.client import ModbusSerialClient
-
+from facilities.facility_flowdisplay import Flowdisplay
 
 class Bath(Facility):
     type = "bath"
@@ -24,6 +24,19 @@ class Bath(Facility):
         self.modbus_client = ModbusSerialClient(port=self.bath_com, baudrate=9600)
         # self.modbus_client.connect()
         # 连接期间会独占串口设备
+
+        def get_facility_ref(name, expected_type):
+            for facility in Facility.tuple_list:
+                if facility[0] == name and isinstance(facility[3], expected_type):
+                    return facility[3]  # 返回实例化的对象引用
+            print(f"错误：对象 {name} 不存在于 Facility.tuple_list 中，或类型不匹配。")
+            print(Facility.tuple_list)
+            raise ValueError(f"对象 {name} 不存在于 Facility.tuple_list 中，或类型不匹配。")
+        
+        try:
+            self.flowdisplay: Flowdisplay = get_facility_ref("flowdisplay", Flowdisplay)
+        except ValueError as e:
+            print(e)
 
     def output(self,param1,param2):
         print("output:",param1,param2)
@@ -275,6 +288,14 @@ class Bath(Facility):
                 self.modbus_client.close()
 
     def interactable_writetmp(self, tmp):
+        self.flowdisplay.process_display_dict['Action'] = '水浴锅控温'
+        Info = {
+            '控制温度': tmp,
+            '当前温度': '',
+            '剩余时间': '',
+        }
+        self.flowdisplay.process_display_dict['Info'] = Info
+
         # 用于控制是否继续计时的事件
         stop_event = threading.Event()
         countdown_finished_event = threading.Event()
@@ -292,6 +313,12 @@ class Bath(Facility):
                 # 计算预计完成时间
                 finish_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()+remaining_time))
                 print(f"当前温度为：{now_tmp},未达到指定温度{tmp}附近，继续控温，预计剩余时间: {int(remaining_time)} 秒 | 预计结束时间: {finish_time}, 输入 \'q\' 以跳过", end="\r")
+                Info = {
+                    '控制温度': tmp,
+                    '当前温度': now_tmp,
+                    '预计剩余时间': remaining_time
+                }
+                self.flowdisplay.process_display_dict['Info'] = Info
                 time.sleep(1)
                 now_tmp = self.read_temp()
                 continue
