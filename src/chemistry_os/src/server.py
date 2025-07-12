@@ -306,7 +306,7 @@ class TCPServer(Facility):
                 if end_str:  # 如果提供了结束符，则添加到发送缓冲区
                     self.tx_buffer.append(end_str)  # 添加结束符到发送缓冲区
                 self.pkg_ID += 1  # 包编号递增
-                print(f"数据包已生成并存储到发送缓冲区: {packet}")# 不储存到log
+                # print(f"数据包已生成并存储到发送缓冲区: {packet}")# 不储存到log
         except Exception as e:
             self.log.error(f"生成数据包失败: {str(e)}")
 
