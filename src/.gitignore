@@ -9,7 +9,8 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-build/
+# build/
+# 递归包含这些目录下的所有内容
 develop-eggs/
 dist/
 downloads/
@@ -30,7 +31,10 @@ MANIFEST
 # 只排除构建生成的特定 lib 目录，保留源代码中的 lib
 /build/lib/
 /devel/lib/
+# 排除构建目录下的 lib，但不影响 fairino/build/lib.win-* 目录
 **/build/lib/
+!**/fairino/build/lib*/
+!**/fairino/build/temp*/
 **/devel/lib/
 **/dist-packages/
 site-packages/
