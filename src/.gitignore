@@ -15,7 +15,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# 只排除 Python 包管理相关的 lib 目录，不排除项目中的 lib 源代码
 lib64/
 parts/
 sdist/
@@ -26,6 +26,16 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+
+# 排除构建生成的 lib 目录，但保留源代码中的 lib
+/build/lib/
+/devel/lib/
+**/build/lib/
+**/dist-packages/
+
+# 排除 fairino 库中的构建文件，但保留源代码
+**/lib/fairino/build/
+**/lib/fairino/__pycache__/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
