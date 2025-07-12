@@ -42,14 +42,15 @@ import threading
 import time
 import sys
 sys.path.append('src/chemistry_os/src')
+from facilities.facility_flowdisplay import Flowdisplay
 from structs import FacilityState
 from facility import Facility
 from facilities.facility_fr5arm import Fr5Arm
-from facilities.facility_fr3arm import Fr3Arm
 from facilities.facility_pumps import PumpGroup
 from facilities.facility_addSolid import Add_Solid
 from facilities.facility_pumps import PumpGroup
 from facilities.facility_bath import Bath
+from exceptions import *
 
 class HN_SDK(Facility):
     type = "Chemistry OS SDK"
@@ -108,6 +109,7 @@ class HN_SDK(Facility):
             self.add_Solid: Add_Solid = get_facility_ref("add_Solid", Add_Solid)
             self.fr5_C: Fr5Arm = get_facility_ref("fr5C", Fr5Arm)
             self.bath: Bath = get_facility_ref("bath", Bath)
+            self.flowdisplay: Flowdisplay = get_facility_ref("flowdisplay", Flowdisplay)
 
         except ValueError as e:
             print(e)
@@ -132,6 +134,9 @@ class HN_SDK(Facility):
         self.parser.register("fr5A_init", self.fr5A_init, {}, "initialize fr5A")
         self.parser.register("fr5C_init", self.fr5C_init, {}, "initialize fr5C")
         self.parser.register("HN_init", self.HN_init, {}, "initialize HN")
+        self.parser.register("move_shaoping_A2C", self.move_shaoping_A2C, {}, "move_shaoping_A2C")
+        self.parser.register("move_shaoping_C2A", self.move_shaoping_C2A, {}, "move_shaoping_C2A")
+
 
     def wash(self):
         self.name_catch("sanjinshaoping")
@@ -185,6 +190,7 @@ class HN_SDK(Facility):
         添加液体并设置水浴温度
         :param liquid_name: 液体名称
         """
+        self.flowdisplay.process_display_dict['Process'] = '添加液体并反应'
         self.fr5_C.move_to_safe_catch(1)
         config = self.liquid_config.get(liquid_name)
         if not config:
@@ -207,6 +213,11 @@ class HN_SDK(Facility):
         self.interactable_countdown(reaction_time)
 
     def name_catch(self, name:str, test_tube_add:bool = False):
+        self.flowdisplay.process_display_dict['Action'] = '机械臂抓取'
+        Info = {
+            '抓取位置' : name
+        }
+        self.flowdisplay.process_display_dict['Info'] = Info
 
         obj_statu = self.fr5_A.obj_status[name]
         #根据id确定安全位置, 移动到安全位置
@@ -240,6 +251,12 @@ class HN_SDK(Facility):
         time.sleep(1)
         
     def name_put(self, name:str, test_tube_add:bool = False):
+        self.flowdisplay.process_display_dict['Action'] = '机械臂放置'
+        Info = {
+            '放置位置' : name
+        }
+        self.flowdisplay.process_display_dict['Info'] = Info
+
         obj_statu = self.fr5_A.obj_status[name]
 
         # #根据id确定安全位置, 移动到安全位置
@@ -281,7 +298,11 @@ class HN_SDK(Facility):
         time.sleep(1)
 
     def name_pour(self, name:str):
-        # self.fr3_C.move_to_pour()
+        self.flowdisplay.process_display_dict['Action'] = '固体倾倒'
+        Info = {
+            '倾倒位置' : name,
+        }
+        self.flowdisplay.process_display_dict['Info'] = Info
 
         obj_statu = self.fr5_A.obj_status[name]
 
@@ -318,6 +339,12 @@ class HN_SDK(Facility):
         # self.fr3_C.move_to_catch()
 
     def bath_catch(self, name:str):
+        self.flowdisplay.process_display_dict['Action'] = '机械臂交接'
+        Info = {
+            '交接单位' : '三颈烧瓶',
+            '交接方向' : 'fr5_C to fr5_A',
+        }
+        self.flowdisplay.process_display_dict['Info'] = Info
 
         self.fr5_C.move_to_safe_catch(1)
 
@@ -360,6 +387,12 @@ class HN_SDK(Facility):
         time.sleep(1)
 
     def bath_put(self, name:str):
+        self.flowdisplay.process_display_dict['Action'] = '机械臂交接'
+        Info = {
+            '交接单位' : '三颈烧瓶',
+            '交接方向' : 'fr5_A to fr5_C',
+        }
+        self.flowdisplay.process_display_dict['Info'] = Info
 
         self.fr5_C.move_to_safe_catch(0)
 
@@ -473,6 +506,7 @@ class HN_SDK(Facility):
         time.sleep(1)
 
     def add_solid(self, gram:float, tube_from:str, beaker_from:str, test_tube_add_place:str='test_tube_add_place', beaker_add_space:str='beaker_add_space', pour_place:str='solid_pour_place'):
+        self.flowdisplay.process_display_dict['Process'] = '固体进料'
         self.name_catch(tube_from)
         self.name_put(test_tube_add_place, test_tube_add=True)
         self.name_catch_and_put(beaker_from, beaker_add_space)
@@ -564,16 +598,30 @@ class HN_SDK(Facility):
         countdown(seconds)
 
     def fr5A_init(self):
+        self.flowdisplay.process_display_dict['Action'] = 'fr5_A初始化'
         self.fr5_A.fr5_init()
 
     def fr5C_init(self):
+        self.flowdisplay.process_display_dict['Action'] = 'fr5_C初始化'
         self.fr5_C.fr5_init()
 
     def fr5_check_place(self):
         self.fr5_A.fr5_check_place()
 
     def HN_init(self):
+        self.flowdisplay.process_display_dict['Process'] = 'HN机械臂初始化'
         self.fr5A_init()
         self.fr5C_init()
+
+    def move_shaoping_A2C(self):
+        self.flowdisplay.process_display_dict['Process'] = '烧瓶转移 A to C'
+        self.name_catch('pour_shaoping_place')
+        self.bath_put('bath_fr5')
+
+
+    def move_shaoping_C2A(self):
+        self.flowdisplay.process_display_dict['Process'] = '烧瓶转移 C to A'
+        self.bath_catch('bath_fr5')
+        self.name_put('pour_shaoping_place')
 
     

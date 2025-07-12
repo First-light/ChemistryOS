@@ -44,7 +44,6 @@ class Fr5Arm(Facility):
             "joint_angles": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
             "gripper_status": Gripper_status.OPEN,
         }
-        self.process_display_dict = {}
 
     def dict_update_angles(self):
         """
@@ -645,6 +644,7 @@ class Fr5Arm(Facility):
         self.log.info("完成")
 
     def reset_gripper(self):
+        self.flowdisplay.process_display_dict['Action'] = 'fr5_A初始化'
         self.log.info("夹爪初始化")
         self.robot.SetGripperConfig(4, 0, 0, 1)
         time.sleep(0.5)
