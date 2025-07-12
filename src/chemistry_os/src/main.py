@@ -6,47 +6,27 @@ from facilities.facility_fr5arm import Fr5Arm
 from facilities.facility_temp import FacilityTemp
 from parser import CommandParser
 from server import TCPServer
+from facility import Facility
 import time
 import sys
 
 sys.path.append('src/chemistry_os/src')
 
 if __name__ == '__main__':
-    filter = Filter("filter", "/dev/ttyUSB0")
+    # filter = Filter("filter", "/dev/ttyUSB0")
     main_sys = System("os")
     fr5 = Fr5Arm("fr5A","192.168.58.2")
 
 
     main_server = TCPServer()
-    main_server.register("example_unit", 5,fr5.data_dict, fr5.dict_update_angles)
-    main_server.register("example_unit", 5,fr5.data_dict, fr5.dict_update_angles)
+    # main_server.register("example_unit", 5,fr5.data_dict, fr5.dict_update_angles)
+    main_server.register("example_unit", 5,fr5.data_dict, fr5.data_dict_update_angles)
+    main_server.register("example_unit", 50,Facility.log_cache_dict, Facility.log_cache_dict_update)
     main_server.start()
     main_parser = CommandParser()
     main_parser.start()
     # # main_parser.parse("os project name=pro1 file=double1.json")
-    # main_parser.parse("os project name=pro2 file=double1.json")
-    # main_parser.parse("os check")
-    # main_parser.start()
-    # # exit(0)
-    # # 气泵测试
-    # main_parser.parse("filter valve state=1")
-    # time.sleep(1)
-    # main_parser.parse("filter airpump state=1")
-    # time.sleep(20)
-    # main_parser.parse("filter airpump state=1")
-    # time.sleep(1)
 
-    # main_parser.parse("filter valve state=0")
-    # time.sleep(1)
-    # main_parser.parse("filter speed speed=600")
-    # time.sleep(1)
-    # main_parser.parse("filter dir direction=1")
-    # time.sleep(1)
-    # main_parser.parse("filter pump state=1")
-    # time.sleep(10)
-    # main_parser.parse("filter pump state=0")
-    # main_parser.parse("filter query")
-    # time.sleep(1)
 
     # 保持主线程运行
     try:

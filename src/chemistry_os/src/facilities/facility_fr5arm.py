@@ -55,7 +55,7 @@ class Fr5Arm(Facility):
             
         }
 
-    def dict_update_angles(self):
+    def data_dict_update_angles(self):
         """
         更新机械臂数据
         """

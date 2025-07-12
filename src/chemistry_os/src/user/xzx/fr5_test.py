@@ -21,7 +21,7 @@ if __name__ == '__main__':
 
 
     main_server = TCPServer()
-    main_server.register("example_unit", 5,fr5.data_dict, fr5.dict_update_angles)
+    main_server.register("example_unit", 5,fr5.data_dict, fr5.data_dict_update_angles)
     main_server.start()
     main_parser = CommandParser()
     main_parser.parse("os project name=pro file=fr5.json")

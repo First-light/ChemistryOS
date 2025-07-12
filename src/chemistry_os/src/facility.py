@@ -7,11 +7,17 @@ sys.path.append('src/chemistry_os/src')
 from abc import ABC, abstractmethod
 from facilities.pkgcmd import PkgCmdParser
 from structs import FacilityState
+from structs import ServerMod
 import time
 
 
 class Facility(ABC):
     tuple_list = []
+    log_cache = []  # 公用日志缓存区
+    log_cache_dict = {
+        "data": None,
+        "server_mod": int(ServerMod.SKIP.value),
+    }  # 公用日志缓存区字典
 
     def __init__(self, name: str, type: str):
         self.name = name
@@ -32,7 +38,6 @@ class Facility(ABC):
             raise ValueError(f"Duplicate name pair: {name}")
         # 存储 name 和 type 参数对
         Facility.tuple_list.append((name, type, self.parser.cmd, self))
-        # 设置日志记录器
         
     def delay(self, sec):
         print("delay ", sec)
@@ -72,7 +77,18 @@ class Facility(ABC):
             logging.warning(f"未找到名称为 {name} 的对象")
         return None
 
-
+    def show_logs(self):
+        """
+        显示当前日志缓存区中的所有日志信息
+        """
+        if not Facility.log_cache:
+            print("=PRINT=")
+            print("日志缓存区为空")
+        else:
+            print("当前日志缓存区内容:")
+            for log in Facility.log_cache:
+                print(log)
+            print("=PRINT-END=")
     
     def log_init(self):
         """
@@ -111,3 +127,50 @@ class Facility(ABC):
         self.log.addHandler(file_handler)
         # 避免重复添加处理器
         self.log.propagate = False
+
+        # 添加日志到缓存区
+        self.log.addHandler(self.cache_handler())
+
+    def cache_handler(self):
+        """
+        创建一个处理器，用于将日志信息存储到公用缓存区
+        """
+        class CacheHandler(logging.Handler):
+            def emit(self, record):
+                log_entry = self.format(record)
+                Facility.log_cache.append(log_entry)  # 将日志信息存储到公用缓存区
+
+        cache_handler = CacheHandler()
+        cache_handler.setFormatter(logging.Formatter(
+            fmt='[%(asctime)s] [%(name)s] [%(levelname)s]: %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S'
+        ))
+        return cache_handler
+
+    @staticmethod
+    def read_log_cache():
+        """
+        只读缓存区里的日志信息
+        :return: 缓存区中的所有日志信息
+        """
+        return Facility.log_cache
+
+    @staticmethod
+    def extract_log_cache():
+        """
+        抽取缓存区的所有日志信息，并清空缓存区
+        :return: 缓存区中的所有日志信息
+        """
+        logs = Facility.log_cache[:]
+        Facility.log_cache.clear()
+        return logs
+    
+    def log_cache_dict_update():
+        """
+        更新日志缓存字典中的数据
+        """
+
+        extracted_logs = Facility.extract_log_cache()
+        if extracted_logs:# 如果没有日志数据，则设置 server_mod 为 SKIP
+            Facility.log_cache_dict["data"] = extracted_logs
+            Facility.log_cache_dict["server_mod"] = int(ServerMod.ADJUST.value)
