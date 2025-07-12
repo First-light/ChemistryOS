@@ -16,3 +16,8 @@ class ProjectState(Enum):
     PAUSE = 3    # 暂停
     QUIT = 4     # 退出
     ERROR = 5    # 错误
+
+class ServerMod(Enum):
+    NONE = 0  # 无状态
+    SKIP = 1  # 跳过添加数据包的操作 用于触发式发送
+    ADJUST = 2  # 执行一此后调整值为1 用于触发式发送

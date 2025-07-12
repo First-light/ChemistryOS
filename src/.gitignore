@@ -9,13 +9,14 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-build/
+# build/
+# 递归包含这些目录下的所有内容
 develop-eggs/
 dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# 只排除特定位置的 lib 目录，完全保留 src/chemistry_os/src/lib/ 下的所有文件
 lib64/
 parts/
 sdist/
@@ -26,6 +27,24 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+
+# 只排除构建生成的特定 lib 目录，保留源代码中的 lib
+/build/lib/
+/devel/lib/
+# 排除构建目录下的 lib，但不影响 fairino/build/lib.win-* 目录
+**/build/lib/
+!**/fairino/build/lib*/
+!**/fairino/build/temp*/
+**/devel/lib/
+**/dist-packages/
+site-packages/
+
+# 保留 src/chemistry_os/src/lib/ 下的所有文件（包括子目录）
+# 只排除 Python 缓存文件
+**/__pycache__/
+
+# 排除 fairino 库中的缓存文件，但保留源代码和构建文件
+**/lib/fairino/__pycache__/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
