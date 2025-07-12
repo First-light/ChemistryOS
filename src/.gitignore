@@ -15,7 +15,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-# 只排除 Python 包管理相关的 lib 目录，不排除项目中的 lib 源代码
+# 只排除特定位置的 lib 目录，完全保留 src/chemistry_os/src/lib/ 下的所有文件
 lib64/
 parts/
 sdist/
@@ -27,14 +27,19 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# 排除构建生成的 lib 目录，但保留源代码中的 lib
+# 只排除构建生成的特定 lib 目录，保留源代码中的 lib
 /build/lib/
 /devel/lib/
 **/build/lib/
+**/devel/lib/
 **/dist-packages/
+site-packages/
 
-# 排除 fairino 库中的构建文件，但保留源代码
-**/lib/fairino/build/
+# 保留 src/chemistry_os/src/lib/ 下的所有文件（包括子目录）
+# 只排除 Python 缓存文件
+**/__pycache__/
+
+# 排除 fairino 库中的缓存文件，但保留源代码和构建文件
 **/lib/fairino/__pycache__/
 
 # PyInstaller
