@@ -259,6 +259,23 @@ class TCPServer(Facility):
             time.sleep(self.loop_time)  # 控制发送频率
         self.log.info("发送线程已停止")
 
+    def send_data_test(self):
+        """
+        处理发送缓冲区中的数据。
+        """
+        while self.is_running:
+            self.package_data()  # 生成数据包并存储到发送缓冲区
+            # 处理发送缓冲区中的数据
+            if self.tx_buffer:
+                try:
+                    data = self.tx_buffer.pop(0)
+                    self.data_log_save(data,"send")
+                    self.data_normal_save(data, end_str="\n")  # 保存数据到文件
+                except Exception as e:
+                    self.log.error(f"发送数据失败: {str(e)}")
+            time.sleep(self.loop_time)  # 控制发送频率
+        self.log.info("发送线程已停止")
+
 
 
     def package_data(self,end_str: str = ""):

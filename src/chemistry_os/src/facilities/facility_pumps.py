@@ -155,13 +155,12 @@ class PumpGroup(Facility):
     # 新版函数通过体积和转速计算需求的时间（根据9.13测试的数据），接受以下参数：
     # rpm转速round per minute,volume体积(ml)
     def add_liquid(self, name, rpm, volume):
-        self.flowdisplay.process_display_dict['Action'] = '液体进料'
         Info = {
             '进料液体': name,
             '进料转速': '',
             '目标体积': ''
         }
-        self.flowdisplay.process_display_dict['Info'] = Info
+        self.flowdisplay.update_process_display_dict(Process=None, Action='液体进料', Info=Info)
 
         if name=='HCl':
             addr=0x02
@@ -181,7 +180,7 @@ class PumpGroup(Facility):
             '进料转速': rpm,
             '目标体积': volume,
         }
-        self.flowdisplay.process_display_dict['Info'] = Info
+        self.flowdisplay.update_process_display_dict(Process=None, Action='液体进料', Info=Info)
         self.writespeed(addr, rpm*10)
         time.sleep(1)
         self.startadd(addr)
