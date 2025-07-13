@@ -41,7 +41,6 @@ class Fr5Arm(Facility):
         self.obj_status_init()
         self.arm_init()
         self.data_dict = {
-            "type": DeviceType.MECHANICAL_ARM,
             "joint_angles": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
             "gripper_status": Gripper_status.OPEN,
         }
@@ -679,23 +678,27 @@ class Fr5Arm(Facility):
 
     def catch(self):
         self.robot.MoveGripper(1, 0, 50, 5, 10000, 0, 0, 0, 0, 0)
-        time.sleep(0.5)
+        time.sleep(1.0)
 
     def put(self):
         self.robot.MoveGripper(1, 100, 50, 10, 10000, 0, 0, 0, 0, 0)
-        time.sleep(0.5)
+        time.sleep(1.0)
 
     def gripper_half(self):
         self.robot.MoveGripper(1, 50, 50, 10, 10000, 0, 0, 0, 0, 0)
-        time.sleep(0.5)
+        time.sleep(1.0)
 
     def gripper_15(self):
         self.robot.MoveGripper(1, 15, 50, 10, 10000, 0, 0, 0, 0, 0)
-        time.sleep(0.5)
+        time.sleep(1.0)
+
+    def gripper_20(self):
+        self.robot.MoveGripper(1, 20, 50, 10, 10000, 0, 0, 0, 0, 0)
+        time.sleep(1.0)
 
     def gripper_30(self):
         self.robot.MoveGripper(1, 30, 50, 10, 10000, 0, 0, 0, 0, 0)
-        time.sleep(0.5)
+        time.sleep(1.0)
         
     def shut_down(self):
         ret = self.robot.RobotEnable(0)  # 机器人下使能
@@ -826,7 +829,7 @@ class Fr5Arm(Facility):
 
 
     # radius=参数为容器半径mm，height=容器上平面离夹爪中心高度mm，direction=角度方向与增量，max_angle=倾倒最大角度，rate_percentage=运动速率的百分比
-    def pour(self, radius, height, direction=2, max_angle=90, rate_percentage=100.0, shake=1):
+    def pour(self, radius, height, direction=2, max_angle=90, rate_percentage=50.0, shake=1):
         # 将速率百分比转换为小数形式
         rate_decimal = rate_percentage / 100
         
@@ -868,10 +871,11 @@ class Fr5Arm(Facility):
         ]
 
         joint_angle_difference = 0  # 确保进入倾倒循环
-        
+        tot=0
         # 倾倒循环：在末端关节伺服旋转时，执行空间伺服运动以确保出料口位置稳定
         while np.abs(joint_angle_difference) < max_angle:
             self.robot.ServoCart(2, cartesian_increment, gain, 0.0, 0.0, servo_cycle_time, 0.0, 0.0)  # 工具笛卡尔坐标增量移动
+            time.sleep(servo_cycle_time*2)
 
             current_joint_pos = self.robot.GetActualJointPosDegree(0)
             # 确保获取到有效的关节位置数据
@@ -882,9 +886,9 @@ class Fr5Arm(Facility):
             current_joint_pos = current_joint_pos[1]
             current_joint_pos[5] = current_joint_pos[5] + direction * rate_decimal
 
-            self.robot.ServoJ(current_joint_pos, 0.0, 0.0, servo_cycle_time, 0.0, 0.0)  # 关节角增量移动
+            self.robot.ServoJ(current_joint_pos, [0,0,0,0,0,0], 0.0, 0.0, servo_cycle_time, 0.0, 0.0)  # 关节角增量移动
 
-            time.sleep(servo_cycle_time)
+            time.sleep(servo_cycle_time*2)
 
             # 更新关节角度差值
             joint_angle_difference = current_joint_pos[5] - initial_joint_pos[5]
@@ -913,7 +917,7 @@ class Fr5Arm(Facility):
         if shake == 1:
             time.sleep(3)
             while shake_count < 300:
-                self.robot.ServoJ(final_joint_pos, 0.0, 0.0, servo_cycle_time, 0.0, 0.0)
+                self.robot.ServoJ(final_joint_pos, [0,0,0,0,0,0], 0.0, 0.0, servo_cycle_time, 0.0, 0.0)
                 if final_joint_pos[5] > max_shake_angle:
                     direction = -1
                 if final_joint_pos[5] < min_shake_angle:

@@ -20,8 +20,16 @@ if __name__ == '__main__':
 
 
     main_server = TCPServer()
-    main_server.register("fr5", 5,fr5.data_dict, fr5.data_dict_update_angles)
+    
     main_server.register("log", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
+    main_server.register("flow", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
+    main_server.register("fr5A", 5, fr5.data_dict, fr5.data_dict_update_angles)
+    main_server.register("fr5C", 5,fr5.data_dict, fr5.data_dict_update_angles)
+    main_server.register("bath", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
+    main_server.register("filter", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
+    main_server.register("pumps", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
+    main_server.register("addSolid", 5, Fr3Arm.data_dict, Fr3Arm.data_dict_update_angles)
+
     main_server.start()
     main_parser = CommandParser()
     main_parser.parse("os project name=pro file=fr5.json")
