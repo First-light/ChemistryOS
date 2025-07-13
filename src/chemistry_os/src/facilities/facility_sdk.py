@@ -139,11 +139,11 @@ class HN_SDK(Facility):
 
 
     def wash(self):
-        self.name_catch("sanjinshaoping")
+        self.name_catch("sanjinshaoping_catch")
         self.move_wash('sanjinshaoping_wash_1')
         self.move_wash('sanjinshaoping_wash_2')
         self.move_wash('sanjinshaoping_wash_1')
-        self.name_put("sanjinshaoping")
+        self.name_put("sanjinshaoping_put")
 
     def move_wash(self, wash_place):
         obj_statu = self.fr5_A.obj_status[wash_place]
@@ -191,7 +191,6 @@ class HN_SDK(Facility):
         :param liquid_name: 液体名称
         """
         self.flowdisplay.process_display_dict['Process'] = '添加液体并反应'
-        self.fr5_C.move_to_shuiyu()
         config = self.liquid_config.get(liquid_name)
         if not config:
             raise ValueError(f"未知液体: {liquid_name}")
@@ -207,7 +206,7 @@ class HN_SDK(Facility):
 
         # 添加液体
         self.add_liquid(liquid_name, config['rpm'], volume)
-        reaction_time = config['volume']
+        reaction_time = config['reaction_time']
 
         # 反应时间
         self.interactable_countdown(reaction_time)
@@ -236,6 +235,7 @@ class HN_SDK(Facility):
 
         if test_tube_add:
             self.fr5_A.gripper_30()
+            time.sleep(1)
             with self.add_Solid:
                 self.add_Solid.clip_open()
 
@@ -317,12 +317,12 @@ class HN_SDK(Facility):
         time.sleep(1)
 
         #旋转30度
-        self.fr5_A.move_by(0,0,0,0,-30,0)
+        self.fr5_A.move_by(0,0,0,0,-30.0,0)
 
         #下降，完成放置
         self.fr5_A.move_by(0, 0, -obj_statu['put_height'], vel=10)
 
-        self.fr5_A.pour(22.3, 50.0)
+        self.fr5_A.pour(22.2, 58.0)
 
         self.fr5_A.move_by(0, 0, obj_statu['put_height'], vel=10)
         time.sleep(1)
@@ -346,7 +346,7 @@ class HN_SDK(Facility):
         }
         self.flowdisplay.process_display_dict['Info'] = Info
 
-        self.fr5_C.move_to_shuiyu()
+        self.fr5_C.move_to_catch()
 
         #根据id确定安全位置, 移动到安全位置
         self.fr5_A.move_to_safe_catch(obj_statu['safe_place_id'])
@@ -363,6 +363,9 @@ class HN_SDK(Facility):
 
         self.fr5_A.gripper_15()
         time.sleep(1)
+
+        input('ok?')
+
         self.fr5_C.gripper_15()
         time.sleep(1)
         self.fr5_A.catch()
@@ -414,8 +417,11 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(desc_pos_aim, vel=10)
         time.sleep(1)
 
-        self.fr5_C.gripper_15()
+        self.fr5_C.gripper_20()
         time.sleep(1)
+
+        input('ok?')
+
         self.fr5_A.gripper_15()
         time.sleep(1)
         self.fr5_C.catch()
@@ -434,7 +440,7 @@ class HN_SDK(Facility):
 
     def add_liquid(self, name:str, rpm=150, volume=0.0, name_space='add_liquid_mode_place'):
 
-        self.fr5_C.move_to_catch()
+        self.fr5_C.move_to_shuiyu()
 
         obj_statu = self.fr5_A.obj_status[name]
         self.flowdisplay.process_display_dict['Action'] = '机械臂抓取'
@@ -637,13 +643,13 @@ class HN_SDK(Facility):
 
     def move_shaoping_A2C(self):
         self.flowdisplay.process_display_dict['Process'] = '烧瓶转移 A to C'
-        self.name_catch('pour_shaoping_place')
-        self.bath_put('bath_fr5')
+        self.name_catch('sanjinshaoping_catch')
+        self.bath_put('bath_fr5_put')
 
 
     def move_shaoping_C2A(self):
         self.flowdisplay.process_display_dict['Process'] = '烧瓶转移 C to A'
-        self.bath_catch('bath_fr5')
-        self.name_put('pour_shaoping_place')
+        self.bath_catch('bath_fr5_catch')
+        self.name_put('sanjinshaoping_put')
 
     

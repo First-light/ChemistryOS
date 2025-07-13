@@ -5,7 +5,8 @@ from structs import FacilityState
 from time import sleep
 
 class Flowdisplay(Facility):
-    type = "temp"
+    type = "flowdisplay"
+    
     process_display_dict = {
         'Process' : None,
         'Action' : None,
@@ -16,4 +17,7 @@ class Flowdisplay(Facility):
         super().__init__(name, Flowdisplay.type)
 
     def cmd_init(self):
+        pass
+
+    def update_process_display_dict():
         pass

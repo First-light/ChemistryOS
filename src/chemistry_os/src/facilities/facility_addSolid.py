@@ -683,7 +683,7 @@ if __name__ == '__main__':
     # logging.debug(controller._thread._read_frame()) # 超时
 
 
-    print(controller.read_frame() is None)
+    # print(controller.read_frame() is None)
     # controller.turn_on()
     # controller.clip_open()
 
@@ -702,8 +702,8 @@ if __name__ == '__main__':
     # controller.turn_off()
 
     with controller:
-        controller.clip_open()
-        controller.tube_hor()
-        controller.add_solid_series(0.5)
-        controller.tube_ver()
+        # controller.clip_open()
+        # controller.tube_hor()
+        # controller.add_solid_series(0.5)
+        # controller.tube_ver()
         controller.clip_close()

@@ -9,6 +9,7 @@ import logging
 from facilities.facility_fr5arm import Fr5Arm
 from facilities.facility_sdk import HN_SDK
 from facilities.facility_bath import Bath
+from facilities.facility_flowdisplay import Flowdisplay
 
 CompoundC_solid_add = 0.5 # 化合物C的添加量
 HCL_volume_add = 26.8*CompoundC_solid_add # 浓盐酸
@@ -41,130 +42,14 @@ reaction_time_3 = 14400
 # fr5_A.check_place()
 # fr5_A.move_to_safe_catch(3)
 # exit()
-
+Flowdisplay = Flowdisplay("flowdisplay")
 add_Liquid=PumpGroup('add_Liquid')
 add_Solid=Add_Solid('add_Solid')
-# fr5_C = Fr5Arm("fr5C","192.168.58.3")
+fr5_C = Fr5Arm("fr5C","192.168.58.3")
 fr5_A = Fr5Arm("fr5A","192.168.58.2")
 bath = Bath('bath')
 hn_sdk=HN_SDK()
-# with add_Solid:
-#     add_Solid.clip_open()
 
-# exit()
-hn_sdk.fr5_init()
-hn_sdk.name_put('beaker_add_space')
-# fr5_A.move_to_safe_catch(3)
-# fr5_A.catch()
-# hn_sdk.name_catch('sanjinshaoping')
-# hn_sdk.move_wash('sanjinshaoping_wash_1')
-# hn_sdk.name_put('sanjinshaoping')
-# fr5_A.fr5_check_place()
-# hn_sdk.fr5_check_place()
-# hn_sdk.move_wash('sanjinshaoping_wash_1')
-
-# hn_sdk.name_catch('test_tube_add_place')
-# hn_sdk.name_put('test_tube_put')
-# with add_Solid:
-#     # add_Solid.clip_open()
-#     add_Solid.clip_close()
-    # add_Solid.add_solid_series(0.5)
-# fr5_A.catch()
-# hn_sdk.name_pour('solid_pour_place')
-# exit()
-# hn_sdk.name_catch('beaker_add_space')
-# hn_sdk.name_pour('solid_pour_place')
-# hn_sdk.name_put('beaker')
-
-# fr5_A.fr5_init()
-# fr5_A.move_to_safe_catch(2)
-
-# hn_sdk.bath_close()
-# add_Solid.initialize_serial()
-# add_Solid.clip_open()
-# time.sleep(1)
-# print(add_Solid.ser.read_all())
-# for _ in range(10):
-#     print(add_Solid._read_raw_frame())
-
-# print(add_Solid._read_needed_frame())
-# add_Solid.release_serial()
-# add_Solid.initialize_serial()
-# add_Solid.turn_on()
-# add_Solid.add_solid_series(0.5)
-# add_Solid.turn_off()
-# add_Solid.release_serial()
-
-# add_Solid.initialize_serial()
-# # add_Solid.turn_on()
-# # add_Solid.add_solid_series(0.5)
-# add_Solid.turn_off()
-# add_Solid.release_serial()
-
-# add_Solid.initialize_serial()
-# add_Solid.clip_open()
-# add_Solid.release_serial()
-
-# add_Liquid.add_liquid('HCl', 150, HCL_volume_add)
-
-# hn_sdk.bath_open()
-# hn_sdk.bath_writetmp(tmp_0)
-
-# add_Liquid.add_liquid("KMnO4", 150, KMnO4_volume_add)
-
-# hn_sdk.bath_writetmp(tmp_25)
-# hn_sdk.bath_close()
-
-# hn_sdk.fr3_check_place()
-# hn_sdk.fr5_init()
-
-# hn_sdk.name_catch('sanjinshaoping')
-# hn_sdk.bath_put('bath_fr5')
-# hn_sdk.name_catch('sanjinshaoping')
-# hn_sdk.bath_put('bath_fr5')
-# hn_sdk.name_catch_and_put('beaker', 'beaker_add_space')
-# fr3_C.move_to_safe_catch(2)
-# hn_sdk.name_catch('beaker')
-# hn_sdk.name_pour('solid_pour_place')
-# hn_sdk.bath_catch('bath_fr5')
-# hn_sdk.name_put('sanjinshaoping')
-
-# hn_sdk.add_liquid('HCl', HCl_rpm, HCL_volume_add)
-
-# hn_sdk.fr3_init()
-# hn_sdk.fr5_init()
-
-# hn_sdk.name_pour('solid_pour_place')
-
-# hn_sdk.add_solid(0, 'test_tube', 'beaker')
-
-# add_Liquid.add_liquid('H2O2',150 ,10)
-# hn_sdk.fr5_init()
-# hn_sdk.fr3_init()
-
-# hn_sdk.name_catch('beaker')
-# hn_sdk.name_catch('test_tube')
-# hn_sdk.name_put('test_tube_add_place', test_tube_add=True)
-# fr3_C.move_to_catch()
-
-# hn_sdk.name_catch_and_put('beaker', 'add_solid_place')
-# hn_sdk.add_Solid.initialize_serial()
-# hn_sdk.add_Solid.turn_on()
-# hn_sdk.add_Solid.add_solid_series(0.5)
-# hn_sdk.add_Solid.turn_off()
-# hn_sdk.add_Solid.release_serial()
-# hn_sdk.name_catch('test_tube_add_place', test_tube_add=True)
-# hn_sdk.name_put('test_tube')
-
-# hn_sdk.name_catch('test_tube')
-# hn_sdk.name_put('test_tube')
-
-# hn_sdk.name_catch('sanjinshaoping')
-# hn_sdk.bath_put('bath_fr5')
-# hn_sdk.fr3_move_to_bath()
-# hn_sdk.fr3_move_to_catch()
-# hn_sdk.bath_catch('bath_fr5')
-# hn_sdk.name_put('sanjinshaoping')
-
-
-
+hn_sdk.HN_init()
+hn_sdk.bath_open()
+hn_sdk.add_liquid_bath('HCl')

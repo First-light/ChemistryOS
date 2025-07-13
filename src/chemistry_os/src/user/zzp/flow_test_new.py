@@ -6,6 +6,7 @@ from facilities.facility_addSolid import Add_Solid
 from facilities.facility_fr5arm import Fr5Arm
 from facilities.facility_bath import Bath
 from facilities.facility_sdk import HN_SDK
+from facilities.facility_flowdisplay import Flowdisplay
 
 if __name__ == '__main__':
     CompoundC_solid_add = 0.5 # 化合物C的添加量
@@ -26,6 +27,7 @@ if __name__ == '__main__':
     reaction_time_2 = 1200
     reaction_time_3 = 14400
 
+    Flowdisplay = Flowdisplay("flowdisplay")
     add_Liquid=PumpGroup('add_Liquid')
     add_Solid=Add_Solid('add_Solid')
     fr5_C = Fr5Arm("fr5C","192.168.58.3")
@@ -43,6 +45,8 @@ if __name__ == '__main__':
     hn_sdk.add_liquid_bath('HCl')
     hn_sdk.add_liquid_bath('KMnO4')
     hn_sdk.add_liquid_bath('H2O2')
+
+    
 
     hn_sdk.add_liquid_bath('CH3CN')
     hn_sdk.add_liquid_bath('N2H4')
