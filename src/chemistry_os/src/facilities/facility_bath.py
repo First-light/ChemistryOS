@@ -288,13 +288,12 @@ class Bath(Facility):
                 self.modbus_client.close()
 
     def interactable_writetmp(self, tmp):
-        self.flowdisplay.process_display_dict['Action'] = '水浴锅控温'
         Info = {
             '控制温度': tmp,
             '当前温度': '',
             '剩余时间': '',
         }
-        self.flowdisplay.process_display_dict['Info'] = Info
+        self.flowdisplay.update_process_display_dict(Process=None, Action='水浴锅控温', Info=Info)
 
         # 用于控制是否继续计时的事件
         stop_event = threading.Event()
@@ -318,7 +317,8 @@ class Bath(Facility):
                     '当前温度': now_tmp,
                     '预计剩余时间': remaining_time
                 }
-                self.flowdisplay.process_display_dict['Info'] = Info
+                self.flowdisplay.update_process_display_dict(Process=None, Action=None, Info=Info)
+                
                 time.sleep(1)
                 now_tmp = self.read_temp()
                 continue

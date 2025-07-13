@@ -658,8 +658,10 @@ class Fr5Arm(Facility):
         self.log.info("完成")
 
     def reset_gripper(self):
-        self.flowdisplay.process_display_dict['Action'] = 'fr5_A夹爪初始化'
-        self.flowdisplay.process_display_dict['Info'] = {}
+        Info={
+            '机械臂对象': self.name
+        }
+        self.flowdisplay.update_process_display_dict(Process=None, Action='夹爪初始化', Info=Info)
         self.log.info("夹爪初始化")
         self.robot.SetGripperConfig(4, 0, 0, 1)
         time.sleep(0.5)
@@ -819,8 +821,10 @@ class Fr5Arm(Facility):
         self.fr5_check_place()
 
     def fr5_check_place(self):
-        self.flowdisplay.process_display_dict['Action'] = 'fr5_A复位'
-        self.flowdisplay.process_display_dict['Info'] = {}
+        Info={
+            '机械臂对象': self.name
+        }
+        self.flowdisplay.update_process_display_dict(Process=None, Action='机械臂复位', Info=Info)
         now_place = self.check_place()
         if now_place==None:
             self.Go_to_start_zone_0()
@@ -934,13 +938,11 @@ class Fr5Arm(Facility):
         # time.sleep(1)
 
     def move_to_catch(self):
-        self.flowdisplay.process_display_dict['Action'] = 'fr5_C移动到抓取位置'
-        self.flowdisplay.process_display_dict['Info'] = {}
+        self.flowdisplay.update_process_display_dict(Process=None, Action='fr5_C移动到抓取位置', Info={})
         self.move_to_desc(self.safe_place[0], type='MoveL', vel=5)
 
     def move_to_shuiyu(self):
-        self.flowdisplay.process_display_dict['Action'] = 'fr5_C移动到水浴位置'
-        self.flowdisplay.process_display_dict['Info'] = {}
+        self.flowdisplay.update_process_display_dict(Process=None, Action='fr5_C移动到水浴位置', Info={})
         self.move_to_desc(self.safe_place[1], type='MoveL', vel=5)
             
 

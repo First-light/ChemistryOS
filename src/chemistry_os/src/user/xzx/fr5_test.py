@@ -1,5 +1,6 @@
 import sys
 sys.path.append('src/chemistry_os/src')
+from facilities.facility_flowdisplay import Flowdisplay
 from facilities.facility_filter import Filter
 from facilities.facility_bath import Bath
 from facilities.facility_system import System
@@ -22,7 +23,7 @@ if __name__ == '__main__':
     main_server = TCPServer()
     
     main_server.register("log", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
-    main_server.register("flow", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
+    main_server.register("flow", 50, Flowdisplay.process_display_dict, Flowdisplay.update_process_display_dict)
     main_server.register("fr5A", 5, fr5.data_dict, fr5.data_dict_update_angles)
     main_server.register("fr5C", 5,fr5.data_dict, fr5.data_dict_update_angles)
     main_server.register("bath", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)

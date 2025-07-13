@@ -581,12 +581,11 @@ class Add_Solid(Facility):
 
     def add_solid_series(self, weight: float) -> bool:
         """开始添加指定重量的固体系列操作。"""
-        self.flowdisplay.process_display_dict['Action'] = '固体振动进料'
         Info = {
             '现有重量' : '0 g',
             '目标重量' : str(weight) + ' g'
         }
-        self.flowdisplay.process_display_dict['Info'] = Info
+        self.flowdisplay.update_process_display_dict(Process=None, Action='固体振动进料', Info=Info)
         if self._mode == Add_Solid.ThreadMode.HOST_MODE:
             raise Exception("当前模式为 HOST_MODE，无法执行添加固体系列操作。")
             if not self.turn_on():
