@@ -37,12 +37,12 @@ if __name__ == '__main__':
     bath = Bath('bath')
     hn_sdk=HN_SDK()
 
-    main_server = TCPServer()
+    main_server = TCPServer(test = True)
     
-    # main_server.register("log", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
+    main_server.register("log", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
     main_server.register("flow", 50, flowdisplay.process_display_dict, flowdisplay.data_update)
-    # main_server.register("fr5A", 5, fr5_A.data_dict, fr5_A.data_dict_update_angles)
-    # main_server.register("fr5C", 5,fr5_C.data_dict, fr5_C.data_dict_update_angles)
+    main_server.register("fr5A", 5, fr5_A.data_dict, fr5_A.data_dict_update_angles)
+    main_server.register("fr5C", 5,fr5_C.data_dict, fr5_C.data_dict_update_angles)
 
     main_server.start()
     # 机械臂初始化

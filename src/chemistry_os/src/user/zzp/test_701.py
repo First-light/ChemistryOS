@@ -53,6 +53,8 @@ main_server = TCPServer(test = True)
 # main_server.register("fr5A", 5, fr5_A.data_dict, fr5_A.data_dict_update_angles)
 # main_server.register("fr5C", 5,fr5_C.data_dict, fr5_C.data_dict_update_angles)
 
+main_server.start()
+
 hn_sdk.HN_init()
 
 hn_sdk.name_catch('beaker')
