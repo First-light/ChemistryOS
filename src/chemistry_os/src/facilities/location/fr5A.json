@@ -1,31 +1,17 @@
 {
     "obj_status": {
-        "test_tube": {
+        "test_tube_support": {
             "destination": [-490.0, -242.0, 160.0],
+            "put_offset": 5.0,
             "catch_pre_offset": 70.0,
             "put_height": 90,
             "catch_direction": [90.0, 0.0, -90.0],
             "safe_place_id": 0,
             "name": "试管架"
         },
-        "test_tube_put": {
-            "destination": [-490.0, -242.0, 165.0],
-            "catch_pre_offset": 70.0,
-            "put_height": 90,
-            "catch_direction": [90.0, 0.0, -90.0],
-            "safe_place_id": 0,
-            "name": "试管架"
-        },
-        "beaker": {
+        "beaker_support": {
             "destination": [-505.0, -118.0, 100.0],
-            "catch_pre_offset": 70.0,
-            "put_height": 50,
-            "catch_direction": [90.0, 0.0, -90.0],
-            "safe_place_id": 0,
-            "name": "烧杯架"
-        },
-        "beaker_put": {
-            "destination": [-505.0, -118.0, 102.0],
+            "put_offset": 2.0,
             "catch_pre_offset": 70.0,
             "put_height": 50,
             "catch_direction": [90.0, 0.0, -90.0],
@@ -34,14 +20,16 @@
         },
         "test_tube_add_place": {
             "destination": [607.0, -237.5, 294.0],
+            "put_offset": 0.0,
             "catch_pre_offset": 150.0,
             "put_height": 111.0,
             "catch_direction": [90.0, 0.0, 90.0],
             "safe_place_id": 2,
-            "name": "固体进料-试管架"
+            "name": "固体进料-试管夹持位置"
         },
-        "beaker_add_space": {
+        "beaker_add_place": {
             "destination": [601.0, -473.0, 138.0],
+            "put_offset": 0.0,
             "catch_pre_offset": 190.0,
             "put_height": 30.0,
             "catch_direction": [90.0, 0.0, 90.0],
@@ -108,27 +96,20 @@
         },
         "add_liquid_mode_place": {
             "destination": [80, 540.0, 195.0],
-            "catch_pre_offset": 0.0,
+            "catch_pre_offset": 155.0,
             "put_height": 100,
             "catch_direction": [90.0, 0.0, 180.0],
             "safe_place_id": 3,
             "name": "液体进料-滴加位"
         },
-        "sanjinshaoping_catch": {
+        "sanjinshaoping_support": {
             "destination": [-455, -529.5, 172.0],
+            "put_offset": 4.0,
             "catch_pre_offset": 60.0,
             "put_height": 140.0,
             "catch_direction": [90.0, 0.0, -90.0],
             "safe_place_id": 0,
-            "name": "三颈烧瓶抓取位"
-        },
-        "sanjinshaoping_put": {
-            "destination": [-455, -529.5, 176.0],
-            "catch_pre_offset": 60.0,
-            "put_height": 140.0,
-            "catch_direction": [90.0, 0.0, -90.0],
-            "safe_place_id": 0,
-            "name": "三颈烧瓶放置位"
+            "name": "三颈烧瓶架"
         },
         "sanjinshaoping_wash_1": {
             "destination": [456.0, 161.0, 350.0],

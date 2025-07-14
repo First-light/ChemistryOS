@@ -139,11 +139,11 @@ class HN_SDK(Facility):
 
 
     def wash(self):
-        self.name_catch("sanjinshaoping_catch")
+        self.name_catch("sanjinshaoping_support")
         self.move_wash('sanjinshaoping_wash_1')
         self.move_wash('sanjinshaoping_wash_2')
         self.move_wash('sanjinshaoping_wash_1')
-        self.name_put("sanjinshaoping_put")
+        self.name_put("sanjinshaoping_support")
 
     def bath_wash(self):
         self.bath_catch('bath_fr5_catch')
@@ -266,6 +266,7 @@ class HN_SDK(Facility):
 
         # #根据id确定安全位置, 移动到安全位置
         self.fr5_A.move_to_safe_catch(obj_statu['safe_place_id'])
+        obj_statu['destination'][2] += obj_statu['put_offset']
 
         #计算物体位置
         dest = [obj_statu['destination'][0], obj_statu['destination'][1], obj_statu['destination'][2] + obj_statu['put_height']]
@@ -476,6 +477,11 @@ class HN_SDK(Facility):
         #计算物体位置
         dest = [obj_statu['destination'][0], obj_statu['destination'][1], obj_statu['destination'][2] + obj_statu['put_height']]
 
+        #移动到准备位置
+        desc_pos_aim = list(map(lambda x, y: x + y, dest, obj_statu['catch_pre_xyz_offset'])) + obj_statu['catch_direction']
+        self.fr5_A.move_to_desc(desc_pos_aim, vel=10)
+        time.sleep(1)
+
         #移动到放置位置上方
         desc_pos_aim = dest + obj_statu['catch_direction']
         self.fr5_A.move_to_desc(desc_pos_aim, vel=10)
@@ -518,18 +524,18 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=10)
         time.sleep(1)
 
-    def add_solid(self, gram:float, tube_from:str, beaker_from:str, test_tube_add_place:str='test_tube_add_place', beaker_add_space:str='beaker_add_space', pour_place:str='solid_pour_place'):
+    def add_solid(self, gram:float, tube_from:str, beaker_from:str, test_tube_add_place:str='test_tube_add_place', beaker_add_place:str='beaker_add_place', pour_place:str='solid_pour_place'):
         self.flowdisplay.update_process_display_dict(Process='固体进料', Action='', Info={})
         self.name_catch(tube_from)
         self.name_put(test_tube_add_place, test_tube_add=True)
-        self.name_catch_and_put(beaker_from, beaker_add_space)
+        self.name_catch_and_put(beaker_from, beaker_add_place)
 
         with self.add_Solid:
             self.add_Solid.add_solid_series(gram)
 
         self.name_catch(test_tube_add_place, test_tube_add=True)
         self.name_put(tube_from)
-        self.name_catch(beaker_add_space)
+        self.name_catch(beaker_add_place)
         self.name_pour(pour_place)
         self.name_put(beaker_from)
     
@@ -638,13 +644,13 @@ class HN_SDK(Facility):
 
     def move_shaoping_A2C(self):
         self.flowdisplay.update_process_display_dict(Process='烧瓶转移 A to C', Action='', Info={})
-        self.name_catch('sanjinshaoping_catch')
+        self.name_catch('sanjinshaoping_support')
         self.bath_put('bath_fr5_put')
 
 
     def move_shaoping_C2A(self):
         self.flowdisplay.update_process_display_dict(Process='烧瓶转移 C to A', Action='', Info={})
         self.bath_catch('bath_fr5_catch')
-        self.name_put('sanjinshaoping_put')
+        self.name_put('sanjinshaoping_support')
 
     
