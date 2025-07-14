@@ -57,5 +57,5 @@ main_server.start()
 
 hn_sdk.HN_init()
 
-hn_sdk.name_catch('beaker')
-hn_sdk.name_put('beaker_add_space')
+hn_sdk.name_catch('beaker_support')
+hn_sdk.name_put('beaker_add_place')
