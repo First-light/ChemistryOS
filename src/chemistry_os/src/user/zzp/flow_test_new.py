@@ -57,6 +57,8 @@ if __name__ == '__main__':
     hn_sdk.add_liquid_bath('KMnO4')
     hn_sdk.add_liquid_bath('H2O2')
 
+    # hn_sdk.bath_wash()
+
     hn_sdk.add_liquid_bath('CH3CN')
     hn_sdk.add_liquid_bath('N2H4')
 

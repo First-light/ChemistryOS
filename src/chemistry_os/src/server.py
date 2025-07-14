@@ -17,11 +17,12 @@ class TCPServer(Facility):
     type = "tcp_server"
     data_units = []
 
-    def __init__(self,name: str = "server",host: str = '0.0.0.0', port: int = 8888, buffer_size: int = 4096):
+    def __init__(self, test: bool = False, name: str = "server",host: str = '0.0.0.0', port: int = 8888, buffer_size: int = 4096):
         """
         初始化TCP服务端
         """
         super().__init__(name, type = TCPServer.type)
+        self.test = test
         self.host = host
         self.port = port
         self.buffer_size = buffer_size
@@ -70,7 +71,10 @@ class TCPServer(Facility):
 
             # 启动接收和发送线程
             threading.Thread(target=self.receive_data, daemon=True).start()
-            threading.Thread(target=self.send_data, daemon=True).start()
+            if self.test:
+                threading.Thread(target=self.send_data_test, daemon=True).start()
+            else:
+                threading.Thread(target=self.send_data, daemon=True).start()
 
         except Exception as e:
             self.log.error(f"服务器启动失败: {str(e)}")

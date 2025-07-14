@@ -145,6 +145,13 @@ class HN_SDK(Facility):
         self.move_wash('sanjinshaoping_wash_1')
         self.name_put("sanjinshaoping_put")
 
+    def bath_wash(self):
+        self.bath_catch('bath_fr5_catch')
+        self.move_wash('sanjinshaoping_wash_1')
+        self.move_wash('sanjinshaoping_wash_2')
+        self.move_wash('sanjinshaoping_wash_1')
+        self.bath_put('bath_fr5_put')
+
     def move_wash(self, wash_place):
         obj_statu = self.fr5_A.obj_status[wash_place]
         #根据id确定安全位置, 移动到安全位置

@@ -10,6 +10,8 @@ from facilities.facility_fr5arm import Fr5Arm
 from facilities.facility_sdk import HN_SDK
 from facilities.facility_bath import Bath
 from facilities.facility_flowdisplay import Flowdisplay
+from facility import Facility
+from server import TCPServer
 
 CompoundC_solid_add = 0.5 # 化合物C的添加量
 HCL_volume_add = 26.8*CompoundC_solid_add # 浓盐酸
@@ -42,14 +44,22 @@ reaction_time_3 = 14400
 # fr5_A.check_place()
 # fr5_A.move_to_safe_catch(3)
 # exit()
-Flowdisplay = Flowdisplay("flowdisplay")
+flowdisplay = Flowdisplay("flowdisplay")
 add_Liquid=PumpGroup('add_Liquid')
 add_Solid=Add_Solid('add_Solid')
 fr5_C = Fr5Arm("fr5C","192.168.58.3")
 fr5_A = Fr5Arm("fr5A","192.168.58.2")
 bath = Bath('bath')
 hn_sdk=HN_SDK()
+main_server = TCPServer(test = True)
+
+main_server.register("log", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
+main_server.register("flow", 50, flowdisplay.process_display_dict, flowdisplay.data_update)
+main_server.register("fr5A", 5, fr5_A.data_dict, fr5_A.data_dict_update_angles)
+main_server.register("fr5C", 5,fr5_C.data_dict, fr5_C.data_dict_update_angles)
 
 hn_sdk.HN_init()
-hn_sdk.bath_open()
-hn_sdk.add_liquid_bath('HCl')
+
+hn_sdk.move_shaoping_A2C()
+hn_sdk.bath_wash()
+hn_sdk.move_shaoping_C2A()
