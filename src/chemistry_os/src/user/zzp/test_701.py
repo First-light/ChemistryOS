@@ -32,18 +32,13 @@ reaction_time_2 = 1200
 reaction_time_3 = 14400
 
 # controller = Add_Solid()
-# controller.initialize_serial()
-# # controller.turn_on()
-# # controller.clip_close()
-# controller.clip_open()
-# # controller.add_solid_series(0.5)
-# # controller.turn_off()
-# controller.release_serial()
-# exit(0)
-# fr5_A = Fr5Arm("fr5A","192.168.58.2")
-# fr5_A.check_place()
-# fr5_A.move_to_safe_catch(3)
+# with controller:
+#     controller.tube_ver()
+#     controller.clip_open()
+
 # exit()
+
+
 flowdisplay = Flowdisplay("flowdisplay")
 add_Liquid=PumpGroup('add_Liquid')
 add_Solid=Add_Solid('add_Solid')
@@ -53,13 +48,12 @@ bath = Bath('bath')
 hn_sdk=HN_SDK()
 main_server = TCPServer(test = True)
 
-main_server.register("log", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
-main_server.register("flow", 50, flowdisplay.process_display_dict, flowdisplay.data_update)
-main_server.register("fr5A", 5, fr5_A.data_dict, fr5_A.data_dict_update_angles)
-main_server.register("fr5C", 5,fr5_C.data_dict, fr5_C.data_dict_update_angles)
+# main_server.register("log", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
+# main_server.register("flow", 50, flowdisplay.process_display_dict, flowdisplay.data_update)
+# main_server.register("fr5A", 5, fr5_A.data_dict, fr5_A.data_dict_update_angles)
+# main_server.register("fr5C", 5,fr5_C.data_dict, fr5_C.data_dict_update_angles)
 
 hn_sdk.HN_init()
 
-hn_sdk.move_shaoping_A2C()
-hn_sdk.bath_wash()
-hn_sdk.move_shaoping_C2A()
+hn_sdk.name_catch('beaker')
+hn_sdk.name_put('beaker_add_space')
