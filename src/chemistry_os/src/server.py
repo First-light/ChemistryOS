@@ -72,6 +72,7 @@ class TCPServer(Facility):
             # 启动接收和发送线程
             threading.Thread(target=self.receive_data, daemon=True).start()
             if self.test:
+                self.log.info("测试模式，发送线程将不会连接到客户端")
                 threading.Thread(target=self.send_data_test, daemon=True).start()
             else:
                 threading.Thread(target=self.send_data, daemon=True).start()
