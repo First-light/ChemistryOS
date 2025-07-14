@@ -41,7 +41,7 @@
             "name": "固体进料-试管架"
         },
         "beaker_add_space": {
-            "destination": [610.0, -480.0, 138.0],
+            "destination": [601.0, -473.0, 138.0],
             "catch_pre_offset": 190.0,
             "put_height": 30.0,
             "catch_direction": [90.0, 0.0, 90.0],
