@@ -154,6 +154,10 @@ class HN_SDK(Facility):
 
     def move_wash(self, wash_place):
         obj_statu = self.fr5_A.obj_status[wash_place]
+        Info = {
+            '冲洗位置' : obj_statu['name']
+        }
+        self.flowdisplay.update_process_display_dict(Process='冲洗抽滤', Action='冲洗抽滤', Info=Info)
         #根据id确定安全位置, 移动到安全位置
         self.fr5_A.move_to_safe_catch(obj_statu['safe_place_id'])
 

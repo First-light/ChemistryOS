@@ -48,14 +48,16 @@ bath = Bath('bath')
 hn_sdk=HN_SDK()
 main_server = TCPServer(test = True)
 
-# main_server.register("log", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
-# main_server.register("flow", 50, flowdisplay.process_display_dict, flowdisplay.data_update)
-# main_server.register("fr5A", 5, fr5_A.data_dict, fr5_A.data_dict_update_angles)
-# main_server.register("fr5C", 5,fr5_C.data_dict, fr5_C.data_dict_update_angles)
+main_server.register("log", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
+main_server.register("flow", 50, flowdisplay.process_display_dict, flowdisplay.data_update)
+main_server.register("fr5A", 5, fr5_A.data_dict, fr5_A.data_dict_update_angles)
+main_server.register("fr5C", 5,fr5_C.data_dict, fr5_C.data_dict_update_angles)
 
 main_server.start()
 
 hn_sdk.HN_init()
 
-hn_sdk.name_catch('beaker')
-hn_sdk.name_put('beaker_add_space')
+hn_sdk.bath_catch('bath_fr5_catch')
+hn_sdk.move_wash('sanjinshaoping_wash_1')
+hn_sdk.move_wash('sanjinshaoping_wash_2')
+hn_sdk.bath_put('bath_fr5_put')
