@@ -100,7 +100,7 @@ class Facility(ABC):
         # 创建文件日志格式（包含时间戳）
         file_formatter = logging.Formatter(
             fmt='[%(asctime)s] [%(name)s] [%(levelname)s]: %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S'
+            datefmt='%Y-%m-%d %H:%M'
         )
         # 创建控制台日志格式（不包含时间戳）
         console_formatter = logging.Formatter(
@@ -116,7 +116,7 @@ class Facility(ABC):
         if not os.path.exists(self.log_dir):
             os.makedirs(self.log_dir)  # 如果目录不存在，则创建
         # 确保日志文件存在
-        timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')  # 格式化当前时间
+        timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M')  # 格式化当前时间
         log_file = os.path.join(self.log_dir, f'facilities_{timestamp}.log')  # 日志文件路径
 
         # 创建文件处理器
@@ -143,7 +143,7 @@ class Facility(ABC):
         cache_handler = CacheHandler()
         cache_handler.setFormatter(logging.Formatter(
             fmt='[%(asctime)s] [%(name)s] [%(levelname)s]: %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S'
+            datefmt='%Y-%m-%d %H:%M'
         ))
         return cache_handler
 

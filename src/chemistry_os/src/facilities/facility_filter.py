@@ -5,7 +5,7 @@ from time import sleep
 from serial.tools import list_ports
 import serial
 from facility import Facility
-from time import time
+import time
 
 
 # sudo chmod 666 /dev/ttyUSB0 开串口权限
@@ -49,6 +49,7 @@ class Filter(Facility):
         self.ser = None
         super().__init__(name, Filter.type)
         self.connect()
+        self.pump_init()  # 初始化蠕动泵
 
     def cmd_init(self):
         """
@@ -77,47 +78,111 @@ class Filter(Facility):
         self.parser.register("setaddr", self.set_pump_address, {
                              "old_address": self.sub_addresses["solvent"], "new_address": AddressEnum.EMPTY.value}, "set pump address")
         self.parser.register("init", self.pump_init, {}, "initialize pump")
+        self.parser.register("A", self.filter_process_A, {}, "start filter process A")
+        self.parser.register("B", self.filter_process_B, {}, "start filter process B")
+        self.parser.register("C", self.filter_process_C, {}, "start filter process C")
+        self.parser.register("data", self.data_check, {}, "check data")
 
     def filter_process_A(self):
         """
         抽滤过程A
         """
+        self.log.info("开始抽滤过程A")
         self.valve_A_control(0)  # 打开三通阀门
-        self.pump_control_name("pump", 1)
-        time.sleep(30)  # 等待泵启动
-        self.pump_control_name("pump", 0)
+        out = True
+        while out == True:
+            self.log.info("抽滤30s")
+            self.pump_control_name("pump", 1)# 泵启动
+            time.sleep(30)  
+            self.pump_control_name("pump", 0)
+            if input("是否继续抽滤？(y/n): ").strip().lower() != 'y':
+                out = False
 
-
-        self.valve_A_control(1)  # 打开三通阀门
-
-        
+        self.valve_A_control(0)  # 
+        self.valve_B_control(0)  # 
+        time.sleep(10)  # 泵启动
+        self.log.info("抽滤过程A完成")
 
     def filter_process_B(self):
+        """
+        抽滤过程B
+        """
+        self.log.info("开始抽滤过程B")
+        self.valve_B_control(0)  # 打开三通阀门
+        # self.pump_control_name("acid", 1)
+        # time.sleep(20)  # 泵启动
+        # self.pump_control_name("acid", 0)
+        # self.valve_B_control(1)  # 打开三通阀门
+        # self.pump_control_name("water", 1)
+        # time.sleep(20)  # 泵启动
+        # self.pump_control_name("water", 0)
+        out = True
+        while out == True:
+            self.log.info("酸洗20s")
+            self.pump_control_name("pump", 1)
+            time.sleep(20)
+            self.pump_control_name("pump", 0)
+            if input("是否继续酸洗？(y/n): ").strip().lower() != 'y':
+                out = False
+        self.valve_B_control(1)
+        out = True
+        while out == True:
+            self.log.info("清水清洗20s")
+            self.pump_control_name("water", 1)
+            time.sleep(20)
+            self.pump_control_name("water", 0)
+            if input("是否继续清水清洗？(y/n): ").strip().lower() != 'y':
+                out = False
         self.valve_A_control(0)  # 打开三通阀门
-        self.pump_control_name("acid", 1)
-        time.sleep(30)  # 等待泵启动
-        self.pump_control_name("acid", 1)
-        self.valve_A_control(1)  # 打开三通阀门
-        
-        self.valve_A_control(1)  # 打开三通阀门
+        self.valve_B_control(0)  # 
+        self.log.info("抽滤过程B完成")
 
     def filter_process_C(self):
+        """
+        抽滤过程C
+        """
+        self.log.info("开始抽滤过程C")
         self.valve_A_control(0)  # 打开三通阀门
-        self.pump_control_name("pump", 1)
-        time.sleep(30)  # 等待泵启动
-        self.valve_A_control(1)  # 打开三通阀门
+        # self.pump_control_name("pump", 1)
+        # time.sleep(40)  # 泵启动
+        # self.pump_control_name("pump", 0)
+        out = True
+        while out == True:
+            self.log.info("抽滤30s")
+            self.pump_control_name("pump", 1)# 泵启动
+            time.sleep(30)  
+            self.pump_control_name("pump", 0)
+            if input("是否继续抽滤？(y/n): ").strip().lower() != 'y':
+                out = False
+        self.valve_A_control(1)  # 
+        # self.pump_control_name("solvent", 1)
+        # time.sleep(20)  # 泵启动
+        # self.pump_control_name("solvent", 0)
+        out = True
+        while out == True:
+            self.log.info("溶剂20s")
+            self.pump_control_name("solvent", 1)
+            time.sleep(20)
+            self.pump_control_name("solvent", 0)
+            if input("是否继续溶剂？(y/n): ").strip().lower() != 'y':
+                out = False
+        self.valve_A_control(0)  # 打开三通阀门
+        self.valve_B_control(0)  # 
+
+
+
     def pump_init(self):
         """
         初始化蠕动泵
         """
         self.set_pump_dir_name("pump",0)  # 设置蠕动泵方向为正转
-        self.set_pump_speed_name("pump", 500)  # 设置蠕动泵速度为100
+        self.set_pump_speed_name("pump", 800)  # 设置蠕动泵速度为100
         self.set_pump_dir_name("water",1)  # 设置蠕动泵方向为反转
-        self.set_pump_speed_name("water", 500)  # 设置蠕动泵速度为100
+        self.set_pump_speed_name("water", 800)  # 设置蠕动泵速度为100
         self.set_pump_dir_name("acid",1)  # 设置蠕动泵方向为反转
-        self.set_pump_speed_name("acid", 500)  # 设置蠕
+        self.set_pump_speed_name("acid", 800)  # 设置蠕
         self.set_pump_dir_name("solvent",1)  # 设置蠕动泵方向为反转
-        self.set_pump_speed_name("solvent", 500)  # 设置
+        self.set_pump_speed_name("solvent", 800)  # 设置
     def connect(self):
         """
         连接设备
@@ -213,12 +278,16 @@ class Filter(Facility):
                         response = ser.read(ser.in_waiting)
                         response_str = response.decode('utf-8', errors='ignore')
                         self.log.info(f"设备响应: {response}")
+
+                        time.sleep(1.0)  # 确保串口数据发送完成
                         return response_str
                     if time.time() - start_time > wait_time:
                         # 超过等待时间，认为超时
                         self.log.warning("发送指令失败: 超时未收到响应")
+                        if self.ifconnect:
+                            self.test()  # 测试连接
                         return None
-
+           
         except Exception as e:
             self.log.warning(f"发送指令中断: {str(e)}")
             return None
@@ -285,7 +354,7 @@ class Filter(Facility):
 
     def valve_A_control(self, state: int):
         """
-        控制靠近电源口侧三通阀门开关
+        控制靠近电源口侧三通阀门开关（一般是抽滤段）
         :param state: 1=打开, 0=关闭
         1 = 蠕动泵端关
         0 = 气泵端关
@@ -319,3 +388,9 @@ class Filter(Facility):
         # command = [self.address, 0x09, address, 0x00, 0x00, 0x55]
         command = [0x50,0x07,0x55,0x55,0x55,0x55]
         return self.send_command(command)
+    
+    def data_check(self):
+        """
+        检查数据
+        """
+        print(f"{self.sub_addresses} 数据检查")

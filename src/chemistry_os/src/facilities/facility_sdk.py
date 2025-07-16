@@ -98,6 +98,7 @@ class HN_SDK(Facility):
         def get_facility_ref(name, expected_type):
             for facility in Facility.tuple_list:
                 if facility[0] == name and isinstance(facility[3], expected_type):
+                    # print(f"获取到 {name} 的引用，{facility[3]}")
                     return facility[3]  # 返回实例化的对象引用
             print(f"错误：对象 {name} 不存在于 Facility.tuple_list 中，或类型不匹配。")
             print(Facility.tuple_list)
@@ -190,15 +191,21 @@ class HN_SDK(Facility):
 
         # todo
         if index == 0:
-            
+            self.filter.filter_process_A()
+        elif index == 1:
+            self.filter.filter_process_B()
+        elif index == 2:
+            self.filter.filter_process_C()
 
-        input('ok?')
+        input('filter ok?')
 
 
         #移动到下方位置
         self.fr5_A.move_to_desc(dest_horizon, vel=10)
         time.sleep(1)
 
+        input('liquid ok?')
+        
         #移动到准备位置
         self.fr5_A.move_to_desc(desc_pre, vel=10)
         time.sleep(1)
