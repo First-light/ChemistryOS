@@ -7,16 +7,17 @@ from facilities.facility_filter import Filter
 import time
 
 if __name__ == '__main__':
-    fr5A = Fr5Arm("fr5A","192.168.58.2")
-    fr5_C = Fr3Arm("fr3C","192.168.58.3")
-    # sub_addresses={               # 下级设备地址字典
-    #     "empty": 0x00,           # 空地址
-    #     "solvent": 0x01,          # 溶解溶剂地址
-    #     "water": 0x02,            # 清水清洗液地址
-    #     "acid": 0x03              # 酸清洗液地址
-        
-    # }
-    # filter = Filter("filter", "/dev/ttyUSB0",sub_addresses = sub_addresses)
+    # fr5A = Fr5Arm("fr5A","192.168.58.2")
+    # fr5_C = Fr3Arm("fr3C","192.168.58.3")
+    sub_addresses={               # 下级设备地址字典
+        "empty": 0x00,           # 空地址
+        "solvent": 0x03,          # 溶解溶剂地址
+        "water": 0x02,            # 清水清洗液地址
+        "acid": 0x04,              # 酸清洗液地址
+        "pump": 0x01                # 抽滤地址
+    }
+    filter = Filter("filter", "/dev/ttyUSB1",sub_addresses = sub_addresses)
+    filter.pump_init()  # 初始化蠕动泵
 
 
     # #测试类模版

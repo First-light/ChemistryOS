@@ -50,6 +50,7 @@ from facilities.facility_pumps import PumpGroup
 from facilities.facility_addSolid import Add_Solid
 from facilities.facility_pumps import PumpGroup
 from facilities.facility_bath import Bath
+from facilities.facility_filter import Filter
 from exceptions import *
 
 class HN_SDK(Facility):
@@ -109,6 +110,7 @@ class HN_SDK(Facility):
             self.add_Solid: Add_Solid = get_facility_ref("add_Solid", Add_Solid)
             self.fr5_C: Fr5Arm = get_facility_ref("fr5C", Fr5Arm)
             self.bath: Bath = get_facility_ref("bath", Bath)
+            self.filter: Filter = get_facility_ref("filter", Filter)
             self.flowdisplay: Flowdisplay = get_facility_ref("flowdisplay", Flowdisplay)
 
         except ValueError as e:
@@ -138,11 +140,11 @@ class HN_SDK(Facility):
         self.parser.register("move_shaoping_C2A", self.move_shaoping_C2A, {}, "move_shaoping_C2A")
 
 
-    def wash(self):
+    def pot_wash(self):
         self.name_catch("sanjinshaoping_support")
-        self.move_wash('sanjinshaoping_wash_1')
-        self.move_wash('sanjinshaoping_wash_2')
-        self.move_wash('sanjinshaoping_wash_1')
+        self.move_wash('sanjinshaoping_wash_1', 0)
+        self.move_wash('sanjinshaoping_wash_2', 1)
+        self.move_wash('sanjinshaoping_wash_1', 2)
         self.name_put("sanjinshaoping_support")
 
     def bath_wash(self):
@@ -152,7 +154,7 @@ class HN_SDK(Facility):
         self.move_wash('sanjinshaoping_wash_1')
         self.bath_put('bath_fr5_put')
 
-    def move_wash(self, wash_place):
+    def move_wash(self, wash_place, index):
         obj_statu = self.fr5_A.obj_status[wash_place]
         Info = {
             '冲洗位置' : obj_statu['name']
@@ -181,7 +183,17 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(dest, vel=5)
         time.sleep(1)
 
+
+        
+
         input('ok?')
+
+        # todo
+        if index == 0:
+            
+
+        input('ok?')
+
 
         #移动到下方位置
         self.fr5_A.move_to_desc(dest_horizon, vel=10)

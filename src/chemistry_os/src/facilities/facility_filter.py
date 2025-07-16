@@ -5,10 +5,14 @@ from time import sleep
 from serial.tools import list_ports
 import serial
 from facility import Facility
+from time import time
 
 
 # sudo chmod 666 /dev/ttyUSB0 开串口权限
 # ls -l /dev/ttyUSB* 查串口设备
+
+# valve 0方向对应T阀门的左侧
+# pump dir 0对应泵的正转
 
 from enum import Enum
 
@@ -17,6 +21,7 @@ class AddressEnum(Enum):
     SOLVENT = 0x01  # 溶解溶剂
     WATER = 0x02    # 清水清洗液
     ACID = 0x03     # 酸清洗液
+    PUMP = 0x04     # 抽滤地址
 
 class Filter(Facility):
     type = "filter"
@@ -38,7 +43,8 @@ class Filter(Facility):
             "empty": AddressEnum.EMPTY.value,
             "solvent": AddressEnum.SOLVENT.value,
             "water": AddressEnum.WATER.value,
-            "acid": AddressEnum.ACID.value
+            "acid": AddressEnum.ACID.value,
+            "pump": AddressEnum.PUMP.value
         }
         self.ser = None
         super().__init__(name, Filter.type)
@@ -49,22 +55,69 @@ class Filter(Facility):
         注册指令
         """
         self.parser.register("test", self.test, {}, "send empty command")
-        self.parser.register("pump", self.pump_control, {
-                             "address": self.sub_addresses["solvent"], "state": 0}, "control pump on/off")
-        self.parser.register("dir", self.set_pump_direction, {
-                             "address": self.sub_addresses["solvent"], "direction": 0}, "set pump direction")
-        self.parser.register("speed", self.set_pump_speed, {
-                             "address": self.sub_addresses["solvent"], "speed": 0}, "set pump speed")
-        self.parser.register("valve", self.valve_control, {
+        # self.parser.register("pump", self.pump_control, {
+        #                      "address": self.sub_addresses["solvent"], "state": 0}, "control pump on/off")
+        # self.parser.register("dir", self.set_pump_direction, {
+        #                      "address": self.sub_addresses["solvent"], "direction": 0}, "set pump direction")
+        # self.parser.register("speed", self.set_pump_speed, {
+        #                      "address": self.sub_addresses["solvent"], "speed": 0}, "set pump speed")
+        self.parser.register("pump", self.pump_control_name, {
+                             "name": "empty", "state": 0}, "control pump on/off by name")
+        self.parser.register("dir", self.set_pump_dir_name, {
+                             "name": "empty", "direction": 0}, "set pump direction by name")
+        self.parser.register("speed", self.set_pump_speed_name, {
+                             "name": "empty", "speed": 0}, "set pump speed by name")
+        self.parser.register("valve", self.valve_A_control, {
                              "state": 0}, "control valve on/off")
-        self.parser.register("airpump", self.air_pump_control, {
-                             "state": 0}, "control air pump on/off")
+        
+        # self.parser.register("airpump", self.air_pump_control, {
+        #                      "state": 0}, "control air pump on/off")
         self.parser.register("query", self.pump_query, {
                              "address": self.sub_addresses["solvent"]}, "query pump status")
         self.parser.register("setaddr", self.set_pump_address, {
                              "old_address": self.sub_addresses["solvent"], "new_address": AddressEnum.EMPTY.value}, "set pump address")
+        self.parser.register("init", self.pump_init, {}, "initialize pump")
+
+    def filter_process_A(self):
+        """
+        抽滤过程A
+        """
+        self.valve_A_control(0)  # 打开三通阀门
+        self.pump_control_name("pump", 1)
+        time.sleep(30)  # 等待泵启动
+        self.pump_control_name("pump", 0)
 
 
+        self.valve_A_control(1)  # 打开三通阀门
+
+        
+
+    def filter_process_B(self):
+        self.valve_A_control(0)  # 打开三通阀门
+        self.pump_control_name("acid", 1)
+        time.sleep(30)  # 等待泵启动
+        self.pump_control_name("acid", 1)
+        self.valve_A_control(1)  # 打开三通阀门
+        
+        self.valve_A_control(1)  # 打开三通阀门
+
+    def filter_process_C(self):
+        self.valve_A_control(0)  # 打开三通阀门
+        self.pump_control_name("pump", 1)
+        time.sleep(30)  # 等待泵启动
+        self.valve_A_control(1)  # 打开三通阀门
+    def pump_init(self):
+        """
+        初始化蠕动泵
+        """
+        self.set_pump_dir_name("pump",0)  # 设置蠕动泵方向为正转
+        self.set_pump_speed_name("pump", 500)  # 设置蠕动泵速度为100
+        self.set_pump_dir_name("water",1)  # 设置蠕动泵方向为反转
+        self.set_pump_speed_name("water", 500)  # 设置蠕动泵速度为100
+        self.set_pump_dir_name("acid",1)  # 设置蠕动泵方向为反转
+        self.set_pump_speed_name("acid", 500)  # 设置蠕
+        self.set_pump_dir_name("solvent",1)  # 设置蠕动泵方向为反转
+        self.set_pump_speed_name("solvent", 500)  # 设置
     def connect(self):
         """
         连接设备
@@ -84,6 +137,17 @@ class Filter(Facility):
             self.log.warning(f"连接失败: {str(e)}")
             self.ifconnect = False
 
+    def pump_control_name(self, name: str, state: int):
+        """
+        控制蠕动泵开关
+        :param name: 蠕动泵名称
+        :param state: 1=打开, 0=关闭
+        """
+        if name not in self.sub_addresses:
+            self.log.warning(f"无效的蠕动泵名称: {name}")
+            return
+        address = self.sub_addresses[name]
+        return self.pump_control(address, state)
 
     def pump_control(self, address: int, state: int):
         """
@@ -166,6 +230,30 @@ class Filter(Facility):
         command = [self.address, 0x00, 0x55, 0x55, 0x55, 0x55]
         return self.send_command(command)
 
+    def set_pump_dir_name(self, name: str,direction: int):
+        """
+        设置蠕动泵方向
+        :param name: 蠕动泵名称
+        :param direction: 方向，1=正转, 0=反转
+        """
+        if name not in self.sub_addresses:
+            self.log.warning(f"无效的蠕动泵名称: {name}")
+            return
+        address = self.sub_addresses[name]
+        return self.set_pump_direction(address, direction)
+
+    def set_pump_speed_name(self, name: str, speed: int):
+        """
+        设置蠕动泵速度
+        :param name: 蠕动泵名称
+        :param speed: 速度值 (0-65535)
+        """
+        if name not in self.sub_addresses:
+            self.log.warning(f"无效的蠕动泵名称: {name}")
+            return
+        address = self.sub_addresses[name]
+        return self.set_pump_speed(address, speed)
+
     def set_pump_direction(self, address: int, direction: int):
         """
         设置蠕动泵方向
@@ -195,9 +283,9 @@ class Filter(Facility):
         command = [self.address, 0x03, address, high_byte, low_byte, 0x55]
         return self.send_command(command)
 
-    def valve_control(self, state: int):
+    def valve_A_control(self, state: int):
         """
-        控制三通阀门开关
+        控制靠近电源口侧三通阀门开关
         :param state: 1=打开, 0=关闭
         1 = 蠕动泵端关
         0 = 气泵端关
@@ -210,9 +298,9 @@ class Filter(Facility):
         command = [self.address, 0x05, state_byte[0], 0x55, 0x55, 0x55]
         return self.send_command(command)
 
-    def air_pump_control(self, state: int):
+    def valve_B_control(self, state: int):
         """
-        控制气泵开关
+        控制阀门B开关
         :param state: 1=打开, 0=关闭
         """
         state_int = int(state)

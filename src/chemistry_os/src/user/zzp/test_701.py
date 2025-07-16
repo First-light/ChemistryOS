@@ -57,7 +57,9 @@ main_server.start()
 
 hn_sdk.HN_init()
 
+hn_sdk.move_shaoping_A2C()
 hn_sdk.bath_catch('bath_fr5_catch')
 hn_sdk.move_wash('sanjinshaoping_wash_1')
 hn_sdk.move_wash('sanjinshaoping_wash_2')
 hn_sdk.bath_put('bath_fr5_put')
+hn_sdk.move_shaoping_C2A()

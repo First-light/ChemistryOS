@@ -1,5 +1,6 @@
 import sys
 sys.path.append('src/chemistry_os/src')
+from facilities.facility_filter import Filter
 from facilities.facility_fr3arm import Fr3Arm
 from facilities.facility_pumps import PumpGroup
 from facilities.facility_addSolid import Add_Solid
@@ -35,6 +36,15 @@ if __name__ == '__main__':
     fr5_C = Fr5Arm("fr5C","192.168.58.3")
     fr5_A = Fr5Arm("fr5A","192.168.58.2")
     bath = Bath('bath')
+    sub_addresses={               # 下级设备地址字典
+        "empty": 0x00,           # 空地址
+        "solvent": 0x03,          # 溶解溶剂地址
+        "water": 0x02,            # 清水清洗液地址
+        "acid": 0x04,              # 酸清洗液地址
+        "pump": 0x01                # 抽滤地址
+    }
+    filter = Filter("filter", "/dev/ttyUSB1",sub_addresses = sub_addresses)
+    filter.pump_init()  # 初始化蠕动泵
     hn_sdk=HN_SDK()
 
     main_server = TCPServer(test = True)
