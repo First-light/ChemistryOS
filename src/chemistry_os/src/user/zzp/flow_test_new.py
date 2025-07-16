@@ -44,7 +44,7 @@ if __name__ == '__main__':
         "pump": 0x01                # 抽滤地址
     }
     filter = Filter("filter", "/dev/ttyUSB1",sub_addresses = sub_addresses)
-    filter.pump_init()  # 初始化蠕动泵
+    # filter.pump_init()  # 初始化蠕动泵
     hn_sdk=HN_SDK()
 
     main_server = TCPServer(test = True)
