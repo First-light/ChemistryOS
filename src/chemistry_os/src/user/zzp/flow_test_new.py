@@ -48,7 +48,7 @@ if __name__ == '__main__':
     # 机械臂初始化
     hn_sdk.HN_init()
     # 固体进料
-    hn_sdk.add_solid(CompoundC_solid_add, 'test_tube', 'beaker')
+    hn_sdk.add_solid(CompoundC_solid_add, 'test_tube_support', 'beaker_support')
     # 抓取三颈烧瓶
     hn_sdk.move_shaoping_A2C()
     hn_sdk.bath_open()
