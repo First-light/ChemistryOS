@@ -69,25 +69,38 @@ main_server.register("fr5C", 5,fr5_C.data_dict, fr5_C.data_dict_update_angles)
 main_server.start()
 
 hn_sdk.HN_init()
-main_parser = CommandParser()
-main_parser.start()
+# 固体进料
+hn_sdk.add_solid(CompoundC_solid_add, 'test_tube_support', 'beaker_support')
+# 抓取三颈烧瓶
+hn_sdk.move_shaoping_A2C()
+hn_sdk.bath_open()
+# 液体进料
+hn_sdk.add_liquid_bath('HCl')
+hn_sdk.bath_close()
+# 放置三颈烧瓶
+hn_sdk.move_shaoping_C2A()
+
+
+# hn_sdk.HN_init()
+# main_parser = CommandParser()
+# main_parser.start()
 
 
 # hn_sdk.move_shaoping_A2C()
 # hn_sdk.bath_catch('bath_fr5_catch')
-hn_sdk.name_catch('sanjinshaoping_support')
-hn_sdk.move_wash('sanjinshaoping_wash_1',0)
-hn_sdk.move_wash('sanjinshaoping_wash_2',1)
-hn_sdk.move_wash('sanjinshaoping_wash_1',2)
+# # hn_sdk.name_catch('sanjinshaoping_support')
+# hn_sdk.move_wash('sanjinshaoping_wash_1',0)
+# hn_sdk.move_wash('sanjinshaoping_wash_2',1)
+# hn_sdk.move_wash('sanjinshaoping_wash_1',2)
 # hn_sdk.bath_put('bath_fr5_put')
-hn_sdk.name_put('sanjinshaoping_support')
+# # hn_sdk.name_put('sanjinshaoping_support')
 # hn_sdk.move_shaoping_C2A()
 
 
-# 保持主线程运行
-try:
+# # 保持主线程运行
+# try:
     
-    while True:
-        time.sleep(0.1)
-except KeyboardInterrupt:
-    main_parser.end()
+#     while True:
+#         time.sleep(0.1)
+# except KeyboardInterrupt:
+#     main_parser.end()

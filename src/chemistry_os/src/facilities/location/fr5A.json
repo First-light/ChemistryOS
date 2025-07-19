@@ -46,7 +46,7 @@
             "name": "fr5_A to fr5_C"
         },
         "bath_fr5_catch": {
-            "destination": [125.0, 627.0, 339.0],
+            "destination": [125.0, 631.0, 339.0],
             "bath_pre_offset": [60, 0, 0],
             "catch_pre_offset": 60.0,
             "put_height": 80.0,
@@ -112,7 +112,7 @@
             "name": "三颈烧瓶架"
         },
         "sanjinshaoping_wash_1": {
-            "destination": [456.0, 161.0, 350.0],
+            "destination": [456.0, 165.0, 350.0],
             "catch_pre_offset": 60.0,
             "put_height": -120.0,
             "second_height": 85.0,
@@ -121,7 +121,7 @@
             "name": "浓盐酸冲洗处"
         },
         "sanjinshaoping_wash_2": {
-            "destination": [568.0, 163.0, 350.0],
+            "destination": [568.0, 167.0, 350.0],
             "catch_pre_offset": 60.0,
             "put_height": -120.0,
             "second_height": 85.0,
@@ -130,7 +130,7 @@
             "name": "冰水冲洗处"
         },
         "solid_pour_place": {
-            "destination": [-490.0, -435.0, 150.0],
+            "destination": [-500.0, -435.0, 150.0],
             "catch_pre_offset": 120,
             "put_height": 80.0,
             "catch_direction": [90.0, 0.0, 0.0],
