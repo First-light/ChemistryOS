@@ -27,6 +27,10 @@ class CommandParser:
             self.input_thread = threading.Thread(target=self.shell_input)
             self.input_thread.daemon = True
             self.input_thread.start()
+        elif input_mode == "curses":
+            self.input_thread = threading.Thread(target=self.curses_input)
+            self.input_thread.daemon = True
+            self.input_thread.start()
         elif input_mode == "none":
             pass
         else:
@@ -34,6 +38,11 @@ class CommandParser:
 
     def end(self):
         self.running = False
+        # 清理 curses 界面
+        if hasattr(self, '_using_curses') and self._using_curses:
+            from lib.curses.simple import cleanup_curses_ui
+            cleanup_curses_ui()
+        
         if self.buffer_thread:
             self.buffer_thread.join()
         if self.input_thread:
@@ -54,6 +63,12 @@ class CommandParser:
             user_input = input(">")
             self.buffer.extend(user_input)
             time.sleep(0.01)
+
+    def curses_input(self):
+        """使用新的极简 curses 界面"""
+        self._using_curses = True
+        from lib.curses.simple import curses_input_for_parser
+        curses_input_for_parser(self)
 
     def parse(self, command_line):
         tokens = shlex.split(command_line)
@@ -83,7 +98,7 @@ class CommandParser:
             ret = cmd(command)
             return ret
 
-        
+
 
 
 

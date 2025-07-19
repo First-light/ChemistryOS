@@ -119,9 +119,9 @@ class Filter(Facility):
         out = True
         while out == True:
             self.log.info("酸洗20s")
-            self.pump_control_name("pump", 1)
+            self.pump_control_name("acid", 1)
             time.sleep(20)
-            self.pump_control_name("pump", 0)
+            self.pump_control_name("acid", 0)
             if input("是否继续酸洗？(y/n): ").strip().lower() != 'y':
                 out = False
         self.valve_B_control(1)
