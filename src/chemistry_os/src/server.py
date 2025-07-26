@@ -9,13 +9,16 @@ import os
 from typing import Dict, Any, Callable, Optional, Union
 from facility import Facility
 from structs import ServerMod
-
+from structs import BufferMod
+from parser import CommandParser
+ 
 class TCPServer(Facility):
     """
     TCP服务端类，提供连接、发送和接收数据的功能。
     """
     type = "tcp_server"
     data_units = []
+
 
     def __init__(self, test: bool = False, name: str = "server",host: str = '0.0.0.0', port: int = 8888, buffer_size: int = 4096):
         """
@@ -31,6 +34,10 @@ class TCPServer(Facility):
         self.client_address = None
         self.is_running = False
         self.is_connected = False
+        self.watch_dog_max = 2.0
+        self.watch_dog_start = time.time()
+        self.watch_dog_flag = False
+        self.data_dict = {"ack":"OK"}
         self.tx_buffer = []
         self.rx_buffer = []
         self.callback = None
@@ -38,6 +45,7 @@ class TCPServer(Facility):
         self.loop_time = 0.01  # 发送和接收数据的循环时间间隔
         self.units_init()
         self.file_timestape = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        self.register("tcp",50,self.data_dict)
 
     def cmd_init(self):
         pass
@@ -177,11 +185,11 @@ class TCPServer(Facility):
         """处理接收到的数据，按单个JSON数据包分别处理"""
         decoded_data = data.decode('utf-8')
         self.rx_buffer.append(decoded_data)
-        
         # 查找并处理JSON数据包
         packets = []
         brace_count = 0
         start_pos = 0
+        wait_time = 2.0
         
         #json切分，寻找完整的JSON数据包
         for i, char in enumerate(decoded_data):
@@ -199,8 +207,28 @@ class TCPServer(Facility):
         if packets:
             for packet in packets:
                 try:
+                    start_time = time.time()
                     parsed_json = json.loads(packet)
                     decoded_packet = json.dumps(parsed_json, ensure_ascii=False)
+                    """在这里写接收数据的解析服务"""
+
+                    # unity数据传送到buffer
+                    if CommandParser.using_unity == True:
+                        if "command" in parsed_json:
+                            unity_command = parsed_json["command"]
+                            self.log.info(f"接收客户端指令:{unity_command}")
+                            while True:
+                                time.sleep(0.01)
+                                if CommandParser.unity_flag == BufferMod.NONE:
+                                    CommandParser.unity_buffer.extend(unity_command)
+                                    CommandParser.unity_flag = BufferMod.READY
+                                    break
+                                if time.time() - start_time > wait_time:
+                                    # 超过等待时间，认为超时
+                                    self.log.warning("接收客户端指令失败: 解析器繁忙，超时未处理")
+                                    break
+
+                    # unity数据传送log
                     self.data_log_save(decoded_packet, "receive")
                 except (json.JSONDecodeError, ValueError):
                     self.data_log_save(packet, "receive")
@@ -226,11 +254,12 @@ class TCPServer(Facility):
 
                     data = self.client_socket.recv(self.buffer_size)
                     if data:
+                        self.watch_dog_start = time.time()
                         self._process_received_data(data)
 
                 except Exception as e:
                     self.log.error(f"接收数据失败: {str(e)}")
-                    self.disconnect_client()
+                    # self.disconnect_client()
             time.sleep(0.001)
         self.log.info("接收线程已停止")
 
@@ -240,6 +269,7 @@ class TCPServer(Facility):
         """
         while self.is_running:
             # 尝试接受客户端连接
+            time.sleep(self.loop_time)  # 控制发送频率
             if not self.is_connected:
                 try:
                     self.client_socket, self.client_address = self.server_socket.accept()
@@ -250,7 +280,12 @@ class TCPServer(Facility):
 
             if self.is_connected:
                 self.package_data()  # 生成数据包并存储到发送缓冲区
-
+                if self.watch_dog_flag and time.time() - self.watch_dog_start > self.watch_dog_max:
+                    self.is_connected = False
+                    self.watch_dog_flag = False
+                    self.log.error("看门狗超时，客户端连接异常")
+                    self.disconnect_client()
+                    continue
             # 处理发送缓冲区中的数据
             if self.tx_buffer and self.is_connected:
                 try:
@@ -261,8 +296,8 @@ class TCPServer(Facility):
                 except Exception as e:
                     self.log.error(f"发送数据失败: {str(e)}")
                     self.disconnect_client()
-            time.sleep(self.loop_time)  # 控制发送频率
         self.log.info("发送线程已停止")
+
 
     def send_data_test(self):
         """
@@ -381,6 +416,7 @@ class TCPServer(Facility):
         """
         断开客户端连接。
         """
+        self.log.info("清理信道")
         self.is_connected = False
         if self.client_socket:
             try:

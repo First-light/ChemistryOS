@@ -2,10 +2,11 @@ import sys
 sys.path.append('src/chemistry_os/src')
 import shlex
 from prettytable import PrettyTable
+import logging  # 添加日志模块
 from structs import FacilityState
 
 class PkgCmdParser:
-    def __init__(self, obj_name: str, object_state_p):
+    def __init__(self, obj_name: str, object_state_p,object_log:logging.Logger):
         self.commands = {}
         self.special_commands = {
             "list": self.list,
@@ -15,10 +16,11 @@ class PkgCmdParser:
         }
         self.obj_name = obj_name
         self.object_state_p = object_state_p
+        self.log = object_log
 
     def register(self, name, func, params=None, description=""):
         if name in self.commands:
-            raise ValueError(f"Command '{name}' is already registered.")
+            self.log.warning(f"指令 '{name}' 已经注册.")
         if params is None:
             params = {}
         self.commands[name] = {
@@ -33,7 +35,7 @@ class PkgCmdParser:
         
         tokens = shlex.split(command_line)
         if len(tokens) < 1:
-            self.cmd_print("Command shouldn't be empty")
+            self.log.warning("指令不能为空")
             return 2
 
         # 解析指令名称
@@ -45,17 +47,17 @@ class PkgCmdParser:
             return 0
 
         if command_name not in self.commands:
-            self.cmd_print(f"Unknown command: {command_name}")
+            self.log.warning(f"未知指令 {command_name}")
             return 2
         
         if self.object_state_p[0] == FacilityState.BUSY:
-            print(f"{self.obj_name} is busy.")
+            self.log.warning(f"{self.obj_name} 设备忙碌.")
             return 2
         elif self.object_state_p[0] == FacilityState.STOP:
-            print(f"{self.obj_name} is stopped.")
+            self.log.warning(f"{self.obj_name} 设备已停机.")
             return 2
         elif self.object_state_p[0] == FacilityState.ERROR:
-            print(f"{self.obj_name} is in error state.")
+            self.log.warning(f"{self.obj_name} 设备故障.")
             return 2
         else:
             self.object_state_p[0] = FacilityState.BUSY
@@ -77,15 +79,15 @@ class PkgCmdParser:
                         # 如果转换失败，则保持为字符串
                         pass
                 else:
-                    self.cmd_print("Invalid param syntax, please input: 'param=value'")
+                    self.log.warning("错误的指令格式，请按要求输入：'param=value'")
                     return 2
                 if key in params:
                     params[key] = value
                 else:
-                    self.cmd_print(f"Unknown param: {key}")
+                    self.log.warning(f"未知键值: {key}")
                     return 2
                 if value == '':
-                    self.cmd_print(f"{key}'s value shouldn't be empty")
+                    self.log.warning(f"键值{key}参数不能为空")
                     return 2
             handler(**params)  # 执行函数
 
@@ -106,15 +108,14 @@ class PkgCmdParser:
             params = ', '.join([f"{k}={v}" for k, v in info['params'].items()])
             table.add_row([name, info['description'], params])
 
-        self.cmd_print("Commands list:")
-        print(table)
+        self.log.info(f"指令列表:\n{table}")
 
     def lock(self):
-        self.cmd_print("lock")
+        self.log.info("设备锁定")
         self.object_state_p[0] = FacilityState.STOP
     
     def unlock(self):
-        self.cmd_print("unlock")
+        self.log.info("设备解锁")
         self.object_state_p[0] = FacilityState.IDLE
 
     def cmd_print(self,message):

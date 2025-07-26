@@ -190,10 +190,12 @@ class PumpGroup(Facility):
 
 
 if __name__ == "__main__":
+    flowdisplay = Flowdisplay("flowdisplay")
     add_Liquid=PumpGroup('add_Liquid')
-    add_Liquid.writespeed(0x03, 100)
-    add_Liquid.writespeed(0x04, 100)
-    add_Liquid.writespeed(0x05, 100)
+    add_Liquid.writespeed(0x10, 100)
+    add_Liquid.writespeed(0x11, 100)
+    add_Liquid.writespeed(0x12, 100)
+    add_Liquid.writespeed(0x13, 100)
     # Add_liquid_fixed.startadd(0x02)
     # Add_liquid_fixed.stopadd(0x02)
     # Add_liquid_fixed.add_liquid('H2O2', 0x01, 14.3, 10)

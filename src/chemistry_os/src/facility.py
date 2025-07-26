@@ -24,20 +24,32 @@ class Facility(ABC):
         self.type = type
         self.state = [0]
         self.state[0] = FacilityState.IDLE
-        self.parser = PkgCmdParser(self.name, self.state)
+        
+
+        # self.object_init_list = ["flowdisplay"]  # 用于存储对象初始化列表
+
+        # if type not in self.object_init_list:
+        #     for facility in Facility.tuple_list:
+        #         if facility[0] == name and isinstance(facility[3], expected_type):
+        #             return facility[3]  # 返回实例化的对象引用
+
+
+        # 初始化日志记录器
+        self.log_init()
+        self.parser = PkgCmdParser(self.name, self.state,self.log)
 
         # 注册父类的命令
         self.cmd_public_init()
         # 注册子类的命令
         self.cmd_init()
-        # 初始化日志记录器
-        self.log_init()
-
+        
         # 检查是否存在重复的 name 和 type 参数对
         if any(name == pair[0] for pair in Facility.tuple_list):
-            raise ValueError(f"Duplicate name pair: {name}")
+            self.log.warning(f"重复设备名称：{name}")
         # 存储 name 和 type 参数对
-        Facility.tuple_list.append((name, type, self.parser.cmd, self))
+        else:
+            Facility.tuple_list.append((name, type, self.parser.cmd, self))
+            self.log.info(f"成功实例化对象：{self}")
         
     def delay(self, sec):
         print("delay ", sec)

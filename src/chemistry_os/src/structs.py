@@ -21,3 +21,7 @@ class ServerMod(Enum):
     NONE = 0  # 无状态
     SKIP = 1  # 跳过添加数据包的操作 用于触发式发送
     ADJUST = 2  # 执行一此后调整值为1 用于触发式发送
+
+class BufferMod(Enum):
+    NONE = 0  # 不接收
+    READY = 1  # 可以接受

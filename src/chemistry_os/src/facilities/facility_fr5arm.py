@@ -16,7 +16,7 @@ from facilities.facility_flowdisplay import Flowdisplay
 
 class Fr5Arm(Facility):
     type = "fr5arm"
-    default_speed = 20.0
+    default_speed = 30.0
     default_acc = 10.0
     default_circle_speed = 5.0
     default_circle_acc = 40.0
