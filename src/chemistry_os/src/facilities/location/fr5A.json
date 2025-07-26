@@ -10,7 +10,7 @@
             "name": "试管架"
         },
         "beaker_support": {
-            "destination": [-505.0, -118.0, 100.0],
+            "destination": [-517.0, -105.0, 100.0],
             "put_offset": 2.0,
             "catch_pre_offset": 70.0,
             "put_height": 50,
@@ -28,7 +28,7 @@
             "name": "固体进料-试管夹持位置"
         },
         "beaker_add_place": {
-            "destination": [601.0, -473.0, 138.0],
+            "destination": [596.6, -489.7, 128.0],
             "put_offset": 0.0,
             "catch_pre_offset": 190.0,
             "put_height": 30.0,
@@ -103,7 +103,7 @@
             "name": "液体进料-滴加位"
         },
         "sanjinshaoping_support": {
-            "destination": [-455, -529.5, 172.0],
+            "destination": [-460, -518, 166],
             "put_offset": 4.0,
             "catch_pre_offset": 60.0,
             "put_height": 140.0,
@@ -130,7 +130,7 @@
             "name": "冰水冲洗处"
         },
         "solid_pour_place": {
-            "destination": [-500.0, -435.0, 150.0],
+            "destination": [-490.0, -426.0, 100.0],
             "catch_pre_offset": 120,
             "put_height": 80.0,
             "catch_direction": [90.0, 0.0, 0.0],
