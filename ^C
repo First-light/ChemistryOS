@@ -1,0 +1,9 @@
+Collecting prettytable
+  Downloading prettytable-3.16.0-py3-none-any.whl.metadata (33 kB)
+Collecting wcwidth (from prettytable)
+  Downloading wcwidth-0.2.13-py2.py3-none-any.whl.metadata (14 kB)
+Downloading prettytable-3.16.0-py3-none-any.whl (33 kB)
+Downloading wcwidth-0.2.13-py2.py3-none-any.whl (34 kB)
+Installing collected packages: wcwidth, prettytable
+
+Successfully installed prettytable-3.16.0 wcwidth-0.2.13

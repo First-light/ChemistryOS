@@ -5,36 +5,53 @@ import threading
 import time
 from facility import Facility
 from facility import FacilityState
+from structs import BufferMod
 
-class CommandParser:
+class CommandParser(Facility):
     """
     CommandParser is responsible for parsing command lines and executing the corresponding commands
     on the facilities.
     """
-    def __init__(self):
+    using_unity = False
+    unity_buffer = []
+    unity_flag = BufferMod.NONE
+    type = "parser"
+
+    def __init__(self,name = "parser"):
+        super().__init__(name, type = CommandParser.type)
         self.buffer = []
         self.buffer_thread = None
         self.input_thread = None
         self.running = False
 
-    def start(self, input_mode="shell"):
-        self.running = True
-        self.buffer_thread = threading.Thread(target=self.parse_buffer)
-        self.buffer_thread.daemon = True
-        self.buffer_thread.start()
+    def start(self, input="shell"):
 
-        if input_mode == "shell":
+        if self.running == False:
+            self.log.info("开启指令解析")
+            self.running = True
+            self.buffer_thread = threading.Thread(target=self.parse_buffer)
+            self.buffer_thread.daemon = True
+            self.buffer_thread.start()
+
+        if input == "shell":
+            self.log.info("开启命令行输入")
             self.input_thread = threading.Thread(target=self.shell_input)
             self.input_thread.daemon = True
             self.input_thread.start()
-        elif input_mode == "curses":
+        elif input == "curses":
+            self.log.info("开启指令解析")
             self.input_thread = threading.Thread(target=self.curses_input)
             self.input_thread.daemon = True
             self.input_thread.start()
-        elif input_mode == "none":
+        elif input == "unity":
+            self.log.info("开启远程输入")
+            self.input_thread = threading.Thread(target=self.unity_input)
+            self.input_thread.daemon = True
+            self.input_thread.start()
+        elif input == "none":
             pass
         else:
-            raise ValueError(f"Unknown input mode: {input_mode}")
+            self.log.warning(f"未知输入模式: {input}")
 
     def end(self):
         self.running = False
@@ -58,6 +75,9 @@ class CommandParser:
                 self.parse(command_line)
             time.sleep(0.01)  # 模拟读取间隔
 
+    def cmd_init(self):
+        pass
+
     def shell_input(self):
         while self.running:
             user_input = input(">")
@@ -69,6 +89,16 @@ class CommandParser:
         self._using_curses = True
         from lib.curses.simple import curses_input_for_parser
         curses_input_for_parser(self)
+
+    def unity_input(self):
+        """unity输入"""
+        CommandParser.using_unity = True
+        while self.running:
+            if CommandParser.unity_flag == BufferMod.READY:
+                self.buffer.extend(CommandParser.unity_buffer)
+                CommandParser.unity_buffer.clear()
+                CommandParser.unity_flag = BufferMod.NONE
+            time.sleep(0.01)
 
     def parse(self, command_line):
         tokens = shlex.split(command_line)
@@ -92,7 +122,7 @@ class CommandParser:
                 break
 
         if cmd is None:
-            print(f"Unknown facility: {objectname}")
+            self.log.warning(f"未知设备：{objectname}")
             return 1
         else:
             ret = cmd(command)

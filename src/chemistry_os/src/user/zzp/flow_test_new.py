@@ -8,6 +8,7 @@ from facilities.facility_fr5arm import Fr5Arm
 from facilities.facility_bath import Bath
 from facilities.facility_sdk import HN_SDK
 from facilities.facility_flowdisplay import Flowdisplay
+from facilities.facility_system import System
 from server import TCPServer
 from facility import Facility
 
@@ -29,7 +30,7 @@ if __name__ == '__main__':
     reaction_time_1 = 7200
     reaction_time_2 = 1200
     reaction_time_3 = 14400
-
+    main_sys = System("os")
     flowdisplay = Flowdisplay("flowdisplay")
     add_Liquid=PumpGroup('add_Liquid')
     add_Solid=Add_Solid('add_Solid')

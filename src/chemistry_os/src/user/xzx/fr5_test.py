@@ -16,6 +16,7 @@ sys.path.append('src/chemistry_os/src')
 
 if __name__ == '__main__':
     main_sys = System("os")
+    flowdisplay = Flowdisplay("flowdisplay")
     fr5 = Fr5Arm("fr5A","192.168.58.2")
     fr5.Go_to_start_zone_0()
 
@@ -25,11 +26,6 @@ if __name__ == '__main__':
     main_server.register("log", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
     main_server.register("flow", 50, Flowdisplay.process_display_dict, Flowdisplay.update_process_display_dict)
     main_server.register("fr5A", 5, fr5.data_dict, fr5.data_dict_update_angles)
-    main_server.register("fr5C", 5,fr5.data_dict, fr5.data_dict_update_angles)
-    main_server.register("bath", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
-    main_server.register("filter", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
-    main_server.register("pumps", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
-    main_server.register("addSolid", 5, Fr3Arm.data_dict, Fr3Arm.data_dict_update_angles)
 
     main_server.start()
     main_parser = CommandParser()

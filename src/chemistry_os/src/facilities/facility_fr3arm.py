@@ -1,7 +1,7 @@
 import sys
 sys.path.append('src/chemistry_os/src')
 import time
-import Robot # type: ignore # 根目录在src下
+import lib.fairino.Robot as Robot # type: ignore # 根目录在src下
 import math
 import numpy as np
 from facility import Facility

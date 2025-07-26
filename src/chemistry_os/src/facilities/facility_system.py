@@ -4,6 +4,7 @@ from facility import Facility
 from facilities.facility_fr5arm import Fr5Arm
 from facilities.facility_project import Project
 from prettytable import PrettyTable
+from facilities.facility_flowdisplay import Flowdisplay
 from facilities.facility_temp import FacilityTemp
 from structs import FacilityState
 
@@ -13,6 +14,7 @@ class System(Facility):
     def __init__(self, name: str = "os"):
         super().__init__(name, System.type)
         self.objects = []  # 用于存储创建的实例
+        # self.flowdisplay = Flowdisplay("flowdisplay")
 
     def cmd_init(self):
         self.parser.register("fr5arm", self.create_fr5robot, {"name": '', "ip": ''}, "创建 FR5 机械臂")
