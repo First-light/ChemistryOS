@@ -111,7 +111,7 @@ class HN_SDK(Facility):
             self.add_Solid: Add_Solid = get_facility_ref("add_Solid", Add_Solid)
             self.fr5_C: Fr5Arm = get_facility_ref("fr5C", Fr5Arm)
             self.bath: Bath = get_facility_ref("bath", Bath)
-            self.filter: Filter = get_facility_ref("filter", Filter)
+            # self.filter: Filter = get_facility_ref("filter", Filter)
             self.flowdisplay: Flowdisplay = get_facility_ref("flowdisplay", Flowdisplay)
 
         except ValueError as e:
@@ -350,7 +350,7 @@ class HN_SDK(Facility):
         #下降，完成放置
         self.fr5_A.move_by(0, 0, -obj_statu['put_height'], vel=10)
 
-        self.fr5_A.pour(22.2, 58.0)
+        self.fr5_A.pour(24.1, 65.0)
 
         self.fr5_A.move_by(0, 0, obj_statu['put_height'], vel=10)
         time.sleep(1)

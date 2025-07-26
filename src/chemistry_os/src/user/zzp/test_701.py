@@ -16,30 +16,6 @@ from facilities.facility_filter import Filter
 from parser import CommandParser
 
 CompoundC_solid_add = 0.5 # 化合物C的添加量
-HCL_volume_add = 26.8*CompoundC_solid_add # 浓盐酸
-KMnO4_volume_add = 53.52*CompoundC_solid_add # 高锰酸钾添加量 
-H2O2_volume_add = 20.0*CompoundC_solid_add # 双氧水添加量
-HCL_L_volume_add = 80.0*CompoundC_solid_add
-CH3CN_volume_add = 20.0 # 乙腈添加量
-N2H4_volume_add = 0.4854 # 肼添加量
-HCl_rpm = 100
-KMnO4_rpm = 15
-H2O2_rpm = 30
-CH3CN_rpm = 30
-N2H4_rpm = 30
-tmp_0 = 0
-tmp_25 = 25
-reaction_time_1 = 7200
-reaction_time_2 = 1200
-reaction_time_3 = 14400
-
-# controller = Add_Solid()
-# with controller:
-#     controller.tube_ver()
-#     controller.clip_open()
-
-# exit()
-
 
 flowdisplay = Flowdisplay("flowdisplay")
 add_Liquid=PumpGroup('add_Liquid')
@@ -55,30 +31,33 @@ sub_addresses={               # 下级设备地址字典
     "pump": 0x01                # 抽滤地址
 }
 
-filter = Filter("filter", "/dev/ttyUSB1",sub_addresses = sub_addresses)
+# filter = Filter("filter", "/dev/ttyUSB0",sub_addresses = sub_addresses)
 # print(filter)
 hn_sdk=HN_SDK()
 
-main_server = TCPServer(test = True)
+# main_server = TCPServer(test = True)
 
-main_server.register("log", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
-main_server.register("flow", 50, flowdisplay.process_display_dict, flowdisplay.data_update)
-main_server.register("fr5A", 5, fr5_A.data_dict, fr5_A.data_dict_update_angles)
-main_server.register("fr5C", 5,fr5_C.data_dict, fr5_C.data_dict_update_angles)
+# main_server.register("log", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
+# main_server.register("flow", 50, flowdisplay.process_display_dict, flowdisplay.data_update)
+# main_server.register("fr5A", 5, fr5_A.data_dict, fr5_A.data_dict_update_angles)
+# main_server.register("fr5C", 5,fr5_C.data_dict, fr5_C.data_dict_update_angles)
 
-main_server.start()
+# main_server.start()
 
 hn_sdk.HN_init()
 # 固体进料
-hn_sdk.add_solid(CompoundC_solid_add, 'test_tube_support', 'beaker_support')
-# 抓取三颈烧瓶
-hn_sdk.move_shaoping_A2C()
-hn_sdk.bath_open()
-# 液体进料
-hn_sdk.add_liquid_bath('HCl')
-hn_sdk.bath_close()
-# 放置三颈烧瓶
-hn_sdk.move_shaoping_C2A()
+hn_sdk.name_catch_and_put('beaker_support', 'beaker_add_place')
+hn_sdk.name_catch('beaker_add_place')
+hn_sdk.name_pour('solid_pour_place')
+hn_sdk.name_put('beaker_support')
+# # 抓取三颈烧瓶
+# hn_sdk.move_shaoping_A2C()
+# hn_sdk.bath_open()
+# # 液体进料
+# hn_sdk.add_liquid_bath('HCl')
+# hn_sdk.bath_close()
+# # 放置三颈烧瓶
+# hn_sdk.move_shaoping_C2A()
 
 
 # hn_sdk.HN_init()
