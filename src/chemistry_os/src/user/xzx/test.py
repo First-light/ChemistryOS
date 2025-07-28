@@ -1,6 +1,6 @@
 import sys
 sys.path.append('src/chemistry_os/src')
-from parser import CommandParser 
+from facilities.facility_parser import CommandParser 
 from facilities.facility_fr5arm import Fr5Arm
 from facilities.facility_fr3arm import Fr3Arm
 

@@ -130,7 +130,7 @@
             "name": "冰水冲洗处"
         },
         "solid_pour_place": {
-            "destination": [-490.0, -426.0, 100.0],
+            "destination": [-490.0, -426.0, 112.0],
             "catch_pre_offset": 120,
             "put_height": 80.0,
             "catch_direction": [90.0, 0.0, 0.0],

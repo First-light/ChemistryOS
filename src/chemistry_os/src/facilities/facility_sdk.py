@@ -42,7 +42,7 @@ import threading
 import time
 import sys
 sys.path.append('src/chemistry_os/src')
-from facilities.facility_flowdisplay import Flowdisplay
+from facilities.flowdisplay import Flowdisplay
 from structs import FacilityState
 from facility import Facility
 from facilities.facility_fr5arm import Fr5Arm
@@ -112,7 +112,6 @@ class HN_SDK(Facility):
             self.fr5_C: Fr5Arm = get_facility_ref("fr5C", Fr5Arm)
             self.bath: Bath = get_facility_ref("bath", Bath)
             # self.filter: Filter = get_facility_ref("filter", Filter)
-            self.flowdisplay: Flowdisplay = get_facility_ref("flowdisplay", Flowdisplay)
 
         except ValueError as e:
             print(e)
@@ -160,7 +159,7 @@ class HN_SDK(Facility):
         Info = {
             '冲洗位置' : obj_statu['name']
         }
-        self.flowdisplay.update_process_display_dict(Process='冲洗抽滤', Action='冲洗抽滤', Info=Info)
+        Flowdisplay.update_process_display_dict(Process='冲洗抽滤', Action='冲洗抽滤', Info=Info)
         #根据id确定安全位置, 移动到安全位置
         self.fr5_A.move_to_safe_catch(obj_statu['safe_place_id'])
 
@@ -220,7 +219,7 @@ class HN_SDK(Facility):
         添加液体并设置水浴温度
         :param liquid_name: 液体名称
         """
-        self.flowdisplay.update_process_display_dict(Process='添加液体并反应', Action='', Info={})
+        Flowdisplay.update_process_display_dict(Process='添加液体并反应', Action='', Info={})
         config = self.liquid_config.get(liquid_name)
         if not config:
             raise ValueError(f"未知液体: {liquid_name}")
@@ -246,7 +245,7 @@ class HN_SDK(Facility):
         Info = {
             '抓取位置' : obj_statu['name']
         }
-        self.flowdisplay.update_process_display_dict(Process=None, Action='机械臂抓取', Info=Info)
+        Flowdisplay.update_process_display_dict(Process=None, Action='机械臂抓取', Info=Info)
 
         
         #根据id确定安全位置, 移动到安全位置
@@ -285,7 +284,7 @@ class HN_SDK(Facility):
         Info = {
             '放置位置' : obj_statu['name']
         }
-        self.flowdisplay.update_process_display_dict(Process=None, Action='机械臂放置', Info=Info)
+        Flowdisplay.update_process_display_dict(Process=None, Action='机械臂放置', Info=Info)
 
         # #根据id确定安全位置, 移动到安全位置
         self.fr5_A.move_to_safe_catch(obj_statu['safe_place_id'])
@@ -331,7 +330,7 @@ class HN_SDK(Facility):
         Info = {
             '倾倒位置' : obj_statu['name']
         }
-        self.flowdisplay.update_process_display_dict(Process=None, Action='固体倾倒', Info=Info)
+        Flowdisplay.update_process_display_dict(Process=None, Action='固体倾倒', Info=Info)
 
         # #根据id确定安全位置, 移动到安全位置
         self.fr5_A.move_to_safe_catch(obj_statu['safe_place_id'])
@@ -371,7 +370,7 @@ class HN_SDK(Facility):
             '交接单位' : '三颈烧瓶',
             '交接方向' : obj_statu['name']
         }
-        self.flowdisplay.update_process_display_dict(Process=None, Action='机械臂交接', Info=Info)
+        Flowdisplay.update_process_display_dict(Process=None, Action='机械臂交接', Info=Info)
 
         self.fr5_C.move_to_catch()
 
@@ -420,7 +419,7 @@ class HN_SDK(Facility):
             '交接单位' : '三颈烧瓶',
             '交接方向' : obj_statu['name']
         }
-        self.flowdisplay.update_process_display_dict(Process=None, Action='机械臂交接', Info=Info)
+        Flowdisplay.update_process_display_dict(Process=None, Action='机械臂交接', Info=Info)
 
         self.fr5_C.move_to_catch()
 
@@ -472,7 +471,7 @@ class HN_SDK(Facility):
         Info = {
             '抓取位置' : obj_statu['name']
         }
-        self.flowdisplay.update_process_display_dict(Process=None, Action='机械臂抓取', Info=Info)
+        Flowdisplay.update_process_display_dict(Process=None, Action='机械臂抓取', Info=Info)
 
         #根据id确定安全位置, 移动到安全位置
         self.fr5_A.move_to_safe_catch(obj_statu['safe_place_id'])
@@ -523,7 +522,7 @@ class HN_SDK(Facility):
         Info = {
             '放置位置' : obj_statu['name']
         }
-        self.flowdisplay.update_process_display_dict(Process=None, Action='机械臂放置', Info=Info)
+        Flowdisplay.update_process_display_dict(Process=None, Action='机械臂放置', Info=Info)
         #计算物体位置
         dest = [obj_statu['destination'][0], obj_statu['destination'][1], obj_statu['destination'][2] + obj_statu['put_height']]
 
@@ -548,7 +547,7 @@ class HN_SDK(Facility):
         time.sleep(1)
 
     def add_solid(self, gram:float, tube_from:str, beaker_from:str, test_tube_add_place:str='test_tube_add_place', beaker_add_place:str='beaker_add_place', pour_place:str='solid_pour_place'):
-        self.flowdisplay.update_process_display_dict(Process='固体进料', Action='', Info={})
+        Flowdisplay.update_process_display_dict(Process='固体进料', Action='', Info={})
         self.name_catch(tube_from)
         self.name_put(test_tube_add_place, test_tube_add=True)
         self.name_catch_and_put(beaker_from, beaker_add_place)
@@ -578,7 +577,7 @@ class HN_SDK(Facility):
         self.fr5_A.Go_to_start_zone_0()
 
     def bath_open(self):
-        self.flowdisplay.update_process_display_dict(Process='控制水浴锅', Action='水浴锅开启', Info={})
+        Flowdisplay.update_process_display_dict(Process='控制水浴锅', Action='水浴锅开启', Info={})
         self.bath.power_ctr(1)
         self.bath.mix_ctr(1)
         self.bath.circle_ctr(1)# 允许circle
@@ -586,7 +585,7 @@ class HN_SDK(Facility):
         self.bath.cold_ctr(1)# 允许制冷
 
     def bath_close(self):
-        self.flowdisplay.update_process_display_dict(Process='控制水浴锅', Action='水浴锅关闭', Info={})
+        Flowdisplay.update_process_display_dict(Process='控制水浴锅', Action='水浴锅关闭', Info={})
         self.bath.mix_ctr(0)
         self.bath.circle_ctr(0)# 禁止circle
         self.bath.hot_ctr(0)# 禁止加热
@@ -602,7 +601,7 @@ class HN_SDK(Facility):
         Info = {
             '剩余时间': '',
         }
-        self.flowdisplay.update_process_display_dict(Process=None, Action='化学反应', Info=Info)
+        Flowdisplay.update_process_display_dict(Process=None, Action='化学反应', Info=Info)
         
         stop_event = threading.Event()
         countdown_finished_event = threading.Event()
@@ -622,7 +621,7 @@ class HN_SDK(Facility):
                 Info = {
                     '剩余时间': remaining_time,
                 }
-                self.flowdisplay.update_process_display_dict(Process=None, Action='化学反应', Info=Info)
+                Flowdisplay.update_process_display_dict(Process=None, Action='化学反应', Info=Info)
                 time.sleep(1)
                 seconds -= 1
 
@@ -650,29 +649,29 @@ class HN_SDK(Facility):
         countdown(seconds)
 
     def fr5A_init(self):
-        self.flowdisplay.update_process_display_dict(Process=None, Action='fr5_A初始化', Info={})
+        Flowdisplay.update_process_display_dict(Process=None, Action='fr5_A初始化', Info={})
         self.fr5_A.fr5_init()
 
     def fr5C_init(self):
-        self.flowdisplay.update_process_display_dict(Process=None, Action='fr5_C初始化', Info={})
+        Flowdisplay.update_process_display_dict(Process=None, Action='fr5_C初始化', Info={})
         self.fr5_C.fr5_init()
 
     def fr5_check_place(self):
         self.fr5_A.fr5_check_place()
 
     def HN_init(self):
-        self.flowdisplay.update_process_display_dict(Process='HN机械臂初始化', Action='', Info={})
+        Flowdisplay.update_process_display_dict(Process='HN机械臂初始化', Action='', Info={})
         self.fr5A_init()
         self.fr5C_init()
 
     def move_shaoping_A2C(self):
-        self.flowdisplay.update_process_display_dict(Process='烧瓶转移 A to C', Action='', Info={})
+        Flowdisplay.update_process_display_dict(Process='烧瓶转移 A to C', Action='', Info={})
         self.name_catch('sanjinshaoping_support')
         self.bath_put('bath_fr5_put')
 
 
     def move_shaoping_C2A(self):
-        self.flowdisplay.update_process_display_dict(Process='烧瓶转移 C to A', Action='', Info={})
+        Flowdisplay.update_process_display_dict(Process='烧瓶转移 C to A', Action='', Info={})
         self.bath_catch('bath_fr5_catch')
         self.name_put('sanjinshaoping_support')
 

@@ -6,7 +6,7 @@ import os
 import json
 import threading
 import time
-from parser import CommandParser
+from facilities.facility_parser import CommandParser
 from structs import ProjectState
 from structs import FacilityState
 
@@ -75,13 +75,13 @@ class Project(Facility):
         # 遍历 self.dict['objects'] 中的对象
         for obj_name in self.dict['objects'].keys():
             # 在 Facility.tuple_list 中查找对应的对象
-            matching_tuple = next((tuple_t for tuple_t in Facility.tuple_list if tuple_t[0] == obj_name), None)
+            matching_tuple = next((tuple_t for tuple_t in Facility.tuple_list if tuple_t.name == obj_name), None)
 
             if matching_tuple:
-                obj_state_p = matching_tuple[3].state
+                obj_state = matching_tuple.facility.state
                 # 检查对象状态是否为 IDLE
-                if obj_state_p[0] != FacilityState.IDLE:
-                    self.log.warning(f"对象 {obj_name} 当前状态不是空闲 (当前状态: {obj_state_p[0]})。")
+                if obj_state != FacilityState.IDLE:
+                    self.log.warning(f"对象 {obj_name} 当前状态不是空闲 (当前状态: {obj_state})。")
                     all_objects_exist = False
             else:
                 self.log.warning(f"对象 {obj_name} 不存在于系统中。")
@@ -357,20 +357,16 @@ class Project(Facility):
 
         # 遍历 JSON 中的 objects
         for obj_name, obj_params in self.dict.get('objects', {}).items():
-            # 在 Facility.tuple_list 中查找对应的对象
-            for i, tuple_t in enumerate(Facility.tuple_list):
-                name = tuple_t[0]
-                obj_instance = tuple_t[3]  # 对应的对象实例
-
-                if name == obj_name:
-                    # 将 JSON 中的参数赋值给对象
-                    for param_key, param_value in obj_params.items():
-                        if hasattr(obj_instance, param_key):
-                            # setattr(obj_instance, param_key, param_value)
-                            self.log.info(f"设置对象 {name} 的参数 {param_key} 为 {param_value}")
-                        else:
-                            self.log.warning(f"对象 {name} 不存在参数 {param_key}")
-                    break
+            obj_instance = Facility.get_facility_by_name(name=obj_name)
+            if obj_instance:
+                # 将 JSON 中的参数赋值给对象
+                for param_key, param_value in obj_params.items():
+                    if hasattr(obj_instance, param_key):
+                        # setattr(obj_instance, param_key, param_value)
+                        self.log.info(f"设置对象 {obj_name} 的参数 {param_key} 为 {param_value}")
+                    else:
+                        self.log.warning(f"对象 {obj_name} 不存在参数 {param_key}")
+                break
             else:
                 self.log.warning(f"未找到名称为 {obj_name} 的对象，无法设置参数")
 

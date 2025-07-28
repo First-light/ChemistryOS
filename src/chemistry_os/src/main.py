@@ -4,8 +4,8 @@ from facilities.facility_system import System
 from facilities.facility_fr3arm import Fr3Arm
 from facilities.facility_fr5arm import Fr5Arm
 from facilities.facility_temp import FacilityTemp
-from parser import CommandParser
-from server import TCPServer
+from facilities.facility_parser import CommandParser
+from facilities.facility_server import TCPServer
 from facility import Facility
 import time
 import sys

@@ -259,12 +259,12 @@ class Filter(Facility):
         发送指令到设备
         :param command: 指令列表
         """
+        command_t = bytearray(command)
         if not self.ifconnect:
-            self.log.warning("发送指令失败，设备未连接，请检查连接")
+            self.log.warning(f"发送指令失败 {command_t} 设备未连接，请检查连接")
             return
     
         wait_time = 2.0
-        command_t = bytearray(command)
         try:
             with serial.Serial(port=self.com, baudrate=self.baudrate, timeout=1, stopbits=2) as ser:
                 # self.log.info("成功连接")
@@ -283,9 +283,9 @@ class Filter(Facility):
                         return response_str
                     if time.time() - start_time > wait_time:
                         # 超过等待时间，认为超时
-                        self.log.warning("发送指令失败: 超时未收到响应")
-                        if self.ifconnect:
-                            self.test()  # 测试连接
+                        self.log.error(f"发送指令失败{command_t}: 超时未收到响应")
+                        # if self.ifconnect:
+                        #     self.test()  # 测试连接
                         return None
            
         except Exception as e:
