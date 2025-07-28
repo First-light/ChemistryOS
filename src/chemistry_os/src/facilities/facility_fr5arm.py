@@ -12,7 +12,7 @@ import numpy as np
 from facility import Facility
 from structs import FacilityState
 from exceptions import *
-from facilities.facility_flowdisplay import Flowdisplay
+from facilities.flowdisplay import Flowdisplay
 
 class Fr5Arm(Facility):
     type = "fr5arm"
@@ -44,20 +44,6 @@ class Fr5Arm(Facility):
             "joint_angles": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
             "gripper_status": Gripper_status.OPEN,
         }
-
-        def get_facility_ref(name, expected_type):
-            for facility in Facility.tuple_list:
-                if facility[0] == name and isinstance(facility[3], expected_type):
-                    return facility[3]  # 返回实例化的对象引用
-            print(f"错误：对象 {name} 不存在于 Facility.tuple_list 中，或类型不匹配。")
-            print(Facility.tuple_list)
-            raise ValueError(f"对象 {name} 不存在于 Facility.tuple_list 中，或类型不匹配。")
-        
-        try:
-            self.flowdisplay: Flowdisplay = get_facility_ref("flowdisplay", Flowdisplay)
-        except ValueError as e:
-            print(e)
-        
 
     def data_dict_update_angles(self):
         """
@@ -661,7 +647,7 @@ class Fr5Arm(Facility):
         Info={
             '机械臂对象': self.name
         }
-        self.flowdisplay.update_process_display_dict(Process=None, Action='夹爪初始化', Info=Info)
+        Flowdisplay.update_process_display_dict(Process=None, Action='夹爪初始化', Info=Info)
         self.log.info("夹爪初始化")
         self.robot.SetGripperConfig(4, 0, 0, 1)
         time.sleep(0.5)
@@ -824,7 +810,7 @@ class Fr5Arm(Facility):
         Info={
             '机械臂对象': self.name
         }
-        self.flowdisplay.update_process_display_dict(Process=None, Action='机械臂复位', Info=Info)
+        Flowdisplay.update_process_display_dict(Process=None, Action='机械臂复位', Info=Info)
         now_place = self.check_place()
         if now_place==None:
             self.Go_to_start_zone_0()
@@ -938,11 +924,11 @@ class Fr5Arm(Facility):
         # time.sleep(1)
 
     def move_to_catch(self):
-        self.flowdisplay.update_process_display_dict(Process=None, Action='fr5_C移动到抓取位置', Info={})
+        Flowdisplay.update_process_display_dict(Process=None, Action='fr5_C移动到抓取位置', Info={})
         self.move_to_desc(self.safe_place[0], type='MoveL', vel=5)
 
     def move_to_shuiyu(self):
-        self.flowdisplay.update_process_display_dict(Process=None, Action='fr5_C移动到水浴位置', Info={})
+        Flowdisplay.update_process_display_dict(Process=None, Action='fr5_C移动到水浴位置', Info={})
         self.move_to_desc(self.safe_place[1], type='MoveL', vel=5)
             
 

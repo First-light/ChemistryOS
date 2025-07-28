@@ -1,6 +1,6 @@
 import sys
 sys.path.append('src/chemistry_os/src')
-from enum import Enum, auto
+from enum import Enum
 
 class FacilityState(Enum):
     IDLE = 0 # 空闲

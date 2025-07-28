@@ -4,7 +4,6 @@ import shlex
 import threading
 import time
 from facility import Facility
-from facility import FacilityState
 from structs import BufferMod
 
 class CommandParser(Facility):
@@ -84,7 +83,7 @@ class CommandParser(Facility):
             self.buffer.extend(user_input)
             time.sleep(0.01)
 
-    def curses_input(self):
+    def curses_input(self):#不算好用
         """使用新的极简 curses 界面"""
         self._using_curses = True
         from lib.curses.simple import curses_input_for_parser
@@ -107,24 +106,13 @@ class CommandParser(Facility):
 
         objectname = tokens[0]
         command = " ".join(tokens[1:])  # 将命令和参数列表转换为字符串
-        name = None
-        type = None
-        cmd = None
-        object = None
 
-
-        for tuple_t in Facility.tuple_list:
-            name = tuple_t[0]
-            if name == objectname:
-                type = tuple_t[1]
-                cmd = tuple_t[2]
-                object_state_p = tuple_t[3].state
-                break
-
-        if cmd is None:
+        facility_t = Facility.get_facility_by_name(objectname)
+        if facility_t is None:
             self.log.warning(f"未知设备：{objectname}")
             return 1
         else:
+            cmd = facility_t.parser.cmd
             ret = cmd(command)
             return ret
 

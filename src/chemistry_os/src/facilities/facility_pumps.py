@@ -4,7 +4,7 @@ import serial
 import time
 from facility import Facility
 from tools.events import event_countdown
-from facilities.facility_flowdisplay import Flowdisplay
+from facilities.flowdisplay import Flowdisplay
 
 class PumpGroup(Facility):
 
@@ -13,19 +13,6 @@ class PumpGroup(Facility):
 
     def __init__(self, name: str):
         super().__init__(name, PumpGroup.type)
-
-        def get_facility_ref(name, expected_type):
-            for facility in Facility.tuple_list:
-                if facility[0] == name and isinstance(facility[3], expected_type):
-                    return facility[3]  # 返回实例化的对象引用
-            print(f"错误：对象 {name} 不存在于 Facility.tuple_list 中，或类型不匹配。")
-            print(Facility.tuple_list)
-            raise ValueError(f"对象 {name} 不存在于 Facility.tuple_list 中，或类型不匹配。")
-        
-        try:
-            self.flowdisplay: Flowdisplay = get_facility_ref("flowdisplay", Flowdisplay)
-        except ValueError as e:
-            print(e)
 
     def cmd_init(self):
         """
@@ -160,7 +147,7 @@ class PumpGroup(Facility):
             '进料转速': '',
             '目标体积': ''
         }
-        self.flowdisplay.update_process_display_dict(Process=None, Action='液体进料', Info=Info)
+        Flowdisplay.update_process_display_dict(Process=None, Action='液体进料', Info=Info)
 
         if name=='HCl':
             addr=0x02
@@ -180,7 +167,7 @@ class PumpGroup(Facility):
             '进料转速': rpm,
             '目标体积': volume,
         }
-        self.flowdisplay.update_process_display_dict(Process=None, Action='液体进料', Info=Info)
+        Flowdisplay.update_process_display_dict(Process=None, Action='液体进料', Info=Info)
         self.writespeed(addr, rpm*10)
         time.sleep(1)
         self.startadd(addr)
@@ -190,7 +177,6 @@ class PumpGroup(Facility):
 
 
 if __name__ == "__main__":
-    flowdisplay = Flowdisplay("flowdisplay")
     add_Liquid=PumpGroup('add_Liquid')
     add_Liquid.writespeed(0x10, 100)
     add_Liquid.writespeed(0x11, 100)

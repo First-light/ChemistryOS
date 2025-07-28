@@ -7,8 +7,8 @@ from facilities.facility_fr5arm import Fr5Arm
 from facilities.facility_bath import Bath
 from facilities.facility_sdk import HN_SDK
 from facilities.facility_system import System
-from parser import CommandParser
-from server import TCPServer
+from facilities.facility_parser import CommandParser
+from facilities.facility_server import TCPServer
 import time
 
 if __name__ == '__main__':

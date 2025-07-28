@@ -10,7 +10,7 @@ from typing import Dict, Any, Callable, Optional, Union
 from facility import Facility
 from structs import ServerMod
 from structs import BufferMod
-from parser import CommandParser
+from facilities.facility_parser import CommandParser
  
 class TCPServer(Facility):
     """

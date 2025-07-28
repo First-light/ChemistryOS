@@ -6,9 +6,9 @@ from facilities.facility_system import System
 from facilities.facility_fr3arm import Fr3Arm
 from facilities.facility_fr5arm import Fr5Arm
 from facilities.facility_temp import FacilityTemp
-from parser import CommandParser
-from server import TCPServer
-from facilities.facility_flowdisplay import Flowdisplay
+from facilities.facility_parser import CommandParser
+from facilities.facility_server import TCPServer
+from facilities.flowdisplay import Flowdisplay
 import time
 import sys
 
@@ -17,7 +17,6 @@ sys.path.append('src/chemistry_os/src')
 if __name__ == '__main__':
     # filter = Filter("filter", "/dev/ttyUSB0",sub_address = 0x01)
     main_sys = System("os")
-    flowdisplay = Flowdisplay("flowdisplay")
     fr5 = Fr5Arm("fr5C","192.168.58.3")
     fr5.fr5_init
     fr5.Go_to_start_zone_0()

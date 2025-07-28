@@ -9,15 +9,14 @@ import logging
 from facilities.facility_fr5arm import Fr5Arm
 from facilities.facility_sdk import HN_SDK
 from facilities.facility_bath import Bath
-from facilities.facility_flowdisplay import Flowdisplay
+from facilities.flowdisplay import Flowdisplay
 from facility import Facility
-from server import TCPServer
+from facilities.facility_server import TCPServer
 from facilities.facility_filter import Filter
-from parser import CommandParser
+from facilities.facility_parser import CommandParser
 
 CompoundC_solid_add = 0.5 # 化合物C的添加量
 
-flowdisplay = Flowdisplay("flowdisplay")
 add_Liquid=PumpGroup('add_Liquid')
 add_Solid=Add_Solid('add_Solid')
 fr5_C = Fr5Arm("fr5C","192.168.58.3")
@@ -31,7 +30,8 @@ sub_addresses={               # 下级设备地址字典
     "pump": 0x01                # 抽滤地址
 }
 
-# filter = Filter("filter", "/dev/ttyUSB0",sub_addresses = sub_addresses)
+filter = Filter("filter", "/dev/ttyUSB0",sub_addresses = sub_addresses)
+exit()
 # print(filter)
 hn_sdk=HN_SDK()
 

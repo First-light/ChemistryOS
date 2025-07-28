@@ -1,6 +1,6 @@
 import sys
 sys.path.append('src/chemistry_os/src')
-from parser import CommandParser 
+from facilities.facility_parser import CommandParser 
 import Robot  # type: ignore # 根目录在src下
 
 if __name__ == '__main__':

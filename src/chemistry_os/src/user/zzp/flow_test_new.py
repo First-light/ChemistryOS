@@ -7,9 +7,9 @@ from facilities.facility_addSolid import Add_Solid
 from facilities.facility_fr5arm import Fr5Arm
 from facilities.facility_bath import Bath
 from facilities.facility_sdk import HN_SDK
-from facilities.facility_flowdisplay import Flowdisplay
+from facilities.flowdisplay import Flowdisplay
 from facilities.facility_system import System
-from server import TCPServer
+from facilities.facility_server import TCPServer
 from facility import Facility
 
 if __name__ == '__main__':
@@ -31,7 +31,6 @@ if __name__ == '__main__':
     reaction_time_2 = 1200
     reaction_time_3 = 14400
     main_sys = System("os")
-    flowdisplay = Flowdisplay("flowdisplay")
     add_Liquid=PumpGroup('add_Liquid')
     add_Solid=Add_Solid('add_Solid')
     fr5_C = Fr5Arm("fr5C","192.168.58.3")
@@ -51,7 +50,7 @@ if __name__ == '__main__':
     main_server = TCPServer(test = True)
     
     main_server.register("log", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
-    main_server.register("flow", 50, flowdisplay.process_display_dict, flowdisplay.data_update)
+    main_server.register("flow", 50, Flowdisplay.process_display_dict, Flowdisplay.data_update)
     main_server.register("fr5A", 5, fr5_A.data_dict, fr5_A.data_dict_update_angles)
     main_server.register("fr5C", 5,fr5_C.data_dict, fr5_C.data_dict_update_angles)
 
