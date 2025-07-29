@@ -43,6 +43,7 @@ class Fr5Arm(Facility):
         self.data_dict = {
             "joint_angles": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
             "gripper_status": Gripper_status.OPEN,
+            "gripper_contain":""
         }
 
     def data_dict_update_angles(self):
