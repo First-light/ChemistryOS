@@ -178,6 +178,9 @@ class Add_Solid(Facility):
 
         # FIFO 队列，保存最近10帧状态
         self.fifo_frame: deque['Add_Solid.McuStatusCommandTypedef'] = deque(maxlen=10)
+        self.data_dict: dict = {
+            "gripper_contain":""
+        }
 
     def _calculate_timing(self):
         bits_per_char = 1 + self.bytesize + (0 if self.parity == serial.PARITY_NONE else 1) + self.stopbits

@@ -96,22 +96,24 @@ class HN_SDK(Facility):
         super().__init__(name="sdk", type = HN_SDK.type)
 
         def get_facility_ref(name, expected_type):
-            for facility in Facility.tuple_list:
-                if facility[0] == name and isinstance(facility[3], expected_type):
-                    # print(f"获取到 {name} 的引用，{facility[3]}")
-                    return facility[3]  # 返回实例化的对象引用
-            print(f"错误：对象 {name} 不存在于 Facility.tuple_list 中，或类型不匹配。")
-            print(Facility.tuple_list)
-            raise ValueError(f"对象 {name} 不存在于 Facility.tuple_list 中，或类型不匹配。")
+            Facility.get_facility_by_name(name, expected_type.type,True,True)# 同性质函数，取代
+            # for facility in Facility.tuple_list:
+            #     if facility[0] == name and isinstance(facility[3], expected_type):
+            #         # print(f"获取到 {name} 的引用，{facility[3]}")
+            #         return facility[3]  # 返回实例化的对象引用
+            # print(f"错误：对象 {name} 不存在于 Facility.tuple_list 中，或类型不匹配。")
+            # print(Facility.tuple_list)
+            # raise ValueError(f"对象 {name} 不存在于 Facility.tuple_list 中，或类型不匹配。")
 
         try:
             # 引用 Facility.tuple_list 中的对象，并提供默认类型
-            self.fr5_A: Fr5Arm = get_facility_ref("fr5A", Fr5Arm)
-            self.add_Liquid: PumpGroup = get_facility_ref("add_Liquid", PumpGroup)
-            self.add_Solid: Add_Solid = get_facility_ref("add_Solid", Add_Solid)
-            self.fr5_C: Fr5Arm = get_facility_ref("fr5C", Fr5Arm)
-            self.bath: Bath = get_facility_ref("bath", Bath)
-            # self.filter: Filter = get_facility_ref("filter", Filter)
+
+            self.fr5_A: Fr5Arm = Facility.get_facility_by_name("fr5A", Fr5Arm.type,True,True)
+            self.fr5_C: Fr5Arm = Facility.get_facility_by_name("fr5C", Fr5Arm.type,True,True)
+            self.add_Liquid: PumpGroup = Facility.get_facility_by_name("add_Liquid", PumpGroup.type,True,True)
+            self.add_Solid: Add_Solid = Facility.get_facility_by_name("add_Solid", Add_Solid.type,True,True)
+            self.bath: Bath = Facility.get_facility_by_name("bath", Bath.type,True,True)
+            # self.filter: Filter = Facility.get_facility_by_name("filter", Filter.type)
 
         except ValueError as e:
             print(e)
@@ -241,23 +243,23 @@ class HN_SDK(Facility):
         self.interactable_countdown(reaction_time)
 
     def name_catch(self, name:str, test_tube_add:bool = False):
-        obj_statu = self.fr5_A.obj_status[name]
+        obj_status = self.fr5_A.obj_status[name]
         Info = {
-            '抓取位置' : obj_statu['name']
+            '抓取位置' : obj_status['name']
         }
         Flowdisplay.update_process_display_dict(Process=None, Action='机械臂抓取', Info=Info)
 
         
         #根据id确定安全位置, 移动到安全位置
-        self.fr5_A.move_to_safe_catch(obj_statu['safe_place_id'])
+        self.fr5_A.move_to_safe_catch(obj_status['safe_place_id'])
 
         #移动到准备位置
-        desc_pos_aim = list(map(lambda x, y: x + y, obj_statu['destination'], obj_statu['catch_pre_xyz_offset'])) + obj_statu['catch_direction']
+        desc_pos_aim = list(map(lambda x, y: x + y, obj_status['destination'], obj_status['catch_pre_xyz_offset'])) + obj_status['catch_direction']
         self.fr5_A.move_to_desc(desc_pos_aim, vel=10)
         time.sleep(1)
 
         #靠近，完成抓取
-        desc_pos_aim = obj_statu['destination'] + obj_statu['catch_direction']
+        desc_pos_aim = obj_status['destination'] + obj_status['catch_direction']
         self.fr5_A.move_to_desc(desc_pos_aim, vel=10)
         time.sleep(1)
 
@@ -266,63 +268,73 @@ class HN_SDK(Facility):
             time.sleep(1)
             with self.add_Solid:
                 self.add_Solid.clip_open()
-
+                self.add_Solid.data_dict["gripper_contain"] = ""
+                self.fr5_A.data_dict["gripper_contain"] = name
         input('ok?')
+
         self.fr5_A.catch()
+
+        self.fr5_A.data_dict["gripper_contain"] = name #用于输出夹持的物品信息
+        
+
         time.sleep(1)
 
         #抬起
-        self.fr5_A.move_by(0, 0, obj_statu['put_height'], vel=10)
+        self.fr5_A.move_by(0, 0, obj_status['put_height'], vel=10)
         time.sleep(1)
 
         #移动到安全位置
-        self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=10)
+        self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_status['safe_place_id']], vel=10)
         time.sleep(1)
         
     def name_put(self, name:str, test_tube_add:bool = False):
-        obj_statu = self.fr5_A.obj_status[name]
+        obj_status = self.fr5_A.obj_status[name]
         Info = {
-            '放置位置' : obj_statu['name']
+            '放置位置' : obj_status['name']
         }
         Flowdisplay.update_process_display_dict(Process=None, Action='机械臂放置', Info=Info)
 
         # #根据id确定安全位置, 移动到安全位置
-        self.fr5_A.move_to_safe_catch(obj_statu['safe_place_id'])
-        obj_statu['destination'][2] += obj_statu['put_offset']
+        self.fr5_A.move_to_safe_catch(obj_status['safe_place_id'])
+        obj_status['destination'][2] += obj_status['put_offset']
 
         #计算物体位置
-        dest = [obj_statu['destination'][0], obj_statu['destination'][1], obj_statu['destination'][2] + obj_statu['put_height']]
+        dest = [obj_status['destination'][0], obj_status['destination'][1], obj_status['destination'][2] + obj_status['put_height']]
 
         #移动到准备位置
-        desc_pos_aim = list(map(lambda x, y: x + y, dest, obj_statu['catch_pre_xyz_offset'])) + obj_statu['catch_direction']
+        desc_pos_aim = list(map(lambda x, y: x + y, dest, obj_status['catch_pre_xyz_offset'])) + obj_status['catch_direction']
         self.fr5_A.move_to_desc(desc_pos_aim, vel=10)
         time.sleep(1)
 
         #移动到放置位置上方
-        desc_pos_aim = dest + obj_statu['catch_direction']
+        desc_pos_aim = dest + obj_status['catch_direction']
         self.fr5_A.move_to_desc(desc_pos_aim, vel=10)
         time.sleep(1)
         input('ok?')
 
         #下降，完成放置
-        self.fr5_A.move_by(0, 0, -obj_statu['put_height'], vel=5)
+        self.fr5_A.move_by(0, 0, -obj_status['put_height'], vel=5)
 
         if test_tube_add:
             self.fr5_A.gripper_30()
             with self.add_Solid:
                 self.add_Solid.clip_close()
+                self.add_Solid.data_dict["gripper_contain"] = name
+                self.fr5_A.data_dict["gripper_contain"] =""#用于输出夹持的物品信息
             input('ok?')
 
         self.fr5_A.put()
 
+        self.fr5_A.data_dict["gripper_contain"] =""#用于输出夹持的物品信息
+
         time.sleep(1)
 
         #移动出去
-        self.fr5_A.move_by(obj_statu['catch_pre_xyz_offset'][0], obj_statu['catch_pre_xyz_offset'][1], obj_statu['catch_pre_xyz_offset'][2], vel=10)
+        self.fr5_A.move_by(obj_status['catch_pre_xyz_offset'][0], obj_status['catch_pre_xyz_offset'][1], obj_status['catch_pre_xyz_offset'][2], vel=10)
         time.sleep(1)
 
         #移动到安全位置
-        self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=10)
+        self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_status['safe_place_id']], vel=10)
         time.sleep(1)
 
     def name_pour(self, name:str):
@@ -397,6 +409,9 @@ class HN_SDK(Facility):
         self.fr5_A.catch()
         time.sleep(1)
         self.fr5_C.put()
+
+        self.fr5_C.data_dict["gripper_contain"] =""#用于输出夹持的物品信息
+
         time.sleep(1)
         
 
@@ -414,22 +429,22 @@ class HN_SDK(Facility):
         time.sleep(1)
 
     def bath_put(self, name:str):
-        obj_statu = self.fr5_A.obj_status[name]
+        obj_status = self.fr5_A.obj_status[name]
         Info = {
             '交接单位' : '三颈烧瓶',
-            '交接方向' : obj_statu['name']
+            '交接方向' : obj_status['name']
         }
         Flowdisplay.update_process_display_dict(Process=None, Action='机械臂交接', Info=Info)
 
         self.fr5_C.move_to_catch()
 
         #根据id确定安全位置, 移动到安全位置
-        self.fr5_A.move_to_safe_catch(obj_statu['safe_place_id'])
+        self.fr5_A.move_to_safe_catch(obj_status['safe_place_id'])
 
         #移动到准备位置
-        desc_pos_aim_xyz = list(map(lambda x, y: x + y, obj_statu['destination'], obj_statu['bath_pre_offset']))
-        desc_pos_aim_pre_2 = desc_pos_aim_xyz + obj_statu['catch_direction']
-        desc_pos_aim_pre_1 = list(map(lambda x, y: x + y, desc_pos_aim_xyz, obj_statu['catch_pre_xyz_offset'])) + obj_statu['catch_direction']
+        desc_pos_aim_xyz = list(map(lambda x, y: x + y, obj_status['destination'], obj_status['bath_pre_offset']))
+        desc_pos_aim_pre_2 = desc_pos_aim_xyz + obj_status['catch_direction']
+        desc_pos_aim_pre_1 = list(map(lambda x, y: x + y, desc_pos_aim_xyz, obj_status['catch_pre_xyz_offset'])) + obj_status['catch_direction']
         self.fr5_A.move_to_desc(desc_pos_aim_pre_1, vel=10)
         time.sleep(1)
         self.fr5_A.move_to_desc(desc_pos_aim_pre_2, vel=10)
@@ -438,7 +453,7 @@ class HN_SDK(Facility):
         input('ok?')
 
         #靠近，完成抓取
-        desc_pos_aim = obj_statu['destination'] + obj_statu['catch_direction']
+        desc_pos_aim = obj_status['destination'] + obj_status['catch_direction']
         self.fr5_A.move_to_desc(desc_pos_aim, vel=10)
         time.sleep(1)
 
@@ -450,17 +465,20 @@ class HN_SDK(Facility):
         self.fr5_A.gripper_15()
         time.sleep(1)
         self.fr5_C.catch()
+
+        self.fr5_C.data_dict["gripper_contain"] =name#用于输出夹持的物品信息
+
         time.sleep(1)
         self.fr5_A.put()
         time.sleep(1)
 
         #移动到准备位置
-        desc_pos_aim_pre = list(map(lambda x, y: x + y, obj_statu['destination'], obj_statu['catch_pre_xyz_offset'])) + obj_statu['catch_direction']
+        desc_pos_aim_pre = list(map(lambda x, y: x + y, obj_status['destination'], obj_status['catch_pre_xyz_offset'])) + obj_status['catch_direction']
         self.fr5_A.move_to_desc(desc_pos_aim_pre, vel=10)
         time.sleep(1)
 
         #移动到安全位置
-        self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=10)
+        self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_status['safe_place_id']], vel=10)
         time.sleep(1)
 
     def add_liquid(self, name:str, rpm=150, volume=0.0, name_space='add_liquid_mode_place'):

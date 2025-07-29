@@ -1,6 +1,7 @@
 import sys
 sys.path.append('src/chemistry_os/src')
 from enum import Enum
+from dataclasses import dataclass
 
 class FacilityState(Enum):
     IDLE = 0 # 空闲
@@ -25,3 +26,9 @@ class ServerMod(Enum):
 class BufferMod(Enum):
     NONE = 0  # 不接收
     READY = 1  # 可以接受
+
+@dataclass
+class EquipmentID:
+    measuring_flask = "measuring_flask"
+    test_tube = "test_tube"
+    three_necked_flask = "three_necked_flask"
