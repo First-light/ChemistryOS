@@ -222,7 +222,7 @@ class Bath(Facility):
             status_cold = bool(status & 0x0080)
             status_heat = bool(status & 0x0001)
             print('是否正在加热：', status_heat)
-            print('是否正在制冷：', status_cold)
+            print('是否正在制冷:', status_cold)
         finally:
             if close_serial:
                 self.modbus_client.close()
@@ -298,7 +298,7 @@ class Bath(Facility):
                     remaining_time*=-1
                 # 计算预计完成时间
                 finish_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()+remaining_time))
-                print(f"当前温度为：{now_tmp},未达到指定温度{tmp}附近，继续控温，预计剩余时间: {int(remaining_time)} 秒 | 预计结束时间: {finish_time}, 输入 \'q\' 以跳过", end="\r")
+                print(f"当前温度为:{now_tmp},未达到指定温度{tmp}附近，继续控温，预计剩余时间: {int(remaining_time)} 秒 | 预计结束时间: {finish_time}, 输入 \'q\' 以跳过", end="\r")
                 Info = {
                     '控制温度': tmp,
                     '当前温度': now_tmp,

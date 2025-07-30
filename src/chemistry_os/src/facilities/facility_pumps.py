@@ -3,7 +3,7 @@ sys.path.append('src/chemistry_os/src')
 import serial
 import time
 from facility import Facility
-from tools.events import event_countdown
+from utilities.events import event_countdown
 from facilities.flowdisplay import Flowdisplay
 
 class PumpGroup(Facility):
@@ -139,7 +139,7 @@ class PumpGroup(Facility):
         self.startadd(addr)
         time.sleep(tim)
         self.stopadd(addr)
-    # 新版函数通过体积和转速计算需求的时间（根据9.13测试的数据），接受以下参数：
+    # 新版函数通过体积和转速计算需求的时间（根据9.13测试的数据），接受以下参数:
     # rpm转速round per minute,volume体积(ml)
     def add_liquid(self, name, rpm, volume):
         Info = {
@@ -150,16 +150,14 @@ class PumpGroup(Facility):
         Flowdisplay.update_process_display_dict(Process=None, Action='液体进料', Info=Info)
 
         if name=='HCl':
-            addr=0x02
+            addr=0x12
         elif name=='KMnO4':
-            addr=0x03
+            addr=0x13
         elif name=='H2O2':
-            addr=0x04
-        elif name=='CH3CN':
-            addr=0x05
+            addr=0x14
         elif name=='N2H4':
-            addr=0x06
-        speed = 0.0675 * rpm# 滴加速率：ml/min，测试日期9.13 0.0525
+            addr=0x15
+        speed = 0.0675 * rpm# 滴加速率:ml/min，测试日期9.13 0.0525
         tim = volume / speed * 60 # 滴加时间
         self.log.info(f"滴加液体为{name},体积为{volume}ml,转速为{rpm}rpm，预期需要{tim}s")
         Info = {
@@ -178,10 +176,12 @@ class PumpGroup(Facility):
 
 if __name__ == "__main__":
     add_Liquid=PumpGroup('add_Liquid')
-    add_Liquid.writespeed(0x10, 100)
-    add_Liquid.writespeed(0x11, 100)
+
     add_Liquid.writespeed(0x12, 100)
     add_Liquid.writespeed(0x13, 100)
+    add_Liquid.writespeed(0x14, 100)
+    add_Liquid.writespeed(0x15, 100)
+
     # Add_liquid_fixed.startadd(0x02)
     # Add_liquid_fixed.stopadd(0x02)
     # Add_liquid_fixed.add_liquid('H2O2', 0x01, 14.3, 10)

@@ -96,7 +96,7 @@ class TCPServer(Facility):
             decoded_data = data
         
         # 添加时间戳
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
         data_saved = f"[{timestamp}][{self.name}][{data_type}]: {decoded_data}"
         
         # 获取项目根目录路径
@@ -126,60 +126,41 @@ class TCPServer(Facility):
         with open(os.path.join(log_dir, f"connect_data_{self.file_timestape}.log"), "a", encoding="utf-8") as file:
             file.write(f"{decoded_data}{end_str}")
 
-    def _handle_buffer_full(self):
-        """处理接收缓冲区已满的情况"""
-        self.log.warning("接收缓冲区已满，停止接收新数据")
-        time.sleep(0.5)  # 防止过度占用 CPU
+    def _process_execute_unity(self,data: dict):
+        # unity数据传送到buffer
+        wait_time = 2.0
+        start_time = time.time()
+        if CommandParser.using_unity == True:
+            if "command" in data:
+                unity_command = data["command"]
+                self.log.info(f"接收客户端指令:{unity_command}")
+                while True:
+                    time.sleep(0.01)
+                    if CommandParser.unity_flag == BufferMod.NONE:
+                        CommandParser.unity_buffer.extend(unity_command)
+                        CommandParser.unity_flag = BufferMod.READY
+                        break
+                    if time.time() - start_time > wait_time:
+                        # 超过等待时间，认为超时
+                        self.log.warning("接收客户端指令失败: 解析器繁忙，超时未处理")
+                        break
 
-    def _decode_unicode_json(self, data):
-        """解码包含Unicode转义字符的JSON数据"""
-        try:
-            decoded_data = data.decode('utf-8')
-            # 如果数据看起来像 JSON，尝试解析并重新格式化（不转义中文）
-            if decoded_data.strip().startswith('{') and decoded_data.strip().endswith('}'):
-                parsed_json = json.loads(decoded_data)
-                decoded_data = json.dumps(parsed_json, ensure_ascii=False)
-            return decoded_data
-        except (json.JSONDecodeError, ValueError):
-            # 如果不是有效的 JSON，保持原样
-            return data.decode('utf-8')
-
-    def _find_json_packets(self, data_str):
-        """从数据字符串中提取所有完整的JSON数据包"""
-        packets = []
-        brace_count = 0
-        start_pos = 0
-        current_pos = 0
-        
-        while current_pos < len(data_str):
-            char = data_str[current_pos]
-            
-            if char == '{':
-                if brace_count == 0:
-                    start_pos = current_pos
-                brace_count += 1
-            elif char == '}':
-                brace_count -= 1
-                if brace_count == 0:
-                    # 找到一个完整的JSON数据包
-                    packet = data_str[start_pos:current_pos + 1]
-                    packets.append(packet)
-            
-            current_pos += 1
-        
-        return packets
-
-    def _process_single_json_packet(self, packet):
-        """处理单个JSON数据包"""
-        try:
-            parsed_json = json.loads(packet)
-            decoded_packet = json.dumps(parsed_json, ensure_ascii=False)
-            self.data_log_save(decoded_packet, "receive")
-            return True
-        except (json.JSONDecodeError, ValueError):
-            # 如果不是有效的JSON，记录原始数据
-            self.data_log_save(packet, "receive")
-            return False
+    def _process_execute_control(self, data: dict):
+        key =  "server"
+        if key in data:
+            server_command:dict = data[key]
+            if "disable_unit" in server_command:
+                unit_name = server_command["disable_unit"]
+                for unit in TCPServer.data_units:
+                    if unit[0] == unit_name and unit[5] is True:
+                        unit[5] = False
+                        self.log.info(f"数据单元 '{unit_name}' 已禁用")
+            elif "enable_unit" in server_command:
+                unit_name = server_command["enable_unit"]
+                for unit in TCPServer.data_units:
+                    if unit[0] == unit_name and unit[5] is False:
+                        unit[5] = True
+                        self.log.info(f"数据单元 '{unit_name}' 已启用")
 
     def _process_received_data(self, data):
         """处理接收到的数据，按单个JSON数据包分别处理"""
@@ -189,7 +170,7 @@ class TCPServer(Facility):
         packets = []
         brace_count = 0
         start_pos = 0
-        wait_time = 2.0
+
         
         #json切分，寻找完整的JSON数据包
         for i, char in enumerate(decoded_data):
@@ -207,26 +188,12 @@ class TCPServer(Facility):
         if packets:
             for packet in packets:
                 try:
-                    start_time = time.time()
+
                     parsed_json = json.loads(packet)
                     decoded_packet = json.dumps(parsed_json, ensure_ascii=False)
                     """在这里写接收数据的解析服务"""
-
-                    # unity数据传送到buffer
-                    if CommandParser.using_unity == True:
-                        if "command" in parsed_json:
-                            unity_command = parsed_json["command"]
-                            self.log.info(f"接收客户端指令:{unity_command}")
-                            while True:
-                                time.sleep(0.01)
-                                if CommandParser.unity_flag == BufferMod.NONE:
-                                    CommandParser.unity_buffer.extend(unity_command)
-                                    CommandParser.unity_flag = BufferMod.READY
-                                    break
-                                if time.time() - start_time > wait_time:
-                                    # 超过等待时间，认为超时
-                                    self.log.warning("接收客户端指令失败: 解析器繁忙，超时未处理")
-                                    break
+                    self._process_execute_unity(parsed_json)  # 处理unity数据
+                    self._process_execute_control(parsed_json)  # 处理控制数据
 
                     # unity数据传送log
                     self.data_log_save(decoded_packet, "receive")
@@ -237,7 +204,6 @@ class TCPServer(Facility):
             self.data_log_save(decoded_data, "receive")
             
 
-        
 
     def receive_data(self):
         """
@@ -322,14 +288,14 @@ class TCPServer(Facility):
         """
         根据注册的单元生成数据包并存储到发送缓冲区。
         
-        :param units: 包含单元信息的列表，每个单元格式为：
+        :param units: 包含单元信息的列表，每个单元格式为:
                     ["name", 周期计数, 最大计数, 数据字典指针]
         """
 
         try:
             # 初始化数据包
             packet = {
-                "timestamp": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),  # 当前时间戳
+                "timestamp": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3],  # 当前时间戳
                 "packet_id": self.pkg_ID,  # 包编号，递增
                 "configs": {
                     "requires_response": True,  # 是否需要回应
@@ -343,20 +309,20 @@ class TCPServer(Facility):
 
             # 遍历注册的单元，生成数据内容
             for unit in TCPServer.data_units:
-                name, cycle_count, max_count, data_dict,func = unit
-
-                if cycle_count[0] >= max_count:
-                    func()  # 调用函数获取最新数据
-                    cycle_count[0] = 0  # 到达最大计数时置零
-                    if "server_mod" in data_dict:
-                        if data_dict["server_mod"] == ServerMod.SKIP.value:
-                            continue  # 跳过添加数据包的操作
-                        elif data_dict["server_mod"] == ServerMod.ADJUST.value:
-                            data_dict["server_mod"] = ServerMod.SKIP.value  # 调整值为1
-                    packet["data"][name] = data_dict  # 添加数据到包中
-                    has_response = True  # 至少有一个单元达到响应条件
-                else:
-                    cycle_count[0] += 1
+                name, cycle_count, max_count, data_dict,func,enable = unit
+                if enable:
+                    if cycle_count[0] >= max_count:
+                        func()  # 调用函数获取最新数据
+                        cycle_count[0] = 0  # 到达最大计数时置零
+                        if "server_mod" in data_dict:
+                            if data_dict["server_mod"] == ServerMod.SKIP.value:
+                                continue  # 跳过添加数据包的操作
+                            elif data_dict["server_mod"] == ServerMod.ADJUST.value:
+                                data_dict["server_mod"] = ServerMod.SKIP.value  # 调整值为1
+                        packet["data"][name] = data_dict  # 添加数据到包中
+                        has_response = True  # 至少有一个单元达到响应条件
+                    else:
+                        cycle_count[0] += 1
 
 
             if has_response:
@@ -368,7 +334,11 @@ class TCPServer(Facility):
         except Exception as e:
             self.log.error(f"生成数据包失败: {str(e)}")
 
-    def register(self, name: str, max_cycle: int, data_dict: Dict[str, Any],func: Callable[[], None] =  None):
+    def register(self, name: str, 
+                 max_cycle: int, 
+                 data_dict: Dict[str, Any],
+                 func: Callable[[], None] =  None,
+                 enable: bool = True):
         """
         注册一个数据单元到 data_units 中。
         
@@ -388,7 +358,7 @@ class TCPServer(Facility):
             # 创建数据单元
             if func is None:
                 func = lambda: None  # 如果未提供函数，则使用空函数
-            data_unit = [name, cycle_count, max_cycle, data_dict, func]
+            data_unit = [name, cycle_count, max_cycle, data_dict, func,enable]
             # 将数据单元添加到 data_units 列表
             TCPServer.data_units.append(data_unit)
             self.log.info(f"数据单元已注册: {data_unit}")

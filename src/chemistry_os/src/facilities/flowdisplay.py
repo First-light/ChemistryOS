@@ -11,10 +11,7 @@ class Flowdisplay():
         'Info' : {}
     }
 
-    def cmd_init(self):
-        pass
-
-    def update_process_display_dict(self, Process=None, Action=None, Info=None):
+    def update_process_display_dict(Process=None, Action=None, Info=None):
         """
         更新流程显示字典
         :param Process: 流程名称
@@ -28,5 +25,5 @@ class Flowdisplay():
         if Info is not None:
             Flowdisplay.process_display_dict['Info'] = Info
 
-    def data_update(self):
+    def data_update():
         pass

@@ -180,7 +180,7 @@ class Project(Facility):
                     for tuple_t in Facility.tuple_list:
                         name = tuple_t[0]
                         if name == obj:
-                            tuple_t[3].state[0] = FacilityState.STOP
+                            tuple_t[3].state = FacilityState.STOP
                 break
         
         

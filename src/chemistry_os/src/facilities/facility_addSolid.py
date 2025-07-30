@@ -91,7 +91,7 @@ class Add_Solid(Facility):
                 logging.error(f"状态帧解析错误：期望长度 {expected_length}，实际长度 {len(frame)}")
                 return None
             if frame[1] != Add_Solid.CommandCode.IDLE.value:
-                logging.error(f"状态帧解析错误：期望命令 {Add_Solid.CommandCode.IDLE.value:#04x}，实际为 {frame[1]:#04x}")
+                logging.error(f"状态帧解析错误:期望命令 {Add_Solid.CommandCode.IDLE.value:#04x}，实际为 {frame[1]:#04x}")
                 return None
 
             try:
@@ -137,7 +137,7 @@ class Add_Solid(Facility):
                 # 如果没有数据，确保至少有4字节填充 (根据协议，0x00000000)
                 frame.extend(struct.pack('<I', 0))  # 发送一个4字节的0
 
-            # 注意：这里没有包含CRC或校验和
+            # 注意:这里没有包含CRC或校验和
             return bytes(frame)
 
     class ThreadMode(enum.Enum):
@@ -293,7 +293,7 @@ class Add_Solid(Facility):
     def _send_frame(self, frame_to_send: bytes):
         """发送帧，确保 T3.5 间隔"""
         if not self.ser or not self.ser.is_open:
-            logging.error("发送失败：串口未打开")
+            logging.error("发送失败:串口未打开")
             return False
 
         try:
@@ -639,13 +639,19 @@ class Add_Solid(Facility):
         finally:
             self.release_serial()
 
-# 测试读取功能正常：20250425
+# 测试读取功能正常:20250425
 # len = 8 读天平
 # len = 13 天平回数据
 # len = 26 截获
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
+    # logging.basicConfig(level=logging.DEBUG)
     controller = Add_Solid(comm='/dev/ttyUSB0', baud_rate=9600, addr=0x01)
+    with controller:
+        # controller.clip_open()
+        # controller.tube_hor()
+        # controller.add_solid_series(0.5)
+        # controller.tube_ver()
+        controller.clip_close()
     # controller.initialize_serial()
     # frame = controller._thread._read_frame()
     # logging.debug(frame)
