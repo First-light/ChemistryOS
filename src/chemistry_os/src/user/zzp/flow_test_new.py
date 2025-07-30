@@ -14,64 +14,41 @@ from facility import Facility
 
 if __name__ == '__main__':
     CompoundC_solid_add = 0.5 # 化合物C的添加量
-    HCL_volume_add = 26.8*CompoundC_solid_add # 浓盐酸
-    KMnO4_volume_add = 53.52*CompoundC_solid_add # 高锰酸钾添加量 
-    H2O2_volume_add = 20.0*CompoundC_solid_add # 双氧水添加量
-    HCL_L_volume_add = 80.0*CompoundC_solid_add
-    CH3CN_volume_add = 20.0 # 乙腈添加量
-    N2H4_volume_add = 0.4854 # 肼添加量
-    HCl_rpm = 100
-    KMnO4_rpm = 15
-    H2O2_rpm = 30
-    CH3CN_rpm = 30
-    N2H4_rpm = 30
-    tmp_0 = 0
-    tmp_25 = 25
-    reaction_time_1 = 7200
-    reaction_time_2 = 1200
-    reaction_time_3 = 14400
+
     main_sys = System("os")
     add_Liquid=PumpGroup('add_Liquid')
     add_Solid=Add_Solid('add_Solid')
     fr5_C = Fr5Arm("fr5C","192.168.58.3")
     fr5_A = Fr5Arm("fr5A","192.168.58.2")
     bath = Bath('bath')
-    sub_addresses={               # 下级设备地址字典
-        "empty": 0x00,           # 空地址
-        "solvent": 0x03,          # 溶解溶剂地址
-        "water": 0x02,            # 清水清洗液地址
-        "acid": 0x04,              # 酸清洗液地址
-        "pump": 0x01                # 抽滤地址
-    }
-    filter = Filter("filter", "/dev/ttyUSB1",sub_addresses = sub_addresses)
-    # filter.pump_init()  # 初始化蠕动泵
+    filter = Filter("filter")
     hn_sdk=HN_SDK()
 
-    main_server = TCPServer(test = True)
-    
+    main_server= TCPServer(test=True)
     main_server.register("log", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
     main_server.register("flow", 50, Flowdisplay.process_display_dict, Flowdisplay.data_update)
-    main_server.register("fr5A", 5, fr5_A.data_dict, fr5_A.data_dict_update_angles)
-    main_server.register("fr5C", 5,fr5_C.data_dict, fr5_C.data_dict_update_angles)
-
+    main_server.register("fr5A", 5, fr5_A.data_dict, fr5_A.data_dict_update)
+    main_server.register("fr5C", 5, fr5_C.data_dict, fr5_C.data_dict_update)
+    main_server.register("addsolid", 25, add_Solid.data_dict)
     main_server.start()
+
     # 机械臂初始化
     hn_sdk.HN_init()
     # 固体进料
     hn_sdk.add_solid(CompoundC_solid_add, 'test_tube_support', 'beaker_support')
     # 抓取三颈烧瓶
     hn_sdk.move_shaoping_A2C()
-    hn_sdk.bath_open()
     # 液体进料
+    hn_sdk.bath_open()
     hn_sdk.add_liquid_bath('HCl')
     hn_sdk.add_liquid_bath('KMnO4')
     hn_sdk.add_liquid_bath('H2O2')
+    hn_sdk.bath_close()
 
-    # hn_sdk.bath_wash()
+    hn_sdk.bath_wash()
 
-    hn_sdk.add_liquid_bath('CH3CN')
+    hn_sdk.bath_open()
     hn_sdk.add_liquid_bath('N2H4')
-
     hn_sdk.bath_close()
     # 放置三颈烧瓶
     hn_sdk.move_shaoping_C2A()

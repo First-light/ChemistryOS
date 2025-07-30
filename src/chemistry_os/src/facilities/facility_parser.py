@@ -109,7 +109,7 @@ class CommandParser(Facility):
 
         facility_t = Facility.get_facility_by_name(objectname)
         if facility_t is None:
-            self.log.warning(f"未知设备：{objectname}")
+            self.log.warning(f"未知设备:{objectname}")
             return 1
         else:
             cmd = facility_t.parser.cmd

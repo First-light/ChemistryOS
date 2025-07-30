@@ -189,14 +189,11 @@ class Fr5Arm(Facility):
     def move_listen(self):
         res = 0
         while True:
-            # print(f"机器人运动中 {self.state[0]}")
-            # print(f"self.state[0]: {self.state[0]}, type: {type(self.state[0])}")
-            # print(f"FacilityState.STOP: {FacilityState.STOP}, type: {type(FacilityState.STOP)}")
-            if self.state[0] == FacilityState.ERROR:
+            if self.state == FacilityState.ERROR:
                 self.shut_down()
                 res = 2
                 break
-            if self.state[0] == FacilityState.STOP:
+            if self.state == FacilityState.STOP:
                 self.shut_down()
                 res = 2
                 break
@@ -207,7 +204,7 @@ class Fr5Arm(Facility):
                     break
             else:
                 if ret != -4:
-                    print("状态查询错误：错误码： ",ret)
+                    print("状态查询错误:错误码: ",ret)
                     self.shut_down()
                     res = 2
                     break
@@ -239,7 +236,7 @@ class Fr5Arm(Facility):
                 if inverse_kin_result == -4:
                     print("逆运动学计算失败，已到达目标位置")
                 else:
-                    print("逆运动学计算失败，错误码： ",inverse_kin_result)
+                    print("逆运动学计算失败，错误码: ",inverse_kin_result)
                     self.shut_down()
 
     def move_joint(self,new_joint,vel_t=default_speed,acc_t=default_acc):
@@ -257,14 +254,14 @@ class Fr5Arm(Facility):
             joint_pos = self.robot.GetActualJointPosDegree(0)
             ret = joint_pos[0]
             if ret != 0 or type(joint_pos) != tuple:
-                print(f"joy数据获取失败,错误码：{ret}")
+                print(f"joy数据获取失败,错误码:{ret}")
             else:
                 return joint_pos[1]
         elif data_type == "tool":
             tool_pos = self.robot.GetActualToolFlangePose(0)
             ret = tool_pos[0]
             if ret != 0 or type(tool_pos) != tuple:
-                print(f"pos数据获取失败,错误码：{ret}")
+                print(f"pos数据获取失败,错误码:{ret}")
             else:
                 return tool_pos[1]
 
@@ -533,7 +530,7 @@ class Fr5Arm(Facility):
     # def pourwater(self,pour_position,pour_direction,sel_num,clockwise = False):
     #     '''
     #     指定位置倾倒指定仪器
-    #     预期效果： 机械臂运动到指定位置————机械臂倾倒仪器————机械臂等待倾倒完毕————机械臂抖动————机械臂回到一个中立位置
+    #     预期效果: 机械臂运动到指定位置————机械臂倾倒仪器————机械臂等待倾倒完毕————机械臂抖动————机械臂回到一个中立位置
     #     pour_position: 目标绝对xyz坐标
     #     pour_direction: ym——y轴负方向  xm——x负方向
     #     sel_num:倾倒的对象 1---试管 2---烧杯 3---量筒 4---反应瓶
@@ -541,7 +538,7 @@ class Fr5Arm(Facility):
     #     print("目标物体绝对xyz坐标:",pour_position)
     #     rxryrz = []
     #     if pour_direction == "yn":
-    #         print("倾倒方向是：y轴负方向")
+    #         print("倾倒方向是:y轴负方向")
     #         # 数据处理y
     #         pour_position[1] = pour_position[1] + 150.0
     #         pour_position[0] = pour_position[0]
@@ -550,12 +547,12 @@ class Fr5Arm(Facility):
     #         else:
     #             rxryrz = [90.0, 30.0, 0.0]
     #     elif pour_direction == "xn":
-    #         print("倾倒方向是：x轴负方向")
+    #         print("倾倒方向是:x轴负方向")
     #         # 数据处理x
     #         pour_position[0] = pour_position[0] + 150.0
     #         rxryrz = [90.0, 0.0, -90.0]
     #     elif pour_direction == "xp":
-    #         print("倾倒方向是：x轴正方向")
+    #         print("倾倒方向是:x轴正方向")
     #         # 数据处理x
     #         pour_position[0] = pour_position[0] - 150
     #         rxryrz = [90.0, 0.0, 90.0]
@@ -570,17 +567,17 @@ class Fr5Arm(Facility):
     #         print("----------------------")   
         
     #     if int(sel_num) == 1:
-    #         print("倾倒的对象：试管")
+    #         print("倾倒的对象:试管")
     #         pour_position[2] += 10.0
     #         bias = 20
     #         height = 10
     #     elif int(sel_num) == 2:
-    #         print("倾倒的对象：烧杯")
+    #         print("倾倒的对象:烧杯")
     #         pour_position[2] += 10.0
     #         bias = 37
     #         height = 35
     #     elif int(sel_num) == 3:
-    #         print("倾倒的对象：量筒")
+    #         print("倾倒的对象:量筒")
     #         pour_position[2] += 10.0
     #         bias = 20
     #         height = 50     
@@ -675,20 +672,17 @@ class Fr5Arm(Facility):
         
     def shut_down(self):
         ret = self.robot.RobotEnable(0)   #机器人下使能
-        self.message_head()
         print("机器人下使能", ret)
-        self.state[0] == FacilityState.STOP
+        self.state == FacilityState.STOP
 
     def open_up(self):
         self.clear_error_code()
         ret = self.robot.RobotEnable(1)
-        self.message_head()
         print("机器人使能", ret)
-        self.state[0] == FacilityState.IDLE
+        self.state == FacilityState.IDLE
 
     def clear_error_code(self):
         ret = self.robot.ResetAllError()
-        self.message_head()
         print(f"清除错误码:{ret}")
 
     # def Catch_to_start(self,x,y,z):

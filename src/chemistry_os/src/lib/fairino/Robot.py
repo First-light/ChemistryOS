@@ -753,7 +753,7 @@ class RPC():
 
     """   
     @brief  控制机器人手自动模式切换
-    @param  [in] 必选参数 state：0-自动模式 1-手动模式
+    @param  [in] 必选参数 state:0-自动模式 1-手动模式
     @return 错误码 成功-0  失败-错误码
     """
 
@@ -777,7 +777,7 @@ class RPC():
 
     """   
     @brief  控制机器人进入或退出拖动示教模式
-    @param  [in] 必选参数 state：0-退出拖动示教模式, 1-进入拖动示教模式
+    @param  [in] 必选参数 state:0-退出拖动示教模式, 1-进入拖动示教模式
     @return 错误码 成功-0  失败-错误码
     """
 
@@ -823,7 +823,7 @@ class RPC():
 
     """   
     @brief  控制机器人上使能或下使能
-    @param  [in] 必选参数 state：0-下使能, 1-上使能
+    @param  [in] 必选参数 state:0-下使能, 1-上使能
     @return 错误码 成功-0  失败-错误码
     """
 
@@ -848,12 +848,12 @@ class RPC():
 
     """   
     @brief  jog点动
-    @param  [in] 必选参数 ref：0-关节点动,2-基坐标系点动,4-工具坐标系点动,8-工件坐标系点动
-    @param  [in] 必选参数 nb：1-关节1(或x轴)，2-关节2(或y轴)，3-关节3(或z轴)，4-关节4(或绕x轴旋转)，5-关节5(或绕y轴旋转)，6-关节6(或绕z轴旋转)
-    @param  [in] 必选参数 dir：0-负方向，1-正方向
-    @param  [in] 必认参数 max_dis：单次点动最大角度/距离，单位 ° 或 mm
-    @param  [in] 默认参数 vel：速度百分比，[0~100] 默认20
-    @param  [in] 默认参数 acc：加速度百分比，[0~100] 默认100
+    @param  [in] 必选参数 ref:0-关节点动,2-基坐标系点动,4-工具坐标系点动,8-工件坐标系点动
+    @param  [in] 必选参数 nb:1-关节1(或x轴)，2-关节2(或y轴)，3-关节3(或z轴)，4-关节4(或绕x轴旋转)，5-关节5(或绕y轴旋转)，6-关节6(或绕z轴旋转)
+    @param  [in] 必选参数 dir:0-负方向，1-正方向
+    @param  [in] 必认参数 max_dis:单次点动最大角度/距离，单位 ° 或 mm
+    @param  [in] 默认参数 vel:速度百分比，[0~100] 默认20
+    @param  [in] 默认参数 acc:加速度百分比，[0~100] 默认100
     @return 错误码 成功-0  失败-错误码
     """
 
@@ -881,7 +881,7 @@ class RPC():
 
     """   
     @brief  jog 点动减速停止
-    @param  [in] 必选参数：1-关节点动停止,3-基坐标系点动停止,5-工具坐标系点动停止,9-工件坐标系点动停止
+    @param  [in] 必选参数:1-关节点动停止,3-基坐标系点动停止,5-工具坐标系点动停止,9-工件坐标系点动停止
     @return 错误码 成功-0  失败-错误码
     """
 
@@ -926,8 +926,8 @@ class RPC():
     @param  [in] 必选参数 tool: 工具号，[0~14]
     @param  [in] 必选参数 user: 工件号，[0~14]
     @param  [in] 默认参数 desc_pos: 目标笛卡尔位姿，单位 [mm][°] 默认初值为[0.0,0.0,0.0,0.0,0.0,0.0]，默认值调用正运动学求解返回值
-    @param  [in] 默认参数 vel：速度百分比，[0~100] 默认20.0
-    @param  [in] 默认参数 acc：加速度百分比，[0~100] 暂不开放,默认0.0 
+    @param  [in] 默认参数 vel:速度百分比，[0~100] 默认20.0
+    @param  [in] 默认参数 acc:加速度百分比，[0~100] 暂不开放,默认0.0 
     @param  [in] 默认参数 ovl: 速度缩放因子，[0~100] 默认100.0
     @param  [in] 默认参数 exaxis_pos: 外部轴 1 位置 ~ 外部轴 4 位置 默认[0.0,0.0,0.0,0.0]
     @param  [in] 默认参数 blendT:[-1.0]-运动到位 (阻塞)，[0~500.0]-平滑时间 (非阻塞)，单位 [ms] 默认-1.0
@@ -979,8 +979,8 @@ class RPC():
     @param  [in] 必选参数 tool: 工具号，[0~14]
     @param  [in] 必选参数 user: 工件号，[0~14]
     @param  [in] 默认参数 joint_pos: 目标关节位置，单位 [°] 默认初值为[0.0,0.0,0.0,0.0,0.0,0.0]，默认值调用逆运动学求解返回值
-    @param  [in] 默认参数 vel：速度百分比，[0~100] 默认20.0
-    @param  [in] 默认参数 acc：加速度百分比，[0~100] 暂不开放 默认0.0
+    @param  [in] 默认参数 vel:速度百分比，[0~100] 默认20.0
+    @param  [in] 默认参数 acc:加速度百分比，[0~100] 暂不开放 默认0.0
     @param  [in] 默认参数 ovl: 速度缩放因子，[0~100] 默认100.0
     @param  [in] 默认参数 blendR:[-1.0]-运动到位 (阻塞)，[0~1000]-平滑半径 (非阻塞)，单位 [mm] 默认-1.0
     @param  [in] 默认参数 blendMode 过渡方式；0-内切过渡；1-角点过渡
@@ -1154,7 +1154,7 @@ class RPC():
     @param  [in] 默认参数 offset_flag: 是否偏移[0]-不偏移，[1]-工件/基坐标系下偏移，[2]-工具坐标系下偏移 默认 0
     @param  [in] 默认参数 offset_pos: 位姿偏移量，单位 [mm][°] 默认[0.0,0.0,0.0,0.0,0.0,0.0]
     @param  [in] 必选参数 oacc: 加速度百分比
-    @param  [in] 必选参数 blendR: -1：阻塞；0~1000：平滑半径
+    @param  [in] 必选参数 blendR: -1:阻塞；0~1000:平滑半径
     @return 错误码 成功-0  失败-错误码
     """
 
@@ -1290,8 +1290,8 @@ class RPC():
     @param  [in] 必选参数 param:[circle_num, circle_angle, rad_init, rad_add, rotaxis_add, rot_direction]circle_num: 螺旋圈数，circle_angle: 螺旋倾角，
     rad_init: 螺旋初始半径，rad_add: 半径增量，rotaxis_add: 转轴方向增量，rot_direction: 旋转方向，0-顺时针，1-逆时针
     @param  [in] 默认参数 joint_pos: 目标关节位置，单位 [°] 默认初值为[0.0,0.0,0.0,0.0,0.0,0.0]，默认值调用逆运动学求解返回值
-    @param  [in] 默认参数 vel：速度百分比，[0~100] 默认20.0
-    @param  [in] 默认参数 acc：加速度百分比，[0~100] 默认100.0
+    @param  [in] 默认参数 vel:速度百分比，[0~100] 默认20.0
+    @param  [in] 默认参数 acc:加速度百分比，[0~100] 默认100.0
     @param  [in] 默认参数 exaxis_pos: 外部轴 1 位置 ~ 外部轴 4 位置 默认[0.0,0.0,0.0,0.0]
     @param  [in] 默认参数 ovl: 速度缩放因子，[0~100] 默认100.0
     @param  [in] 默认参数 offset_flag:[0]-不偏移，[1]-工件/基坐标系下偏移，[2]-工具坐标系下偏移 默认 0
@@ -2300,8 +2300,8 @@ class RPC():
 
     """   
     @brief  设置系统变量
-    @param  [in] 必选参数 id：变量编号，范围 [1~20]
-    @param  [in] 必选参数 value：变量值
+    @param  [in] 必选参数 id:变量编号，范围 [1~20]
+    @param  [in] 必选参数 value:变量值
     @return 错误码 成功-0  失败-错误码
     """
 
@@ -2604,7 +2604,7 @@ class RPC():
 
     """   
     @brief  计算工件坐标系
-    @param  [in] method 计算方式 0：原点-x轴-z轴  1：原点-x轴-xy平面
+    @param  [in] method 计算方式 0:原点-x轴-z轴  1:原点-x轴-xy平面
     @param  [in] refFrame 参考坐标系
     @return 错误码 成功-0,  失败-错误码
     @return 返回值（调用成功返回）wobj_pose [x,y,z,rx,ry,rz] 工件坐标系
@@ -2731,8 +2731,8 @@ class RPC():
 
     """   
     @brief  设置机器人安装角度
-    @param  [in] 必选参数 yangle：倾斜角
-    @param  [in] 必选参数 zangle：旋转角
+    @param  [in] 必选参数 yangle:倾斜角
+    @param  [in] 必选参数 zangle:旋转角
     @return 错误码 成功-0  失败-错误码
     """
 
@@ -2808,7 +2808,7 @@ class RPC():
     """   
     @brief  设置碰撞等级
     @param  [in] 必选参数 mode:0-等级，1-百分比
-    @param  [in] 必选参数 level=[j1,j2,j3,j4,j5,j6]: 碰撞阈值 mode=0时，范围：1-10 对应mode=1时，范围0-100%
+    @param  [in] 必选参数 level=[j1,j2,j3,j4,j5,j6]: 碰撞阈值 mode=0时，范围:1-10 对应mode=1时，范围0-100%
     @param  [in] 必选参数 config:0-不更新配置文件，1-更新配置文件
     @return 错误码 成功-0  失败-错误码
     """
@@ -2833,11 +2833,11 @@ class RPC():
 
     """   
     @brief  设置碰撞后策略
-    @param  [in] 必选参数 strategy：0-报错暂停，1-继续运行，2-报错停止，3-重力矩模式，4-震荡相应模式，5-碰撞回弹模式
-    @param  [in] 默认参数 safeTime：安全停止时间[1000-2000]ms，默认为：1000
-    @param  [in] 默认参数 safeDistance：安全停止距离[1-150]mm，默认为：100
-    @param  [in] 默认参数 safeVel：安全停止速度[50-250]mm/s，默认为：250
-    @param  [in] 默认参数 safetyMargin[6]：安全系数[1-10]，默认为：[10,10,10,10,10,10]
+    @param  [in] 必选参数 strategy:0-报错暂停，1-继续运行，2-报错停止，3-重力矩模式，4-震荡相应模式，5-碰撞回弹模式
+    @param  [in] 默认参数 safeTime:安全停止时间[1000-2000]ms，默认为:1000
+    @param  [in] 默认参数 safeDistance:安全停止距离[1-150]mm，默认为:100
+    @param  [in] 默认参数 safeVel:安全停止速度[50-250]mm/s，默认为:250
+    @param  [in] 默认参数 safetyMargin[6]:安全系数[1-10]，默认为:[10,10,10,10,10,10]
     @return 错误码 成功-0  失败-错误码
     """
 
@@ -2863,7 +2863,7 @@ class RPC():
 
     """   
     @brief  设置正限位
-    @param  [in] 必选参数 p_limit=[j1,j2,j3,j4,j5,j6]：六个关节位置
+    @param  [in] 必选参数 p_limit=[j1,j2,j3,j4,j5,j6]:六个关节位置
     @return 错误码 成功-0  失败-错误码
     """
 
@@ -2885,7 +2885,7 @@ class RPC():
 
     """   
     @brief  设置负限位
-    @param  [in] 必选参数 n_limit=[j1,j2,j3,j4,j5,j6]：六个关节位置
+    @param  [in] 必选参数 n_limit=[j1,j2,j3,j4,j5,j6]:六个关节位置
     @return 错误码 成功-0  失败-错误码
     """
 
@@ -2928,7 +2928,7 @@ class RPC():
 
     """   
     @brief  关节摩擦力补偿开关
-    @param  [in] 必选参数 state：0-关，1-开
+    @param  [in] 必选参数 state:0-关，1-开
     @return 错误码 成功-0  失败-错误码
     """
 
@@ -2950,7 +2950,7 @@ class RPC():
 
     """   
     @brief  设置关节摩擦力补偿系数-固定安装-正装
-    @param  [in] 必选参数 coeff=[j1,j2,j3,j4,j5,j6]：六个关节补偿系数
+    @param  [in] 必选参数 coeff=[j1,j2,j3,j4,j5,j6]:六个关节补偿系数
     @return 错误码 成功-0  失败-错误码
     """
 
@@ -2972,7 +2972,7 @@ class RPC():
 
     """   
     @brief  设置关节摩擦力补偿系数-固定安装-侧装
-    @param  [in] 必选参数 coeff=[j1,j2,j3,j4,j5,j6]：六个关节补偿系数
+    @param  [in] 必选参数 coeff=[j1,j2,j3,j4,j5,j6]:六个关节补偿系数
     @return 错误码 成功-0  失败-错误码
     """
 
@@ -2994,7 +2994,7 @@ class RPC():
 
     """   
     @brief  设置关节摩擦力补偿系数-固定安装-倒装
-    @param  [in] 必选参数 coeff=[j1,j2,j3,j4,j5,j6]：六个关节补偿系数
+    @param  [in] 必选参数 coeff=[j1,j2,j3,j4,j5,j6]:六个关节补偿系数
     @return 错误码 成功-0  失败-错误码
     """
 
@@ -3016,7 +3016,7 @@ class RPC():
 
     """   
     @brief  设置关节摩擦力补偿系数-自由安装
-    @param  [in] 必选参数 coeff=[j1,j2,j3,j4,j5,j6]：六个关节补偿系数
+    @param  [in] 必选参数 coeff=[j1,j2,j3,j4,j5,j6]:六个关节补偿系数
     @return 错误码 成功-0  失败-错误码
     """
 
@@ -3068,9 +3068,9 @@ class RPC():
 
     """   
     @brief  获取系统变量值
-    @param  [in] id：系统变量编号，范围 [1~20]
+    @param  [in] id:系统变量编号，范围 [1~20]
     @return 错误码 成功- 0,  失败-错误码
-    @return 返回值（调用成功返回） var_value：系统变量值
+    @return 返回值（调用成功返回） var_value:系统变量值
     """
 
     @log_call
@@ -3095,7 +3095,7 @@ class RPC():
 
     """   
     @brief  获取当前关节位置 (角度)
-    @param  [in] 默认参数 flag：0-阻塞，1-非阻塞 默认1
+    @param  [in] 默认参数 flag:0-阻塞，1-非阻塞 默认1
     @return 错误码 成功- 0,  失败-错误码
     @return 返回值（调用成功返回） joint_pos=[j1,j2,j3,j4,j5,j6]
     """
@@ -3114,7 +3114,7 @@ class RPC():
                   self.robot_state_pkg.jt_cur_pos[3],self.robot_state_pkg.jt_cur_pos[4],self.robot_state_pkg.jt_cur_pos[5]]
     """   
     @brief  获取关节当前位置 (弧度)
-    @param  [in] 默认参数 flag：0-阻塞，1-非阻塞 默认1
+    @param  [in] 默认参数 flag:0-阻塞，1-非阻塞 默认1
     @return 错误码 成功- 0,  失败-错误码
     @return 返回值（调用成功返回） joint_pos=[j1,j2,j3,j4,j5,j6]
     """
@@ -3141,7 +3141,7 @@ class RPC():
 
     """   
     @brief  获取关节反馈速度-deg/s
-    @param  [in] 默认参数 flag：0-阻塞，1-非阻塞 默认1
+    @param  [in] 默认参数 flag:0-阻塞，1-非阻塞 默认1
     @return 错误码 成功- 0,  失败-错误码
     @return 返回值（调用成功返回） speed=[j1,j2,j3,j4,j5,j6]
     """
@@ -3161,7 +3161,7 @@ class RPC():
 
     """   
     @brief  获取关节反馈加速度-deg/s^2
-    @param  [in] 默认参数 flag：0-阻塞，1-非阻塞 默认1
+    @param  [in] 默认参数 flag:0-阻塞，1-非阻塞 默认1
     @return 错误码 成功- 0,  失败-错误码
     @return 返回值（调用成功返回） acc=[j1,j2,j3,j4,j5,j6]
     """
@@ -3181,7 +3181,7 @@ class RPC():
 
     """   
     @brief  获取TCP指令合速度
-    @param  [in] 默认参数 flag：0-阻塞，1-非阻塞 默认1
+    @param  [in] 默认参数 flag:0-阻塞，1-非阻塞 默认1
     @return 错误码 成功- 0,  失败-错误码
     @return 返回值（调用成功返回）[tcp_speed,ori_speed] tcp_speed 线性合速度 ori_speed 姿态合速度 
     """
@@ -3200,7 +3200,7 @@ class RPC():
 
     """   
     @brief  获取TCP反馈合速度
-    @param  [in] 默认参数 flag：0-阻塞，1-非阻塞 默认1
+    @param  [in] 默认参数 flag:0-阻塞，1-非阻塞 默认1
     @return 错误码 成功- 0,  失败-错误码
     @return 返回值（调用成功返回）[tcp_speed,ori_speed] tcp_speed 线性合速度 ori_speed 姿态合速度 
     """
@@ -3219,7 +3219,7 @@ class RPC():
 
     """   
     @brief  获取TCP指令速度
-    @param  [in] 默认参数 flag：0-阻塞，1-非阻塞  默认1
+    @param  [in] 默认参数 flag:0-阻塞，1-非阻塞  默认1
     @return 错误码 成功- 0,  失败-错误码
     @return 返回值（调用成功返回） speed [x,y,z,rx,ry,rz]速度 mm/s
     """
@@ -3239,7 +3239,7 @@ class RPC():
 
     """   
     @brief  获取TCP反馈速度
-    @param  [in] 默认参数 flag：0-阻塞，1-非阻塞  默认1
+    @param  [in] 默认参数 flag:0-阻塞，1-非阻塞  默认1
     @return 错误码 成功- 0,  失败-错误码
     @return 返回值（调用成功返回） speed [x,y,z,rx,ry,rz]速度
     """
@@ -3259,7 +3259,7 @@ class RPC():
 
     """   
     @brief  获取当前工具位姿
-    @param  [in] 默认参数 flag：0-阻塞，1-非阻塞 默认1
+    @param  [in] 默认参数 flag:0-阻塞，1-非阻塞 默认1
     @return 错误码 成功- 0, 失败-错误码
     @return 返回值（调用成功返回） tcp_pose=[x,y,z,rx,ry,rz]
     """
@@ -3279,7 +3279,7 @@ class RPC():
 
     """   
     @brief  获取当前工具坐标系编号
-    @param  [in] 默认参数 flag：0-阻塞，1-非阻塞 默认1
+    @param  [in] 默认参数 flag:0-阻塞，1-非阻塞 默认1
     @return 错误码 成功- 0, 失败-错误码
     @return 返回值（调用成功返回） tool_id:工具坐标系编号
     """
@@ -3298,7 +3298,7 @@ class RPC():
 
     """   
     @brief  获取当前工件坐标系编号 
-    @param  [in] 默认参数 flag：0-阻塞，1-非阻塞 默认1
+    @param  [in] 默认参数 flag:0-阻塞，1-非阻塞 默认1
     @return 错误码 成功- 0, 失败-错误码
     @return 返回值（调用成功返回） wobj_id:工件坐标系编号
     """
@@ -3317,7 +3317,7 @@ class RPC():
 
     """   
     @brief  获取当前末端法兰位姿
-    @param  [in] 默认参数 flag：0-阻塞，1-非阻塞 默认1
+    @param  [in] 默认参数 flag:0-阻塞，1-非阻塞 默认1
     @return 错误码 成功- 0, 失败-错误码
     @return 返回值（调用成功返回） flange_pose=[x,y,z,rx,ry,rz]
     """
@@ -3369,7 +3369,7 @@ class RPC():
     @brief  逆运动学，工具位姿求解关节位置，参考指定关节位置求解
     @param  [in] 必选参数 type:0-绝对位姿 (基坐标系)，1-相对位姿（基坐标系），2-相对位姿（工具坐标系）
     @param  [in] 必选参数 desc_pose:[x,y,z,rx,ry,rz], 工具位姿，单位 [mm][°]
-    @param  [in] 必选参数 joint_pos_ref：[j1,j2,j3,j4,j5,j6]，关节参考位置，单位 [°]
+    @param  [in] 必选参数 joint_pos_ref:[j1,j2,j3,j4,j5,j6]，关节参考位置，单位 [°]
     @return 错误码 成功- 0,joint_pos=[j1,j2,j3,j4,j5,j6] 失败-错误码
     @return 返回值（调用成功返回） joint_pos=[j1,j2,j3,j4,j5,j6]
     """
@@ -3400,7 +3400,7 @@ class RPC():
     @brief  逆运动学，工具位姿求解关节位置是否有解
     @param  [in] 必选参数 type:0-绝对位姿 (基坐标系)，1-相对位姿（基坐标系），2-相对位姿（工具坐标系）
     @param  [in] 必选参数 desc_pose:[x,y,z,rx,ry,rz], 工具位姿，单位 [mm][°]
-    @param  [in] 必选参数 joint_pos_ref：[j1,j2,j3,j4,j5,j6]，关节参考位置，单位 [°]
+    @param  [in] 必选参数 joint_pos_ref:[j1,j2,j3,j4,j5,j6]，关节参考位置，单位 [°]
     @return 错误码 成功- 0, 失败-错误码
     @return 返回值（调用成功返回） result:“True”-有解，“False”-无解
     """
@@ -3456,7 +3456,7 @@ class RPC():
 
     """   
     @brief  获取当前关节转矩
-    @param  [in] 默认参数 flag：0-阻塞，1-非阻塞 默认1
+    @param  [in] 默认参数 flag:0-阻塞，1-非阻塞 默认1
     @return 错误码 成功- 0, 失败-错误码
     @return 返回值（调用成功返回） torques=[j1,j2,j3,j4,j5,j6]
     """
@@ -3476,7 +3476,7 @@ class RPC():
 
     """   
     @brief  获取当前负载的质量
-    @param  [in] 默认参数 flag：0-阻塞，1-非阻塞 默认1
+    @param  [in] 默认参数 flag:0-阻塞，1-非阻塞 默认1
     @return 错误码 成功- 0, 失败-错误码
     @return 返回值（调用成功返回）weight  单位 [kg]
     """
@@ -3503,7 +3503,7 @@ class RPC():
 
     """   
     @brief  获取当前负载的质心
-    @param  [in] 默认参数 flag：0-阻塞，1-非阻塞 默认1
+    @param  [in] 默认参数 flag:0-阻塞，1-非阻塞 默认1
     @return 错误码 成功- 0, 失败-错误码
     @return 返回值（调用成功返回）cog=[x,y,z]: 质心坐标，单位 [mm]
     """
@@ -3530,7 +3530,7 @@ class RPC():
 
     """   
     @brief  获取当前工具坐标系
-    @param  [in] 默认参数 flag：0-阻塞，1-非阻塞 默认1
+    @param  [in] 默认参数 flag:0-阻塞，1-非阻塞 默认1
     @return 错误码 成功- 0, 失败-错误码
     @return 返回值（调用成功返回）tcp_offset=[x,y,z,rx,ry,rz]: 相对位姿，单位 [mm][°]
     """
@@ -3557,7 +3557,7 @@ class RPC():
 
     """   
     @brief  获取当前工件坐标系
-    @param  [in] 默认参数 flag：0-阻塞，1-非阻塞 默认1
+    @param  [in] 默认参数 flag:0-阻塞，1-非阻塞 默认1
     @return 错误码 成功- 0, 失败-错误码
     @return 返回值（调用成功返回）wobj_offset=[x,y,z,rx,ry,rz]: 相对位姿，单位 [mm][°]
     """
@@ -3584,7 +3584,7 @@ class RPC():
 
     """   
     @brief  获取关节软限位角度
-    @param  [in] 默认参数 flag：0-阻塞，1-非阻塞 默认1
+    @param  [in] 默认参数 flag:0-阻塞，1-非阻塞 默认1
     @return 错误码 成功- 0, 失败-错误码
     @return 返回值（调用成功返回）[j1min,j1max,j2min,j2max,j3min,j3max,j4min,j4max,j5min,j5max,j6min,j6max]: 轴 1~ 轴 6 关节负限位与正限位，单位 [mm]
     """
@@ -4090,11 +4090,11 @@ class RPC():
 
     """   
     @brief  设置轨迹记录参数
-    @param  [in] 必选参数 name：轨迹名
-    @param  [in] 必选参数 period_ms：采样周期，固定值，2ms 或 4ms 或 8ms
-    @param  [in] 默认参数 type：数据类型，1-关节位置 默认1
-    @param  [in] 默认参数 di_choose：DI 选择,bit0~bit7 对应控制箱 DI0~DI7，bit8~bit9 对应末端DI0~DI1，0-不选择，1-选择 默认0
-    @param  [in] 默认参数 do_choose：DO 选择,bit0~bit7 对应控制箱 DO0~DO7，bit8~bit9 对应末端 DO0~DO1，0-不选择，1-选择 默认0
+    @param  [in] 必选参数 name:轨迹名
+    @param  [in] 必选参数 period_ms:采样周期，固定值，2ms 或 4ms 或 8ms
+    @param  [in] 默认参数 type:数据类型，1-关节位置 默认1
+    @param  [in] 默认参数 di_choose:DI 选择,bit0~bit7 对应控制箱 DI0~DI7，bit8~bit9 对应末端DI0~DI1，0-不选择，1-选择 默认0
+    @param  [in] 默认参数 do_choose:DO 选择,bit0~bit7 对应控制箱 DO0~DO7，bit8~bit9 对应末端 DO0~DO1，0-不选择，1-选择 默认0
     @return 错误码 成功- 0, 失败-错误码
     """
 
@@ -4120,11 +4120,11 @@ class RPC():
 
     """   
     @brief  开始轨迹记录
-    @param  [in] 必选参数 name：轨迹名
-    @param  [in] 必选参数 period_ms：采样周期，固定值，2ms 或 4ms 或 8ms
-    @param  [in] 默认参数 type：数据类型，1-关节位置 默认1
-    @param  [in] 默认参数 di_choose：DI 选择,bit0~bit7 对应控制箱 DI0~DI7，bit8~bit9 对应末端DI0~DI1，0-不选择，1-选择 默认0
-    @param  [in] 默认参数 do_choose：DO 选择,bit0~bit7 对应控制箱 DO0~DO7，bit8~bit9 对应末端 DO0~DO1，0-不选择，1-选择 默认0
+    @param  [in] 必选参数 name:轨迹名
+    @param  [in] 必选参数 period_ms:采样周期，固定值，2ms 或 4ms 或 8ms
+    @param  [in] 默认参数 type:数据类型，1-关节位置 默认1
+    @param  [in] 默认参数 di_choose:DI 选择,bit0~bit7 对应控制箱 DI0~DI7，bit8~bit9 对应末端DI0~DI1，0-不选择，1-选择 默认0
+    @param  [in] 默认参数 do_choose:DO 选择,bit0~bit7 对应控制箱 DO0~DO7，bit8~bit9 对应末端 DO0~DO1，0-不选择，1-选择 默认0
     @return 错误码 成功- 0, 失败-错误码
     """
 
@@ -4171,7 +4171,7 @@ class RPC():
 
     """   
     @brief  删除轨迹记录
-    @param  [in] 必选参数 name：轨迹名
+    @param  [in] 必选参数 name:轨迹名
     @return 错误码 成功- 0, 失败-错误码
     """
 
@@ -4193,7 +4193,7 @@ class RPC():
 
     """   
     @brief  轨迹预加载
-    @param  [in] 必选参数 name：轨迹名
+    @param  [in] 必选参数 name:轨迹名
     @return 错误码 成功- 0, 失败-错误码
     """
 
@@ -4242,9 +4242,9 @@ class RPC():
 
     """   
     @brief  轨迹复现
-    @param  [in] 必选参数 name：轨迹名
-    @param  [in] 必选参数 blend：是否平滑，0-不平滑，1-平滑
-    @param  [in] 必选参数 ovl：速度缩放因子，范围 [0~100]
+    @param  [in] 必选参数 name:轨迹名
+    @param  [in] 必选参数 blend:是否平滑，0-不平滑，1-平滑
+    @param  [in] 必选参数 ovl:速度缩放因子，范围 [0~100]
     @return 错误码 成功- 0, 失败-错误码
     """
 
@@ -4270,7 +4270,7 @@ class RPC():
 
     """   
     @brief  轨迹预处理
-    @param  [in] 必选参数 name：轨迹名 如/fruser/traj/trajHelix_aima_1.txt
+    @param  [in] 必选参数 name:轨迹名 如/fruser/traj/trajHelix_aima_1.txt
     @param  [in] 必选参数 ovl 速度缩放百分比，范围[0~100]
     @param  [in] 默认参数 opt 1-控制点，默认为1
     @return 错误码 成功- 0, 失败-错误码
@@ -4319,7 +4319,7 @@ class RPC():
 
     """   
     @brief  获取轨迹起始位姿
-    @param  [in] 必选参数 name：轨迹名
+    @param  [in] 必选参数 name:轨迹名
     @return 错误码 成功- 0, 失败-错误码
     @return 返回值（调用成功返回）desc_pose [x,y,z,rx,ry,rz]
     """
@@ -4552,8 +4552,8 @@ class RPC():
 
     """   
     @brief  设置开机自动加载默认的作业程序
-    @param  [in] 必选参数 flag：0-开机不自动加载默认程序，1-开机自动加载默认程序
-    @param  [in] 必选参数 program_name：作业程序名及路径，如“/fruser/movej.lua”，其中“/fruser/”为固定路径
+    @param  [in] 必选参数 flag:0-开机不自动加载默认程序，1-开机自动加载默认程序
+    @param  [in] 必选参数 program_name:作业程序名及路径，如“/fruser/movej.lua”，其中“/fruser/”为固定路径
     @return 错误码 成功- 0, 失败-错误码
     """
 
@@ -4576,7 +4576,7 @@ class RPC():
 
     """   
     @brief  加载指定的作业程序
-    @param  [in] 必选参数 program_name：作业程序名及路径，如“/fruser/movej.lua”，其中“/fruser/”为固定路径
+    @param  [in] 必选参数 program_name:作业程序名及路径，如“/fruser/movej.lua”，其中“/fruser/”为固定路径
     @return 错误码 成功- 0, 失败-错误码
     """
 
@@ -4858,7 +4858,7 @@ class RPC():
     @brief  获取夹爪运动状态
     @param  [in] NULL
     @return 错误码 成功- 0, 失败-错误码
-    @return 返回值（调用成功返回）[fault,status]：夹爪运动状态，fault:0-无错误，1-有错误；status:0-运动未完成，1-运动完成    
+    @return 返回值（调用成功返回）[fault,status]:夹爪运动状态，fault:0-无错误，1-有错误；status:0-运动未完成，1-运动完成    
     """
 
     @log_call
@@ -4882,10 +4882,10 @@ class RPC():
 
     """   
     @brief  配置夹爪
-    @param  [in] 必选参数 company：夹爪厂商，1-Robotiq，2-慧灵，3-天机，4-大寰，5-知行
-    @param  [in] 必选参数 device：设备号，Robotiq(0-2F-85 系列)，慧灵 (0-NK 系列,1-Z-EFG-100)，天机 (0-TEG-110)，大寰 (0-PGI-140)，知行 (0-CTPM2F20)
-    @param  [in] 默认参数 softversion：软件版本号，暂不使用，默认为 0
-    @param  [in] 默认参数 bus：设备挂载末端总线位置，暂不使用，默认为 0；
+    @param  [in] 必选参数 company:夹爪厂商，1-Robotiq，2-慧灵，3-天机，4-大寰，5-知行
+    @param  [in] 必选参数 device:设备号，Robotiq(0-2F-85 系列)，慧灵 (0-NK 系列,1-Z-EFG-100)，天机 (0-TEG-110)，大寰 (0-PGI-140)，知行 (0-CTPM2F20)
+    @param  [in] 默认参数 softversion:软件版本号，暂不使用，默认为 0
+    @param  [in] 默认参数 bus:设备挂载末端总线位置，暂不使用，默认为 0；
     @return 错误码 成功- 0, 失败-错误码
     """
 
@@ -5006,10 +5006,10 @@ class RPC():
 
     """   
     @brief  力传感器配置
-    @param  [in] 必选参数 company：传感器厂商，17-坤维科技，19-航天十一院，20-ATI 传感器，21-中科米点，22-伟航敏芯，23-NBIT，24-鑫精诚(XJC)，26-NSR；
-    @param  [in] 必选参数 device：设备号，坤维 (0-KWR75B)，航天十一院 (0-MCS6A-200-4)，ATI(0-AXIA80-M8)，中科米点 (0-MST2010)，伟航敏芯 (0-WHC6L-YB10A)，NBIT(0-XLH93003ACS)，鑫精诚XJC(0-XJC-6F-D82)，NSR(0-NSR-FTSensorA)；
-    @param  [in] 默认参数 softversion：软件版本号，暂不使用，默认为 0
-    @param  [in] 默认参数 bus：设备挂载末端总线位置，暂不使用，默认为 0；
+    @param  [in] 必选参数 company:传感器厂商，17-坤维科技，19-航天十一院，20-ATI 传感器，21-中科米点，22-伟航敏芯，23-NBIT，24-鑫精诚(XJC)，26-NSR；
+    @param  [in] 必选参数 device:设备号，坤维 (0-KWR75B)，航天十一院 (0-MCS6A-200-4)，ATI(0-AXIA80-M8)，中科米点 (0-MST2010)，伟航敏芯 (0-WHC6L-YB10A)，NBIT(0-XLH93003ACS)，鑫精诚XJC(0-XJC-6F-D82)，NSR(0-NSR-FTSensorA)；
+    @param  [in] 默认参数 softversion:软件版本号，暂不使用，默认为 0
+    @param  [in] 默认参数 bus:设备挂载末端总线位置，暂不使用，默认为 0；
     @return 错误码 成功- 0, 失败-错误码
     """
 
@@ -5034,7 +5034,7 @@ class RPC():
 
     """   
     @brief  力传感器激活
-    @param  [in] 必选参数 state：0-复位，1-激活
+    @param  [in] 必选参数 state:0-复位，1-激活
     @return 错误码 成功- 0, 失败-错误码
     """
 
@@ -5056,7 +5056,7 @@ class RPC():
 
     """   
     @brief  力传感器校零
-    @param  [in] 必选参数 state：0-去除零点，1-零点矫正
+    @param  [in] 必选参数 state:0-去除零点，1-零点矫正
     @return 错误码 成功- 0, 失败-错误码
     """
 
@@ -5078,8 +5078,8 @@ class RPC():
 
     """   
     @brief  设置力传感器参考坐标系
-    @param  [in] 必选参数 ref：0-工具坐标系，1-基坐标系
-    @param  [in] 默认参数 coord：[x,y,z,rx,ry,rz] 自定义坐标系值,默认[0,0,0,0,0,0]
+    @param  [in] 必选参数 ref:0-工具坐标系，1-基坐标系
+    @param  [in] 默认参数 coord:[x,y,z,rx,ry,rz] 自定义坐标系值,默认[0,0,0,0,0,0]
     @return 错误码 成功- 0, 失败-错误码
     """
 
@@ -5128,7 +5128,7 @@ class RPC():
 
     """   
     @brief  负载重量辨识记录
-    @param  [in] 必选参数 tool_id：传感器坐标系编号，范围 [1~14]
+    @param  [in] 必选参数 tool_id:传感器坐标系编号，范围 [1~14]
     @return 错误码 成功- 0, 失败-错误码
     """
 
@@ -5176,7 +5176,7 @@ class RPC():
 
     """   
     @brief  负载质心辨识记录
-    @param  [in] 必选参数 tool_id：传感器坐标系编号，范围 [0~14]
+    @param  [in] 必选参数 tool_id:传感器坐标系编号，范围 [0~14]
     @param  [in] 必选参数 index 点编号，范围[1~3]
     @return 错误码 成功- 0, 失败-错误码
     """
@@ -5239,12 +5239,12 @@ class RPC():
 
     """   
     @brief  碰撞守护
-    @param  [in] 必选参数 flag：0-关闭碰撞守护，1-开启碰撞守护；
-    @param  [in] 必选参数 sensor_num：力传感器编号
-    @param  [in] 必选参数 select：六个自由度是否检测碰撞 [fx,fy,fz,mx,my,mz]，0-不生效，1-生效
-    @param  [in] 必选参数 force_torque：碰撞检测力/力矩，单位 N 或 Nm
-    @param  [in] 必选参数 max_threshold：最大阈值
-    @param  [in] 必选参数 min_threshold：最小阈值
+    @param  [in] 必选参数 flag:0-关闭碰撞守护，1-开启碰撞守护；
+    @param  [in] 必选参数 sensor_num:力传感器编号
+    @param  [in] 必选参数 select:六个自由度是否检测碰撞 [fx,fy,fz,mx,my,mz]，0-不生效，1-生效
+    @param  [in] 必选参数 force_torque:碰撞检测力/力矩，单位 N 或 Nm
+    @param  [in] 必选参数 max_threshold:最大阈值
+    @param  [in] 必选参数 min_threshold:最小阈值
     力/力矩检测范围:(force_torque-min_threshold,force_torque+max_threshold)
     @return 错误码 成功- 0, 失败-错误码
     """
@@ -5272,16 +5272,16 @@ class RPC():
 
     """   
     @brief  恒力控制
-    @param  [in] 必选参数 flag：0-关闭碰撞守护，1-开启碰撞守护；
-    @param  [in] 必选参数 sensor_num：力传感器编号
-    @param  [in] 必选参数 select：[fx,fy,fz,mx,my,mz]六个自由度是否检测碰撞 ，0-不生效，1-生效
-    @param  [in] 必选参数 force_torque：[fx,fy,fz,mx,my,mz]碰撞检测力/力矩，单位 N 或 Nm
-    @param  [in] 必选参数 gain：[f_p,f_i,f_d,m_p,m_i,m_d], 力PID参数，力矩PID参数
-    @param  [in] 必选参数 adj_sign：自适应启停状态，0-关闭，1-开启
+    @param  [in] 必选参数 flag:0-关闭碰撞守护，1-开启碰撞守护；
+    @param  [in] 必选参数 sensor_num:力传感器编号
+    @param  [in] 必选参数 select:[fx,fy,fz,mx,my,mz]六个自由度是否检测碰撞 ，0-不生效，1-生效
+    @param  [in] 必选参数 force_torque:[fx,fy,fz,mx,my,mz]碰撞检测力/力矩，单位 N 或 Nm
+    @param  [in] 必选参数 gain:[f_p,f_i,f_d,m_p,m_i,m_d], 力PID参数，力矩PID参数
+    @param  [in] 必选参数 adj_sign:自适应启停状态，0-关闭，1-开启
     @param  [in] 必选参数 ILC_sign: ILC 控制启停状态，0-停止，1-训练，2-实操
-    @param  [in] 必选参数 max_dis：最大调整距离，单位mm
-    @param  [in] 必选参数 max_ang：最大调整角度，单位deg
-    @param  [in] 必选参数 r：打磨盘半径，单位mm
+    @param  [in] 必选参数 max_dis:最大调整距离，单位mm
+    @param  [in] 必选参数 max_ang:最大调整角度，单位deg
+    @param  [in] 必选参数 r:打磨盘半径，单位mm
     @param  [in] 默认参数 filter_Sign 滤波开启标志 0-关；1-开，默认 0-关闭
     @param  [in] 默认参数 posAdapt_sign 姿态顺应开启标志 0-关；1-开，默认 0-关闭
     @param  [in] 默认参数 isNoBlock 阻塞标志，0-阻塞；1-非阻塞 默认0-阻塞
@@ -5320,10 +5320,10 @@ class RPC():
     """   
     @brief  螺旋线探索
     @param  [in] 必选参数 rcs 参考坐标系，0-工具坐标系，1-基坐标系
-    @param  [in] 必选参数 ft：力或力矩阈值 (0~100)，单位 N 或 Nm
-    @param  [in] 默认参数 dr：每圈半径进给量，单位 mm 默认0.7
-    @param  [in] 默认参数 max_t_ms：最大探索时间，单位 ms 默认 60000
-    @param  [in] 默认参数 max_vel：线速度最大值，单位 mm/s 默认 5
+    @param  [in] 必选参数 ft:力或力矩阈值 (0~100)，单位 N 或 Nm
+    @param  [in] 默认参数 dr:每圈半径进给量，单位 mm 默认0.7
+    @param  [in] 默认参数 max_t_ms:最大探索时间，单位 ms 默认 60000
+    @param  [in] 默认参数 max_vel:线速度最大值，单位 mm/s 默认 5
     @return 错误码 成功- 0, 失败-错误码
     """
 
@@ -5350,12 +5350,12 @@ class RPC():
     """   
     @brief  旋转插入
     @param  [in] 必选参数 rcs 参考坐标系，0-工具坐标系，1-基坐标系
-    @param  [in] 必选参数 ft：力或力矩阈值 (0~100)，单位 N 或 Nm
+    @param  [in] 必选参数 ft:力或力矩阈值 (0~100)，单位 N 或 Nm
     @param  [in] 必选参数 orn 力/扭矩方向，1-沿z轴方向，2-绕z轴方向
-    @param  [in] 默认参数 angVelRot：旋转角速度，单位 °/s  默认 3
-    @param  [in] 默认参数 angleMax：最大旋转角度，单位 ° 默认 45
-    @param  [in] 默认参数 angAccmax：最大旋转加速度，单位 °/s^2，暂不使用 默认0
-    @param  [in] 默认参数 rotorn：旋转方向，1-顺时针，2-逆时针 默认1
+    @param  [in] 默认参数 angVelRot:旋转角速度，单位 °/s  默认 3
+    @param  [in] 默认参数 angleMax:最大旋转角度，单位 ° 默认 45
+    @param  [in] 默认参数 angAccmax:最大旋转加速度，单位 °/s^2，暂不使用 默认0
+    @param  [in] 默认参数 rotorn:旋转方向，1-顺时针，2-逆时针 默认1
     @return 错误码 成功- 0, 失败-错误码
     """
 
@@ -5384,11 +5384,11 @@ class RPC():
     """   
     @brief  直线插入
     @param  [in] 必选参数 rcs 参考坐标系，0-工具坐标系，1-基坐标系
-    @param  [in] 必选参数 ft：力或力矩阈值 (0~100)，单位 N 或 Nm
-    @param  [in] 必选参数 disMax：最大插入距离，单位 mm
-    @param  [in] 必选参数 linorn：插入方向:0-负方向，1-正方向
-    @param  [in] 默认参数 lin_v：直线速度，单位 mm/s 默认1
-    @param  [in] 默认参数 lin_a：直线加速度，单位 mm/s^2，暂不使用 默认1
+    @param  [in] 必选参数 ft:力或力矩阈值 (0~100)，单位 N 或 Nm
+    @param  [in] 必选参数 disMax:最大插入距离，单位 mm
+    @param  [in] 必选参数 linorn:插入方向:0-负方向，1-正方向
+    @param  [in] 默认参数 lin_v:直线速度，单位 mm/s 默认1
+    @param  [in] 默认参数 lin_a:直线加速度，单位 mm/s^2，暂不使用 默认1
     @return 错误码 成功- 0, 失败-错误码
     """
 
@@ -5462,13 +5462,13 @@ class RPC():
 
     """   
     @brief  表面定位
-    @param  [in] 必选参数 rcs：参考坐标系，0-工具坐标系，1-基坐标系
-    @param  [in] 必选参数 dir：移动方向，1-正方向，2-负方向
-    @param  [in] 必选参数 axis：移动轴，1-x，2-y，3-z
-    @param  [in] 必选参数 disMax：最大探索距离，单位 mm
-    @param  [in] 必选参数 ft：动作终止力阈值，单位 N
-    @param  [in] 默认参数 lin_v：探索直线速度，单位 mm/s 默认3
-    @param  [in] 默认参数 lin_a：探索直线加速度，单位 mm/s^2 默认0
+    @param  [in] 必选参数 rcs:参考坐标系，0-工具坐标系，1-基坐标系
+    @param  [in] 必选参数 dir:移动方向，1-正方向，2-负方向
+    @param  [in] 必选参数 axis:移动轴，1-x，2-y，3-z
+    @param  [in] 必选参数 disMax:最大探索距离，单位 mm
+    @param  [in] 必选参数 ft:动作终止力阈值，单位 N
+    @param  [in] 默认参数 lin_v:探索直线速度，单位 mm/s 默认3
+    @param  [in] 默认参数 lin_a:探索直线加速度，单位 mm/s^2 默认0
     @return 错误码 成功- 0, 失败-错误码
     """
 
@@ -5517,7 +5517,7 @@ class RPC():
     """   
     @brief  柔顺控制开启
     @param  [in] 必选参数 p: 位置调节系数或柔顺系数
-    @param  [in] 必选参数 force：柔顺开启力阈值，单位 N
+    @param  [in] 必选参数 force:柔顺开启力阈值，单位 N
     @return 错误码 成功- 0, 失败-错误码
     """
 
@@ -5839,7 +5839,7 @@ class RPC():
     lead机械传动比 编码器旋转一圈传送带移动距离,wpAxis  工件坐标系编号 针对跟踪运动功能选择工件坐标系编号，跟踪抓取、TPD跟踪设为0,vision 是否配视觉  0 不配  1 配,
     speedRadio 速度比  针对传送带跟踪抓取速度范围为（1-100）  跟踪运动、TPD跟踪设置为1
     @param  [in] 必选参数 followType 跟踪运动类型，0-跟踪运动；1-追检运动
-    @param  [in] 默认参数 startDis 追检抓取需要设置， 跟踪起始距离， -1：自动计算(工件到达机器人下方后自动追检)，单位mm， 默认值0
+    @param  [in] 默认参数 startDis 追检抓取需要设置， 跟踪起始距离， -1:自动计算(工件到达机器人下方后自动追检)，单位mm， 默认值0
     @param  [in] 默认参数 endDis 追检抓取需要设置，跟踪终止距离， 单位mm， 默认值100
     @return 错误码 成功- 0, 失败-错误码
     """
@@ -6446,8 +6446,8 @@ class RPC():
     @param  [in] 必选参数 tool: 工具号，[0~14]
     @param  [in] 必选参数 tool: 工具号，[0~14]
     @param  [in] 必选参数 user: 工件号，[0~14]
-    @param  [in] 默认参数 vel：速度百分比，[0~100] 默认20.0
-    @param  [in] 默认参数 acc：加速度百分比，[0~100] 暂不开放 默认0.0
+    @param  [in] 默认参数 vel:速度百分比，[0~100] 默认20.0
+    @param  [in] 默认参数 acc:加速度百分比，[0~100] 暂不开放 默认0.0
     @param  [in] 默认参数 ovl: 速度缩放因子，[0~100] 默认100.0
     @param  [in] 默认参数 blendR:[-1.0]-运动到位 (阻塞)，[0~1000]-平滑半径 (非阻塞)，单位 [mm] 默认-1.0
     @param  [in] 默认参数 exaxis_pos: 外部轴 1 位置 ~ 外部轴 4 位置 默认[0.0,0.0,0.0,0.0]
@@ -6662,9 +6662,9 @@ class RPC():
 
     """   
     @brief  分段焊接终止
-    @param  [in] 必选参数 ioType：io类型 0-控制器IO； 1-扩展IO
-    @param  [in] 必选参数 arcNum：焊机配置文件编号
-    @param  [in] 必选参数 timeout：熄弧超时时间
+    @param  [in] 必选参数 ioType:io类型 0-控制器IO； 1-扩展IO
+    @param  [in] 必选参数 arcNum:焊机配置文件编号
+    @param  [in] 必选参数 timeout:熄弧超时时间
     @return 错误码 成功- 0, 失败-错误码
     """
 
@@ -6689,10 +6689,10 @@ class RPC():
 
     """   
     @brief  初始化日志参数
-    @param  [in]默认参数 output_model：输出模式，0-直接输出；1-缓冲输出；2-异步输出，默认1
-    @param  [in]默认参数 file_path： 文件保存路径+名称，名称必须是xxx.log的形式，比如/home/fr/linux/fairino.log。
+    @param  [in]默认参数 output_model:输出模式，0-直接输出；1-缓冲输出；2-异步输出，默认1
+    @param  [in]默认参数 file_path: 文件保存路径+名称，名称必须是xxx.log的形式，比如/home/fr/linux/fairino.log。
                     默认执行程序所在路径，默认名称fairino_ year+month+data.log(如:fairino_2024_03_13.log);
-    @param  [in]默认参数 file_num：滚动存储的文件数量，1~20个，默认值为5。单个文件上限50M;
+    @param  [in]默认参数 file_num:滚动存储的文件数量，1~20个，默认值为5。单个文件上限50M;
     @return 错误码 成功-0  失败-错误码
     """
 
@@ -6899,7 +6899,7 @@ class RPC():
     @brief  下载文件
     @param  [in] fileType 文件类型    0-lua文件
     @param  [in] fileName 文件名称    “test.lua”
-    @param  [in] saveFilePath 保存文件路径    “C：//test/”
+    @param  [in] saveFilePath 保存文件路径    “C://test/”
     @return 错误码 成功-0  失败-错误码
     """
 
@@ -7350,7 +7350,7 @@ class RPC():
     @param  [in] 必选参数 int servoId 伺服驱动器ID，范围[1-16],对应从站ID 
     @return 错误码 成功- 0, 失败-错误码
     @return 返回值（调用成功返回） servoErrCode 伺服驱动器故障码
-    @return 返回值（调用成功返回） servoState 伺服驱动器状态 bit0:0-未使能；1-使能;  bit1:0-未运动；1-正在运动;bit2:0-正限位未触发，1-正限位触发；bit3:0-负限位未触发，1-负限位触发；   bit4 0-未定位完成；1-定位完成；  bit5：0-未回零；1-回零完成
+    @return 返回值（调用成功返回） servoState 伺服驱动器状态 bit0:0-未使能；1-使能;  bit1:0-未运动；1-正在运动;bit2:0-正限位未触发，1-正限位触发；bit3:0-负限位未触发，1-负限位触发；   bit4 0-未定位完成；1-定位完成；  bit5:0-未回零；1-回零完成
     @return 返回值（调用成功返回） servoPos 伺服当前位置 mm或°
     @return 返回值（调用成功返回） servoSpeed 伺服当前速度 mm/s或°/s
     @return 返回值（调用成功返回） servoTorque 伺服当前转矩Nm
@@ -8357,8 +8357,8 @@ class RPC():
     @param  [in] 必选参数 tool: 工具号，[0~14]
     @param  [in] 必选参数 user: 工件号，[0~14]
     @param  [in] 必选参数 exaxis_pos: 外部轴 1 位置 ~ 外部轴 4 位置 
-    @param  [in] 默认参数 vel：速度百分比，[0~100] 默认20.0
-    @param  [in] 默认参数 acc：加速度百分比，[0~100] 暂不开放,默认0.0 
+    @param  [in] 默认参数 vel:速度百分比，[0~100] 默认20.0
+    @param  [in] 默认参数 acc:加速度百分比，[0~100] 暂不开放,默认0.0 
     @param  [in] 默认参数 ovl: 速度缩放因子，[0~100] 默认100.0    
     @param  [in] 默认参数 blendT:[-1.0]-运动到位 (阻塞)，[0~500.0]-平滑时间 (非阻塞)，单位 [ms] 默认-1.0
     @param  [in] 默认参数 offset_flag:[0]-不偏移，[1]-工件/基坐标系下偏移，[2]-工具坐标系下偏移 默认 0
@@ -8414,8 +8414,8 @@ class RPC():
     @param  [in] 必选参数 tool: 工具号，[0~14]
     @param  [in] 必选参数 user: 工件号，[0~14]
     @param  [in] 必选参数 exaxis_pos: 外部轴 1 位置 ~ 外部轴 4 位置 
-    @param  [in] 默认参数 vel：速度百分比，[0~100] 默认20.0
-    @param  [in] 默认参数 acc：加速度百分比，[0~100] 暂不开放 默认0.0
+    @param  [in] 默认参数 vel:速度百分比，[0~100] 默认20.0
+    @param  [in] 默认参数 acc:加速度百分比，[0~100] 暂不开放 默认0.0
     @param  [in] 默认参数 ovl: 速度缩放因子，[0~100] 默认100.0
     @param  [in] 默认参数 blendR:[-1.0]-运动到位 (阻塞)，[0~1000]-平滑半径 (非阻塞)，单位 [mm] 默认-1.0    
     @param  [in] 默认参数 search:[0]-不焊丝寻位，[1]-焊丝寻位
@@ -9708,7 +9708,7 @@ class RPC():
 
     """   
     @brief  设置机器人碰撞检测方法
-    @param  [in]必选参数 method 碰撞检测方法：0-电流模式；1-双编码器；2-电流和双编码器同时开启
+    @param  [in]必选参数 method 碰撞检测方法:0-电流模式；1-双编码器；2-电流和双编码器同时开启
     @param  [in]必选参数 thresholdMode 碰撞等级阈值方式；0-碰撞等级固定阈值方式；1-自定义碰撞检测阈值
     @return 错误码 成功- 0, 失败-错误码    
     """
@@ -10017,7 +10017,7 @@ class RPC():
     """   
     @brief  获取机器人软件升级状态
     @return 错误码 成功- 0, 失败-错误码   
-    @return 返回值（调用成功返回） state 机器人软件包升级状态 0：空闲中或上传升级包中，1~100：升级完成百分比，-1：升级软件失败，-2：校验失败，-3：版本校验失败，-4：解压失败，-5：用户配置升级失败，-6：外设配置升级失败，-7：扩展轴配置升级失败，-8：机器人配置升级失败，-9：DH参数配置升级失败
+    @return 返回值（调用成功返回） state 机器人软件包升级状态 0:空闲中或上传升级包中，1~100:升级完成百分比，-1:升级软件失败，-2:校验失败，-3:版本校验失败，-4:解压失败，-5:用户配置升级失败，-6:外设配置升级失败，-7:扩展轴配置升级失败，-8:机器人配置升级失败，-9:DH参数配置升级失败
     """
     @log_call
     @xmlrpc_timeout
@@ -10124,13 +10124,13 @@ class RPC():
     """   
     @brief  获取末端通讯参数
     @return 错误码 成功- 0, 失败-错误码        
-    @return 返回值（调用成功返回） baudRate 波特率：支持 1-9600，2-14400，3-19200，4-38400，5-56000，6-67600，7-115200，8-128000；
-    @return 返回值（调用成功返回） dataBit 数据位：数据位支持（8,9），目前常用为 8
-    @return 返回值（调用成功返回） stopBit 停止位：1-1，2-0.5，3-2，4-1.5，目前常用为 1
-    @return 返回值（调用成功返回） verify 校验位：0-None，1-Odd，2-Even,目前常用为 0；
-    @return 返回值（调用成功返回） timeout 超时时间：1~1000ms，此值需要结合外设搭配设置合理的时间参数
-    @return 返回值（调用成功返回） timeoutTimes  超时次数：1~10，主要进行超时重发，减少偶发异常提高用户体验
-    @return 返回值（调用成功返回） period 周期性指令时间间隔：1~1000ms，主要用于周期性指令每次下发的时间间隔
+    @return 返回值（调用成功返回） baudRate 波特率:支持 1-9600，2-14400，3-19200，4-38400，5-56000，6-67600，7-115200，8-128000；
+    @return 返回值（调用成功返回） dataBit 数据位:数据位支持（8,9），目前常用为 8
+    @return 返回值（调用成功返回） stopBit 停止位:1-1，2-0.5，3-2，4-1.5，目前常用为 1
+    @return 返回值（调用成功返回） verify 校验位:0-None，1-Odd，2-Even,目前常用为 0；
+    @return 返回值（调用成功返回） timeout 超时时间:1~1000ms，此值需要结合外设搭配设置合理的时间参数
+    @return 返回值（调用成功返回） timeoutTimes  超时次数:1~10，主要进行超时重发，减少偶发异常提高用户体验
+    @return 返回值（调用成功返回） period 周期性指令时间间隔:1~1000ms，主要用于周期性指令每次下发的时间间隔
     """
 
     @log_call
@@ -10153,13 +10153,13 @@ class RPC():
 
     """   
     @brief  设置末端通讯参数
-    @param  [in]  baudRate 波特率：支持 1-9600，2-14400，3-19200，4-38400，5-56000，6-67600，7-115200，8-128000；
-    @param  [in]  dataBit 数据位：数据位支持（8,9），目前常用为 8
-    @param  [in]  stopBit 停止位：1-1，2-0.5，3-2，4-1.5，目前常用为 1
-    @param  [in]  verify 校验位：0-None，1-Odd，2-Even,目前常用为 0；
-    @param  [in]  timeout 超时时间：1~1000ms，此值需要结合外设搭配设置合理的时间参数
-    @param  [in]  timeoutTimes  超时次数：1~10，主要进行超时重发，减少偶发异常提高用户体验
-    @param  [in]  period 周期性指令时间间隔：1~1000ms，主要用于周期性指令每次下发的时间间隔
+    @param  [in]  baudRate 波特率:支持 1-9600，2-14400，3-19200，4-38400，5-56000，6-67600，7-115200，8-128000；
+    @param  [in]  dataBit 数据位:数据位支持（8,9），目前常用为 8
+    @param  [in]  stopBit 停止位:1-1，2-0.5，3-2，4-1.5，目前常用为 1
+    @param  [in]  verify 校验位:0-None，1-Odd，2-Even,目前常用为 0；
+    @param  [in]  timeout 超时时间:1~1000ms，此值需要结合外设搭配设置合理的时间参数
+    @param  [in]  timeoutTimes  超时次数:1~10，主要进行超时重发，减少偶发异常提高用户体验
+    @param  [in]  period 周期性指令时间间隔:1~1000ms，主要用于周期性指令每次下发的时间间隔
     @return 错误码 成功- 0, 失败-错误码        
     """
     @log_call
@@ -10842,7 +10842,7 @@ class RPC():
 
     """   
     @brief 开始奇异位姿保护
-    @param [in] protectMode 奇异保护模式，0：关节模式；1-笛卡尔模式
+    @param [in] protectMode 奇异保护模式，0:关节模式；1-笛卡尔模式
     @param [in] minShoulderPos 肩奇异调整范围(mm), 默认100.0
     @param [in] minElbowPos 肘奇异调整范围(mm), 默认50.0
     @param [in] minWristPos 腕奇异调整范围(°), 默认10.0
@@ -11142,7 +11142,7 @@ class RPC():
 
     """
        @brief 根据点位信息计算工件坐标系
-       @param  [in] method 计算方法；0：原点-x轴-z轴  1：原点-x轴-xy平面
+       @param  [in] method 计算方法；0:原点-x轴-z轴  1:原点-x轴-xy平面
        @param  [in] pos 三个TCP位置组
        @param  [in] refFrame 参考坐标系
        @return 错误码 成功- 0, 失败-错误码
@@ -12175,7 +12175,7 @@ class RPC():
     @brief  获取夹爪激活状态
     @param  [in] NULL
     @return 错误码 成功- 0, 失败-错误码
-    @return 返回值（调用成功返回）[fault,status]：夹爪激活状态，fault:0-无错误，1-有错误；status:bit0~bit15对应夹爪编号0~15，bit=0为未激活，bit=1为激活    
+    @return 返回值（调用成功返回）[fault,status]:夹爪激活状态，fault:0-无错误，1-有错误；status:bit0~bit15对应夹爪编号0~15，bit=0为未激活，bit=1为激活    
     """
 
     @log_call
@@ -12187,7 +12187,7 @@ class RPC():
     @brief  获取夹爪位置
     @param  [in] NULL
     @return 错误码 成功- 0, 失败-错误码
-    @return 返回值（调用成功返回）[fault,position]：夹爪激活状态，fault:0-无错误，1-有错误；position:位置百分比，范围0~100% 
+    @return 返回值（调用成功返回）[fault,position]:夹爪激活状态，fault:0-无错误，1-有错误；position:位置百分比，范围0~100% 
     """
 
     @log_call
@@ -12199,7 +12199,7 @@ class RPC():
     @brief  获取夹爪电流
     @param  [in] NULL
     @return 错误码 成功- 0, 失败-错误码
-    @return 返回值（调用成功返回）[fault,current]：夹爪激活状态，fault:0-无错误，1-有错误；current:电流百分比，范围0~100%
+    @return 返回值（调用成功返回）[fault,current]:夹爪激活状态，fault:0-无错误，1-有错误；current:电流百分比，范围0~100%
     """
 
     @log_call
@@ -12211,7 +12211,7 @@ class RPC():
     @brief  获取夹爪电压
     @param  [in] NULL
     @return 错误码 成功- 0, 失败-错误码
-    @return 返回值（调用成功返回）[fault, voltage]：夹爪激活状态，fault:0-无错误，1-有错误； voltage:电压,单位0.1V
+    @return 返回值（调用成功返回）[fault, voltage]:夹爪激活状态，fault:0-无错误，1-有错误； voltage:电压,单位0.1V
     """
 
     @log_call
@@ -12223,7 +12223,7 @@ class RPC():
     @brief  获取夹爪温度
     @param  [in] NULL
     @return 错误码 成功- 0, 失败-错误码
-    @return 返回值（调用成功返回）[fault, temp]：夹爪激活状态，fault:0-无错误，1-有错误； temp:温度，单位℃
+    @return 返回值（调用成功返回）[fault, temp]:夹爪激活状态，fault:0-无错误，1-有错误； temp:温度，单位℃
     """
 
     @log_call
@@ -12235,7 +12235,7 @@ class RPC():
     @brief  获取夹爪速度
     @param  [in] NULL
     @return 错误码 成功- 0, 失败-错误码
-    @return 返回值（调用成功返回）[fault, speed]：夹爪激活状态，fault:0-无错误，1-有错误； speed:速度
+    @return 返回值（调用成功返回）[fault, speed]:夹爪激活状态，fault:0-无错误，1-有错误； speed:速度
     """
 
     @log_call

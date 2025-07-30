@@ -11,6 +11,7 @@ from facilities.pkgcmd import PkgCmdParser
 from structs import FacilityState
 from structs import ServerMod
 from interfaces import IFacility  # 依赖接口而不是具体类
+from utilities.utility_file import FileUtils  
 import time
 
 import typing
@@ -57,12 +58,12 @@ class Facility(ABC,IFacility):
         
         # 检查是否存在重复的 name 和 type 参数对
         if any(name == facility_tuple.name for facility_tuple in Facility.tuple_list):
-            self.log.warning(f"重复设备名称：{name}")
+            self.log.warning(f"重复设备名称:{name}")
         # 存储 name 和 type 参数对
         else:
             facility_tuple = FacilityTuple(name, type, self.parser, self)
             Facility.tuple_list.append(facility_tuple)
-            self.log.info(f"成功实例化对象：{self}")
+            self.log.info(f"成功实例化对象:{self}")
         
     def delay(self, sec):
         print("delay ", sec)
@@ -141,16 +142,8 @@ class Facility(ABC,IFacility):
         # 创建控制台处理器
         console_handler = logging.StreamHandler()
         console_handler.setFormatter(console_formatter)
-        # 动态获取日志目录路径，基于 sys.path[0]
-        base_dir = sys.path[0]  # 获取当前项目的根目录
-        self.log_dir = os.path.join(base_dir, 'log')  # 将日志目录设置为项目根目录下的 log 文件夹
-        # 确保日志目录存在
-        if not os.path.exists(self.log_dir):
-            os.makedirs(self.log_dir)  # 如果目录不存在，则创建
-        # 确保日志文件存在
-        timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M')  # 格式化当前时间
-        log_file = os.path.join(self.log_dir, f'facilities_{timestamp}.log')  # 日志文件路径
 
+        log_file = FileUtils.get_log_file_path("facilities")
         # 创建文件处理器
         file_handler = logging.FileHandler(log_file, mode='a', encoding='utf-8')
         file_handler.setFormatter(file_formatter)

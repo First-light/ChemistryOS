@@ -87,7 +87,7 @@ class PkgCmdParser:
                         # 如果转换失败，则保持为字符串
                         pass
                 else:
-                    self.obj_log.warning("错误的指令格式，请按要求输入：'param=value'")
+                    self.obj_log.warning("错误的指令格式，请按要求输入:'param=value'")
                     return 2
                 if key in params:
                     params[key] = value
@@ -103,7 +103,7 @@ class PkgCmdParser:
             self.obj_state = FacilityState.IDLE
             return 0
         else:
-            print(f"{self.obj_name} is {self.obj_state[0]}.")
+            self.obj_log.warning(f"{self.obj_name} is {self.obj_state}.")
             return 2
         
 
@@ -120,11 +120,11 @@ class PkgCmdParser:
 
     def lock(self):
         self.obj_log.info("设备锁定")
-        self.obj_state[0] = FacilityState.STOP
+        self.obj_state = FacilityState.STOP
     
     def unlock(self):
         self.obj_log.info("设备解锁")
-        self.obj_state[0] = FacilityState.IDLE
+        self.obj_state = FacilityState.IDLE
 
     def cmd_print(self,message):
         print(f"{self.obj_name}: {message}")

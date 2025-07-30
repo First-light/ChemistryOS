@@ -58,12 +58,12 @@ class SimpleCursesUI:
         self.terminal_height = height
         self.terminal_width = width
         
-        # 输出区：占用除了最后一行外的所有空间
+        # 输出区:占用除了最后一行外的所有空间
         output_height = height - 1
         self.output_win = curses.newwin(output_height, width, 0, 0)
         self.output_win.scrollok(True)
         
-        # 输入区：只占用最后一行
+        # 输入区:只占用最后一行
         self.input_win = curses.newwin(1, width, height - 1, 0)
         
         self.refresh_all()

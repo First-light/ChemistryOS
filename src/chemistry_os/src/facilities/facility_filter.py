@@ -18,15 +18,15 @@ from enum import Enum
 
 class AddressEnum(Enum):
     EMPTY = 0  # 表示地址为空
-    SOLVENT = 0x01  # 溶解溶剂
+    SOLVENT = 0x04  # 溶解溶剂
     WATER = 0x02    # 清水清洗液
     ACID = 0x03     # 酸清洗液
-    PUMP = 0x04     # 抽滤地址
+    PUMP = 0x01     # 抽滤地址
 
 class Filter(Facility):
     type = "filter"
 
-    def __init__(self, name: str, com: str, baudrate: int = 9600, address = 0x50, sub_addresses: dict = None):
+    def __init__(self, name: str, com: str = "/dev/ttyUSB0", baudrate: int = 9600, address = 0x50, sub_addresses: dict = None):
         """
         初始化抽滤装置类
         :param name: 设备名称
