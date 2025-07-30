@@ -20,7 +20,11 @@ class TCPServer(Facility):
     data_units = []
 
 
-    def __init__(self, test: bool = False, name: str = "server",host: str = '0.0.0.0', port: int = 8888, buffer_size: int = 4096):
+    def __init__(self, name: str = "server",
+                 host: str = '0.0.0.0', 
+                 port: int = 8888, 
+                 buffer_size: int = 4096,
+                 test: bool = False):
         """
         初始化TCP服务端
         """
@@ -79,11 +83,7 @@ class TCPServer(Facility):
 
             # 启动接收和发送线程
             threading.Thread(target=self.receive_data, daemon=True).start()
-            if self.test:
-                self.log.info("测试模式，发送线程将不会连接到客户端")
-                threading.Thread(target=self.send_data_test, daemon=True).start()
-            else:
-                threading.Thread(target=self.send_data, daemon=True).start()
+            threading.Thread(target=self.send_data, daemon=True).start()
 
         except Exception as e:
             self.log.error(f"服务器启动失败: {str(e)}")
@@ -244,7 +244,7 @@ class TCPServer(Facility):
                 except Exception as e:
                     self.log.error(f"接受连接时发生错误: {str(e)}")
 
-            if self.is_connected:
+            if self.is_connected or self.test:
                 self.package_data()  # 生成数据包并存储到发送缓冲区
                 if self.watch_dog_flag and time.time() - self.watch_dog_start > self.watch_dog_max:
                     self.is_connected = False
@@ -253,34 +253,18 @@ class TCPServer(Facility):
                     self.disconnect_client()
                     continue
             # 处理发送缓冲区中的数据
-            if self.tx_buffer and self.is_connected:
+            if self.tx_buffer and (self.is_connected or self.test):
                 try:
                     data = self.tx_buffer.pop(0)
                     self.data_log_save(data,"send")
                     self.data_normal_save(data, end_str="\n")  # 保存数据到文件
-                    self.client_socket.sendall(data.encode('utf-8'))
+                    if not self.test:
+                        self.client_socket.sendall(data.encode('utf-8'))
                 except Exception as e:
                     self.log.error(f"发送数据失败: {str(e)}")
                     self.disconnect_client()
         self.log.info("发送线程已停止")
 
-
-    def send_data_test(self):
-        """
-        处理发送缓冲区中的数据。
-        """
-        while self.is_running:
-            self.package_data()  # 生成数据包并存储到发送缓冲区
-            # 处理发送缓冲区中的数据
-            if self.tx_buffer:
-                try:
-                    data = self.tx_buffer.pop(0)
-                    self.data_log_save(data,"send")
-                    self.data_normal_save(data, end_str="\n")  # 保存数据到文件
-                except Exception as e:
-                    self.log.error(f"发送数据失败: {str(e)}")
-            time.sleep(self.loop_time)  # 控制发送频率
-        self.log.info("发送线程已停止")
 
 
 
@@ -361,7 +345,7 @@ class TCPServer(Facility):
             data_unit = [name, cycle_count, max_cycle, data_dict, func,enable]
             # 将数据单元添加到 data_units 列表
             TCPServer.data_units.append(data_unit)
-            self.log.info(f"数据单元已注册: {data_unit}")
+            self.log.info(f"数据单元已注册: {name},最大周期: {max_cycle}")
         except Exception as e:
             self.log.error(f"注册数据单元失败: {str(e)}")
 

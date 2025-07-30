@@ -1,0 +1,66 @@
+{
+    "test_tube_support": {
+        "destination": [-507.0, -357.5, 160.0],
+        "name": "试管架"
+    },
+    "beaker_support": {
+        "destination": [-517.0, -105.0, 100.0],
+        "name": "烧杯架"
+    },
+    "test_tube_add_place": {
+        "destination": [600.0, -252.0, 295.0],
+        "name": "固体进料-试管夹持位置"
+    },
+    "beaker_add_place": {
+        "destination": [596.6, -489.7, 128.0],
+        "name": "固体进料-称量位置"
+    },
+    "bath_fr5_put": {
+        "destination": [150.0, 622.0, 340.0],
+        "name": "fr5_A to fr5_C"
+    },
+    "bath_fr5_catch": {
+        "destination": [150.0, 622.0, 339.0],
+        "name": "fr5_C to fr5_A"
+    },
+    "HCl": {
+        "destination": [216.0, 376.0, 130.0],
+        "name": "液体进料器-稀盐酸"
+    },
+    "KMnO4": {
+        "destination": [156.0, 377.0, 130.0],
+        "name": "液体进料器-高锰酸钾"
+    },
+    "H2O2": {
+        "destination": [36.0, 379.0, 130.0],
+        "name": "液体进料器-双氧水"
+    },
+    "N2H4": {
+        "destination": [-24.0, 380.0, 130.0],
+        "name": "液体进料器-水合肼"
+    },
+    "add_liquid_mode_place": {
+        "destination": [95, 525.0, 210.0],
+        "name": "液体进料-滴加位"
+    },
+    "sanjinshaoping_support": {
+        "destination": [-460.0, -518.0, 166.0],
+        "name": "三颈烧瓶架"
+    },
+    "sanjinshaoping_support_put": {
+        "destination": [-462.0, -518.0, 166.0],
+        "name": "三颈烧瓶架"
+    },
+    "sanjinshaoping_wash_1": {
+        "destination": [470.0, 195.0, 330.0],
+        "name": "浓盐酸冲洗处"
+    },
+    "sanjinshaoping_wash_2": {
+        "destination": [603.0, 194.0, 330.0],
+        "name": "冰水冲洗处"
+    },
+    "solid_pour_place": {
+        "destination": [-490.0, -426.0, 112.0],
+        "name": "固体进料-倾倒三颈烧瓶位"
+    }
+}

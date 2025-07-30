@@ -85,7 +85,7 @@ class Facility(ABC,IFacility):
         self.log.info("stop")
         
     @staticmethod
-    def get_facility_by_name(name: str,type = None, if_log: bool = False,if_error:bool = False) -> Optional['Facility']:
+    def get_facility_by_name(name: str,if_type = None, if_log: bool = False,if_error:bool = False) -> Optional['Facility']:
         """
         根据名称从 Facility.tuple_list 中找到对应的对象实例。
         
@@ -100,7 +100,10 @@ class Facility(ABC,IFacility):
             obj_type = tuple_t.type  # 对象类型
             obj_instance = tuple_t.facility # 对应的对象实例
             if obj_name == name:
-                if type is not None and obj_type == type:
+                if if_type is None:
+                    if if_log:logging.info(f"找到对象: {obj_name}")
+                    return obj_instance  # 直接返回找到的对象实例
+                elif if_type is not None and obj_type == if_type:
                     if if_log:logging.info(f"找到对象: {obj_name}")
                     return obj_instance  # 直接返回找到的对象实例
     

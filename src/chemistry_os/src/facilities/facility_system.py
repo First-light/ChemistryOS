@@ -1,3 +1,4 @@
+import json
 import sys
 sys.path.append('src/chemistry_os/src')
 from facility import Facility
@@ -8,12 +9,21 @@ from facilities.flowdisplay import Flowdisplay
 from facilities.facility_temp import FacilityTemp
 from structs import FacilityState
 
+
+
 class System(Facility):
     type = "system"
-
+    facility_location = {}
     def __init__(self, name: str = "os"):
         super().__init__(name, System.type)
         self.objects = []  # 用于存储创建的实例
+        try:
+            self.fac_location_file_path = "src/chemistry_os/src/facilities/location/fac_location.json"
+            with open(self.fac_location_file_path, 'r') as file:
+                System.facility_location = json.load(file)
+        except FileNotFoundError:
+            self.log.error(f"无法找到设施位置文件: {self.fac_location_file_path}")
+            System.facility_location = {}
 
     def cmd_init(self):
         self.parser.register("fr5arm", self.create_fr5robot, {"name": '', "ip": ''}, "创建 FR5 机械臂")
@@ -22,6 +32,8 @@ class System(Facility):
         self.parser.register("delete", self.destroy, {"name": ''}, "删除对象")
         self.parser.register("check", self.system_check, {}, "列出所有对象")
         self.parser.register("!", self.stop_all, {}, "停止所有对象")
+
+
 
     def stop_all(self):
         self.log.info("停止所有对象:")
