@@ -100,6 +100,7 @@ class Filter(Facility):
 
         self.valve_A_control(0)  # 
         self.valve_B_control(0)  # 
+        self.log.info("等待10s")
         time.sleep(10)  # 泵启动
         self.log.info("抽滤过程A完成")
 
