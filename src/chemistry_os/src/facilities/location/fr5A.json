@@ -57,7 +57,7 @@
         "HCl": {
             "destination": [216.0, 376.0, 130.0],
             "catch_pre_offset": 60.0,
-            "put_height": 180.0,
+            "put_height": 160.0,
             "catch_direction": [90.0, 0.0, 180.0],
             "safe_place_id": 3,
             "name": "液体进料器-稀盐酸"
@@ -65,7 +65,7 @@
         "KMnO4": {
             "destination": [156.0, 377.0, 130.0],
             "catch_pre_offset": 60.0,
-            "put_height": 180.0,
+            "put_height": 160.0,
             "catch_direction": [90.0, 0.0, 180.0],
             "safe_place_id": 3,
             "name": "液体进料器-高锰酸钾"
@@ -73,7 +73,7 @@
         "H2O2": {
             "destination": [36.0, 379.0, 130.0],
             "catch_pre_offset": 60.0,
-            "put_height": 180.0,
+            "put_height": 160.0,
             "catch_direction": [90.0, 0.0, 180.0],
             "safe_place_id": 3,
             "name": "液体进料器-双氧水"
@@ -81,15 +81,15 @@
         "N2H4": {
             "destination": [-24.0, 380.0, 130.0],
             "catch_pre_offset": 60.0,
-            "put_height": 180.0,
+            "put_height": 160.0,
             "catch_direction": [90.0, 0.0, 180.0],
             "safe_place_id": 3,
             "name": "液体进料器-水合肼"
         },
         "add_liquid_mode_place": {
-            "destination": [95, 525.0, 210.0],
+            "destination": [95, 525.0, 190.0],
             "catch_pre_offset": 155.0,
-            "put_height": 100,
+            "put_height": 80,
             "catch_direction": [90.0, 0.0, 180.0],
             "safe_place_id": 3,
             "name": "液体进料-滴加位"

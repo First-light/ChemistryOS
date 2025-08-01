@@ -15,15 +15,15 @@ from facilities.facility_filter import Filter
 from facilities.facility_parser import CommandParser
 from facilities.facility_system import System
 
-# add_Solid=Add_Solid('add_Solid')
-# with add_Solid:
-#     # add_Solid.clip_open()
-#     # add_Solid.tube_hor()
-#     add_Solid.add_solid_series(0.5)
-#     # add_Solid.tube_ver()
-#     # add_Solid.clip_close()
-#     # add_Solid.set_pid(1.2,1.75,2.1)
-# exit()
+add_Solid=Add_Solid('add_Solid')
+with add_Solid:
+    # add_Solid.add_solid_series(0.5)
+    add_Solid.tube_ver()
+    add_Solid.clip_open()
+    # add_Solid.clip_close()
+    # add_Solid.tube_hor()
+    # add_Solid.set_pid(1.2,1.75,2.1)
+exit()
 
 CompoundC_solid_add = 0.5 # 化合物C的添加量
 
@@ -47,8 +47,9 @@ filter = Filter("filter")
 
 hn_sdk=HN_SDK()
 hn_sdk.HN_init()
-hn_sdk.name_catch('sanjinshaoping_support')
-hn_sdk.name_put('sanjinshaoping_support')
+hn_sdk.add_liquid_bath('HCl')
+# hn_sdk.name_catch('sanjinshaoping_support')
+# hn_sdk.name_put('sanjinshaoping_support')
 
 
 exit()
