@@ -90,7 +90,7 @@ class HN_SDK(Facility):
         'N2H4': {
             'temp': 25,
             'rpm': 30,
-            'volume': 0.4854,
+            'volume': 20.0,
             'reaction_time':14400
         },
     }
@@ -349,11 +349,11 @@ class HN_SDK(Facility):
         }
         Flowdisplay.update_process_display_dict(Process=None, Action='固体倾倒', Info=Info)
 
-        self.fr5_C.move_to_catch()
-        self.fr5_C.move_to_pour()
-
         # #根据id确定安全位置, 移动到安全位置
         self.fr5_A.move_to_safe_catch(obj_statu['safe_place_id'])
+
+        self.fr5_C.move_to_catch()
+        self.fr5_C.move_to_pour()
 
         #计算物体位置
         dest = [obj_statu['destination'][0], obj_statu['destination'][1], obj_statu['destination'][2] + obj_statu['put_height']]
@@ -383,6 +383,7 @@ class HN_SDK(Facility):
         time.sleep(1)
 
         self.fr5_C.move_to_catch()
+        self.fr5_C.move_to_shuiyu()
 
     def bath_catch(self, name:str):
         obj_statu = self.fr5_A.obj_status[name]
@@ -526,8 +527,8 @@ class HN_SDK(Facility):
         dest = [obj_statu['destination'][0], obj_statu['destination'][1], obj_statu['destination'][2] + obj_statu['put_height']]
 
         #移动到准备位置
-        desc_pos_aim = list(map(lambda x, y: x + y, dest, obj_statu['catch_pre_xyz_offset'])) + obj_statu['catch_direction']
-        self.fr5_A.move_to_desc(desc_pos_aim, vel=self.default_speed)
+        desc_pos_aim_mid = list(map(lambda x, y: x + y, dest, obj_statu['catch_pre_xyz_offset'])) + obj_statu['catch_direction']
+        self.fr5_A.move_to_desc(desc_pos_aim_mid, vel=self.default_speed)
         time.sleep(1)
 
         #移动到放置位置上方
@@ -553,8 +554,7 @@ class HN_SDK(Facility):
         dest = [obj_statu['destination'][0], obj_statu['destination'][1], obj_statu['destination'][2] + obj_statu['put_height']]
 
         #移动到准备位置
-        desc_pos_aim = list(map(lambda x, y: x + y, dest, obj_statu['catch_pre_xyz_offset'])) + obj_statu['catch_direction']
-        self.fr5_A.move_to_desc(desc_pos_aim, vel=self.default_speed)
+        self.fr5_A.move_to_desc(desc_pos_aim_mid, vel=self.default_speed)
         time.sleep(1)
 
         #移动到放置位置上方
@@ -608,15 +608,8 @@ class HN_SDK(Facility):
         self.fr5_A.Go_to_start_zone_0()
 
     def bath_open(self):
-        Flowdisplay.update_process_display_dict(Process='控制水浴锅', Action='水浴锅开启', Info={})
-        self.bath.power_ctr(1)
-        self.bath.mix_ctr(1)
-        self.bath.circle_ctr(1)# 允许circle
-        self.bath.hot_ctr(1)# 加热
-        self.bath.cold_ctr(1)# 允许制冷
-
-    def bath_start(self):
         Flowdisplay.update_process_display_dict(Process='控制水浴锅', Action='水浴锅控温开启', Info={})
+        self.bath.power_ctr(1)
         self.bath.mix_ctr(1)
         self.bath.circle_ctr(1)# 允许circle
         self.bath.hot_ctr(1)# 加热

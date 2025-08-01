@@ -46,9 +46,9 @@ if __name__ == '__main__':
 
     hn_sdk.bath_wash()
 
-    hn_sdk.bath_start()
+    hn_sdk.bath_open()
     hn_sdk.add_liquid_bath('N2H4')
-    hn_sdk.bath_close()
+    hn_sdk.bath_over()
     # 放置三颈烧瓶
     hn_sdk.move_shaoping_C2A()
 
