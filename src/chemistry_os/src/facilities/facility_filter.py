@@ -87,7 +87,7 @@ class Filter(Facility):
         """
         抽滤过程A
         """
-        self.log.info("开始抽滤过程A")
+        self.log.info("开始过程A")
         self.valve_A_control(0)  # 打开三通阀门
         out = True
         while out == True:
@@ -108,7 +108,7 @@ class Filter(Facility):
         """
         抽滤过程B
         """
-        self.log.info("开始抽滤过程B")
+        self.log.info("开始过程B")
         self.valve_B_control(0)  # 打开三通阀门
         # self.pump_control_name("acid", 1)
         # time.sleep(20)  # 泵启动
@@ -142,19 +142,7 @@ class Filter(Facility):
         """
         抽滤过程C
         """
-        self.log.info("开始抽滤过程C")
-        self.valve_A_control(0)  # 打开三通阀门
-        # self.pump_control_name("pump", 1)
-        # time.sleep(40)  # 泵启动
-        # self.pump_control_name("pump", 0)
-        out = True
-        while out == True:
-            self.log.info("抽滤30s")
-            self.pump_control_name("pump", 1)# 泵启动
-            time.sleep(30)  
-            self.pump_control_name("pump", 0)
-            if input("是否继续抽滤？(y/n): ").strip().lower() != 'y':
-                out = False
+        self.log.info("开始过程C")
         self.valve_A_control(1)  # 
         # self.pump_control_name("solvent", 1)
         # time.sleep(20)  # 泵启动
@@ -183,7 +171,7 @@ class Filter(Facility):
         self.set_pump_dir_name("acid",1)  # 设置蠕动泵方向为反转
         self.set_pump_speed_name("acid", 800)  # 设置蠕
         self.set_pump_dir_name("solvent",1)  # 设置蠕动泵方向为反转
-        self.set_pump_speed_name("solvent", 800)  # 设置
+        self.set_pump_speed_name("solvent", 500)  # 设置
     def connect(self):
         """
         连接设备

@@ -1,5 +1,6 @@
 import json
 import sys
+import threading
 sys.path.append('src/chemistry_os/src')
 from facility import Facility
 from facilities.facility_fr5arm import Fr5Arm
@@ -24,6 +25,7 @@ class System(Facility):
         except FileNotFoundError:
             self.log.error(f"无法找到设施位置文件: {self.fac_location_file_path}")
             System.facility_location = {}
+        # threading.Thread(target=self.send_data, daemon=True).start()
 
     def cmd_init(self):
         self.parser.register("fr5arm", self.create_fr5robot, {"name": '', "ip": ''}, "创建 FR5 机械臂")
@@ -33,7 +35,8 @@ class System(Facility):
         self.parser.register("check", self.system_check, {}, "列出所有对象")
         self.parser.register("!", self.stop_all, {}, "停止所有对象")
 
-
+    def error_check_thread():
+        pass
 
     def stop_all(self):
         self.log.info("停止所有对象:")
@@ -42,7 +45,14 @@ class System(Facility):
             object = tuple_t.facility
             if name != self.name:# 排除系统自身
                 object.state = FacilityState.STOP
-                self.log.info(f"对象 {name} 已停止。")
+                self.log.info(f"对象 {name} 标记停止。")
+        for i, tuple_t in enumerate(Facility.tuple_list):
+            name = tuple_t.name
+            object = tuple_t.facility
+            if name != self.name:# 排除系统自身
+                object.cmd_stop 
+                self.log.info(f"对象 {name} 执行急停进程。")
+        
 
     def system_check(self):
         

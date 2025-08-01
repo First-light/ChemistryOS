@@ -192,17 +192,25 @@ class HN_SDK(Facility):
         elif index == 1:
             self.filter.filter_process_B()
         elif index == 2:
+            self.filter.filter_process_A()
+            self.fr5_A.move_to_desc(dest_safe, vel=self.default_put_speed)
+            self.confirm_safety('filter ok?')
+            self.fr5_A.move_to_desc(dest, vel=self.default_put_speed)
             self.filter.filter_process_C()
+            self.fr5_A.move_to_desc(dest_safe, vel=self.default_put_speed)
+            self.filter.filter_process_A()
+            
 
-        self.confirm_safety('filter ok?')
-
+        
 
         #移动到下方位置
+        self.fr5_A.move_to_desc(dest_safe, vel=self.default_put_speed)
+        time.sleep(1)
+        self.confirm_safety('liquid ok?')
+
         self.fr5_A.move_to_desc(dest_horizon, vel=self.default_put_speed)
         time.sleep(1)
 
-        self.confirm_safety('liquid ok?')
-        
         #移动到准备位置
         self.fr5_A.move_to_desc(desc_pre, vel=self.default_speed)
         time.sleep(1)
@@ -341,6 +349,9 @@ class HN_SDK(Facility):
         }
         Flowdisplay.update_process_display_dict(Process=None, Action='固体倾倒', Info=Info)
 
+        self.fr5_C.move_to_catch()
+        self.fr5_C.move_to_pour()
+
         # #根据id确定安全位置, 移动到安全位置
         self.fr5_A.move_to_safe_catch(obj_statu['safe_place_id'])
 
@@ -353,12 +364,12 @@ class HN_SDK(Facility):
         time.sleep(1)
 
         #旋转30度
-        self.fr5_A.move_by(0,0,0,0,-30.0,0)
+        self.fr5_A.move_by(0,0,0,0,30.0,0)
 
         #下降，完成放置
         self.fr5_A.move_by(0, 0, -obj_statu['put_height'], vel=self.default_put_speed)
 
-        self.fr5_A.pour(24.1, 65.0)
+        self.fr5_A.pour(24.1, 60.0)
 
         self.fr5_A.move_by(0, 0, obj_statu['put_height'], vel=self.default_put_speed)
         time.sleep(1)
@@ -371,7 +382,7 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=self.default_speed)
         time.sleep(1)
 
-        # self.fr3_C.move_to_catch()
+        self.fr5_C.move_to_catch()
 
     def bath_catch(self, name:str):
         obj_statu = self.fr5_A.obj_status[name]
@@ -380,7 +391,7 @@ class HN_SDK(Facility):
             '交接方向' : obj_statu['name']
         }
         Flowdisplay.update_process_display_dict(Process=None, Action='机械臂交接', Info=Info)
-
+        
         self.fr5_C.move_to_catch()
 
         #根据id确定安全位置, 移动到安全位置
@@ -541,6 +552,11 @@ class HN_SDK(Facility):
         #计算物体位置
         dest = [obj_statu['destination'][0], obj_statu['destination'][1], obj_statu['destination'][2] + obj_statu['put_height']]
 
+        #移动到准备位置
+        desc_pos_aim = list(map(lambda x, y: x + y, dest, obj_statu['catch_pre_xyz_offset'])) + obj_statu['catch_direction']
+        self.fr5_A.move_to_desc(desc_pos_aim, vel=self.default_speed)
+        time.sleep(1)
+
         #移动到放置位置上方
         desc_pos_aim = dest + obj_statu['catch_direction']
         self.fr5_A.move_to_desc(desc_pos_aim, vel=self.default_speed)
@@ -561,7 +577,7 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=self.default_speed)
         time.sleep(1)
 
-    def add_solid(self, gram:float, tube_from:str, beaker_from:str, test_tube_add_place:str='test_tube_add_place', beaker_add_place:str='beaker_add_place', pour_place:str='solid_pour_place'):
+    def add_solid(self, gram:float, tube_from:str, beaker_from:str, test_tube_add_place:str='test_tube_add_place', beaker_add_place:str='beaker_add_place', pour_place:str='bath_pour_place'):
         Flowdisplay.update_process_display_dict(Process='固体进料', Action='', Info={})
         self.name_catch(tube_from)
         self.name_put(test_tube_add_place, test_tube_add=True)
@@ -599,12 +615,22 @@ class HN_SDK(Facility):
         self.bath.hot_ctr(1)# 加热
         self.bath.cold_ctr(1)# 允许制冷
 
+    def bath_start(self):
+        Flowdisplay.update_process_display_dict(Process='控制水浴锅', Action='水浴锅控温开启', Info={})
+        self.bath.mix_ctr(1)
+        self.bath.circle_ctr(1)# 允许circle
+        self.bath.hot_ctr(1)# 加热
+        self.bath.cold_ctr(1)# 允许制冷
+
+    def bath_over(self):
+        Flowdisplay.update_process_display_dict(Process='控制水浴锅', Action='水浴锅控温关闭', Info={})
+        self.bath.mix_ctr(0)
+        self.bath.circle_ctr(0)# 禁止circle
+        self.bath.hot_ctr(0)# 禁止加热
+        self.bath.cold_ctr(0)# 禁止制冷
+
     def bath_close(self):
         Flowdisplay.update_process_display_dict(Process='控制水浴锅', Action='水浴锅关闭', Info={})
-        # self.bath.mix_ctr(0)
-        # self.bath.circle_ctr(0)# 禁止circle
-        # self.bath.hot_ctr(0)# 禁止加热
-        # self.bath.cold_ctr(0)# 禁止制冷
         self.bath.power_ctr(0)
 
     def bath_writetmp(self, tmp:float):

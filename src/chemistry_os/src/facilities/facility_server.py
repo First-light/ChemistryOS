@@ -258,7 +258,7 @@ class TCPServer(Facility):
                     data = self.tx_buffer.pop(0)
                     self.data_log_save(data,"send")
                     self.data_normal_save(data, end_str="\n")  # 保存数据到文件
-                    if not self.test:
+                    if self.is_connected:
                         self.client_socket.sendall(data.encode('utf-8'))
                 except Exception as e:
                     self.log.error(f"发送数据失败: {str(e)}")
