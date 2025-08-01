@@ -1,7 +1,6 @@
 import sys
 sys.path.append('src/chemistry_os/src')
 from facilities.facility_filter import Filter
-from facilities.facility_fr3arm import Fr3Arm
 from facilities.facility_pumps import PumpGroup
 from facilities.facility_addSolid import Add_Solid
 from facilities.facility_fr5arm import Fr5Arm
@@ -34,20 +33,20 @@ if __name__ == '__main__':
 
     # 机械臂初始化
     hn_sdk.HN_init()
-    # 固体进料
-    hn_sdk.add_solid(CompoundC_solid_add, 'test_tube_support', 'beaker_support')
     # 抓取三颈烧瓶
     hn_sdk.move_shaoping_A2C()
-    # 液体进料
     hn_sdk.bath_open()
     hn_sdk.add_liquid_bath('HCl')
+    # 固体进料
+    hn_sdk.add_solid(CompoundC_solid_add, 'test_tube_support', 'beaker_support')
+    # 液体进料
     hn_sdk.add_liquid_bath('KMnO4')
     hn_sdk.add_liquid_bath('H2O2')
-    hn_sdk.bath_close()
+    hn_sdk.bath_over()
 
     hn_sdk.bath_wash()
 
-    hn_sdk.bath_open()
+    hn_sdk.bath_start()
     hn_sdk.add_liquid_bath('N2H4')
     hn_sdk.bath_close()
     # 放置三颈烧瓶

@@ -1,8 +1,11 @@
+
 import sys
 sys.path.append('src/chemistry_os/src')
+from facility import Facility
+from facilities.facility_server import TCPServer
+from facilities.facility_system import System
 from facilities.facility_parser import CommandParser 
 from facilities.facility_fr5arm import Fr5Arm
-from facilities.facility_fr3arm import Fr3Arm
 from facilities.facility_filter import Filter
 import time
 from facilities.facility_pumps import PumpGroup
@@ -32,21 +35,34 @@ if __name__ == '__main__':
 
     add_Liquid=PumpGroup('add_Liquid')
     add_Solid=Add_Solid('add_Solid')
-    fr3_C = Fr3Arm("fr3C","192.168.58.3")
+    fr5_C = Fr5Arm("fr5C","192.168.58.3")
     fr5_A = Fr5Arm("fr5A","192.168.58.2")
     bath = Bath('bath')
+    filter = Filter("filter")
+    
+    main_sys = System("os")
+
     hn_sdk=HN_SDK()
+    hn_sdk.HN_init()
+
+    main_server = TCPServer(test=True)
     
-    # 机械臂初始化
-    hn_sdk.fr5A_init()
+    main_server.register("log", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
+    # main_server.register("facility_location",200, System.facility_location)
     
-    
-    hn_sdk.wash()
+
+    main_server.start()
+
     main_parser = CommandParser()
     main_parser.start()
-    # main_parser.parse("temp output param1=3 param2=4")
-    # main_parser.parse("temp")
-    # main_parser.parse("te")
+    # 机械臂初始化
+    
+    hn_sdk.fr5A_init()
+    # hn_sdk.pot_wash()
+    hn_sdk.name_catch("sanjinshaoping_support")
+    hn_sdk.move_wash('sanjinshaoping_wash_1', 2)
+    hn_sdk.name_put("sanjinshaoping_support")
+
 
         # 保持主线程运行
     try:

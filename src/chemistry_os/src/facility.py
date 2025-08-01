@@ -81,8 +81,9 @@ class Facility(ABC,IFacility):
     def cmd_error(self):
         self.log.error("error")
 
+    # @abstractmethod
     def cmd_stop(self):
-        self.log.info("stop")
+        self.log.info("!!!急停启动!!!")
         
     @staticmethod
     def get_facility_by_name(name: str,if_type = None, if_log: bool = False,if_error:bool = False) -> Optional['Facility']:
