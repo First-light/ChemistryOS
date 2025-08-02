@@ -220,7 +220,7 @@ class Fr5Arm(Facility):
                             {},
                             "Initialize FR5 arm")
 
-        self.parser.register("fr5_check_place", self.fr5_check_place,
+        self.parser.register("fr5_check_place", self.check_place_move,
                             {},
                             "Check and move FR5 arm to a safe place")
 
@@ -656,7 +656,12 @@ class Fr5Arm(Facility):
                 continue
 
             desc_pos = self.safe_place[place_index]
-            self.move_to_desc(desc_pos, type='MoveJ')
+            if self.name == 'fr5A':
+                self.move_to_desc(desc_pos, type='MoveJ')
+            elif self.name == 'fr5C':
+                self.move_to_desc(desc_pos, type='MoveL', vel=self.default_fr5C_speed)
+            else:
+                raise HNSystemError('ERROR fr5 name!')
             self.now_place = place_index
             time.sleep(1)
 
@@ -682,9 +687,9 @@ class Fr5Arm(Facility):
     
     def fr5_init(self):
         self.reset_gripper()
-        self.fr5_check_place()
+        self.check_place_move()
 
-    def fr5_check_place(self):
+    def check_place_move(self):
         Info={
             '机械臂对象': self.name
         }
