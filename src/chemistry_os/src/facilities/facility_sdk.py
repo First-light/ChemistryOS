@@ -131,8 +131,8 @@ class HN_SDK(Facility):
         self.parser.register("fr5A_init", self.fr5A_init, {}, "initialize fr5A")
         self.parser.register("fr5C_init", self.fr5C_init, {}, "initialize fr5C")
         self.parser.register("HN_init", self.HN_init, {}, "initialize HN")
-        self.parser.register("move_shaoping_A2C", self.move_shaoping_A2C, {}, "move_shaoping_A2C")
-        self.parser.register("move_shaoping_C2A", self.move_shaoping_C2A, {}, "move_shaoping_C2A")
+        self.parser.register("move_shaoping_A2C", self.move_shaoping_support2C, {}, "move_shaoping_A2C")
+        self.parser.register("move_shaoping_C2A", self.move_shaoping_C2support, {}, "move_shaoping_C2A")
         self.parser.register("confirm_safety", self.confirm_safety, {"text":'ok?'}, "confirm_safety")
 
     def confirm_safety(self, text:str='ok?'):
@@ -247,23 +247,23 @@ class HN_SDK(Facility):
         self.interactable_countdown(reaction_time)
 
     def name_catch(self, name:str, test_tube_add:bool = False):
-        obj_status = self.fr5_A.obj_status[name]
+        obj_statu = self.fr5_A.obj_status[name]
         Info = {
-            '抓取位置' : obj_status['name']
+            '抓取位置' : obj_statu['name']
         }
         Flowdisplay.update_process_display_dict(Process=None, Action='机械臂抓取', Info=Info)
 
         
         #根据id确定安全位置, 移动到安全位置
-        self.fr5_A.move_to_safe_catch(obj_status['safe_place_id'])
+        self.fr5_A.move_to_safe_catch(obj_statu['safe_place_id'])
 
         #移动到准备位置
-        desc_pos_aim = list(map(lambda x, y: x + y, obj_status['destination'], obj_status['catch_pre_xyz_offset'])) + obj_status['catch_direction']
+        desc_pos_aim = list(map(lambda x, y: x + y, obj_statu['destination'], obj_statu['catch_pre_xyz_offset'])) + obj_statu['catch_direction']
         self.fr5_A.move_to_desc(desc_pos_aim, vel=self.default_speed)
         time.sleep(1)
 
         #靠近，完成抓取
-        desc_pos_aim = obj_status['destination'] + obj_status['catch_direction']
+        desc_pos_aim = obj_statu['destination'] + obj_statu['catch_direction']
         self.fr5_A.move_to_desc(desc_pos_aim, vel=self.default_speed)
         time.sleep(1)
 
@@ -285,40 +285,40 @@ class HN_SDK(Facility):
         time.sleep(1)
 
         #抬起
-        self.fr5_A.move_by(0, 0, obj_status['put_height'], vel=self.default_put_speed)
+        self.fr5_A.move_by(0, 0, obj_statu['put_height'], vel=self.default_put_speed)
         time.sleep(1)
 
         #移动到安全位置
-        self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_status['safe_place_id']], vel=self.default_speed)
+        self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=self.default_speed)
         time.sleep(1)
         
     def name_put(self, name:str, test_tube_add:bool = False):
-        obj_status = self.fr5_A.obj_status[name]
+        obj_statu = self.fr5_A.obj_status[name]
         Info = {
-            '放置位置' : obj_status['name']
+            '放置位置' : obj_statu['name']
         }
         Flowdisplay.update_process_display_dict(Process=None, Action='机械臂放置', Info=Info)
 
         # #根据id确定安全位置, 移动到安全位置
-        self.fr5_A.move_to_safe_catch(obj_status['safe_place_id'])
-        obj_status['destination'][2] += obj_status['put_offset']
+        self.fr5_A.move_to_safe_catch(obj_statu['safe_place_id'])
+        obj_statu['destination'][2] += obj_statu['put_offset']
 
         #计算物体位置
-        dest = [obj_status['destination'][0], obj_status['destination'][1], obj_status['destination'][2] + obj_status['put_height']]
+        dest = [obj_statu['destination'][0], obj_statu['destination'][1], obj_statu['destination'][2] + obj_statu['put_height']]
 
         #移动到准备位置
-        desc_pos_aim = list(map(lambda x, y: x + y, dest, obj_status['catch_pre_xyz_offset'])) + obj_status['catch_direction']
+        desc_pos_aim = list(map(lambda x, y: x + y, dest, obj_statu['catch_pre_xyz_offset'])) + obj_statu['catch_direction']
         self.fr5_A.move_to_desc(desc_pos_aim, vel=self.default_speed)
         time.sleep(1)
 
         #移动到放置位置上方
-        desc_pos_aim = dest + obj_status['catch_direction']
+        desc_pos_aim = dest + obj_statu['catch_direction']
         self.fr5_A.move_to_desc(desc_pos_aim, vel=self.default_speed)
         time.sleep(1)
         self.confirm_safety()
 
         #下降，完成放置
-        self.fr5_A.move_by(0, 0, -obj_status['put_height'], vel=self.default_put_speed)
+        self.fr5_A.move_by(0, 0, -obj_statu['put_height'], vel=self.default_put_speed)
 
         if test_tube_add:
             self.fr5_A.gripper_30()
@@ -335,11 +335,11 @@ class HN_SDK(Facility):
         time.sleep(1)
 
         #移动出去
-        self.fr5_A.move_by(obj_status['catch_pre_xyz_offset'][0], obj_status['catch_pre_xyz_offset'][1], obj_status['catch_pre_xyz_offset'][2], vel=self.default_speed)
+        self.fr5_A.move_by(obj_statu['catch_pre_xyz_offset'][0], obj_statu['catch_pre_xyz_offset'][1], obj_statu['catch_pre_xyz_offset'][2], vel=self.default_speed)
         time.sleep(1)
 
         #移动到安全位置
-        self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_status['safe_place_id']], vel=self.default_speed)
+        self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=self.default_speed)
         time.sleep(1)
 
     def name_pour(self, name:str):
@@ -352,38 +352,39 @@ class HN_SDK(Facility):
         # #根据id确定安全位置, 移动到安全位置
         self.fr5_A.move_to_safe_catch(obj_statu['safe_place_id'])
 
-        self.fr5_C.move_to_catch()
-        self.fr5_C.move_to_pour()
+        self.fr5_C.move_to_safe_catch(2)
 
-        #计算物体位置
-        dest = [obj_statu['destination'][0], obj_statu['destination'][1], obj_statu['destination'][2] + obj_statu['put_height']]
+        #移动到准备位置
+        desc_pos_aim = list(map(lambda x, y: x + y, obj_statu['destination'], obj_statu['pour_pre_xyz_offset'])) + obj_statu['catch_direction']
+        self.fr5_A.move_to_desc(desc_pos_aim, vel=self.default_speed)
+        time.sleep(1)
 
-        #移动到放置位置上方
-        desc_pos_aim = dest + obj_statu['catch_direction']
+        #靠近
+        desc_pos_aim = obj_statu['destination'] + obj_statu['catch_direction']
         self.fr5_A.move_to_desc(desc_pos_aim, vel=self.default_speed)
         time.sleep(1)
 
         #旋转30度
-        self.fr5_A.move_by(0,0,0,0,30.0,0)
+        self.fr5_A.move_by(0,0,0,0,40.0,0)
 
-        #下降，完成放置
-        self.fr5_A.move_by(0, 0, -obj_statu['put_height'], vel=self.default_put_speed)
-
-        self.fr5_A.pour(24.1, 60.0)
+        self.fr5_A.pour(22.0, 75.0)
 
         self.fr5_A.move_by(0, 0, obj_statu['put_height'], vel=self.default_put_speed)
         time.sleep(1)
 
-        self.fr5_A.move_to_desc(desc_pos_aim, vel=self.default_put_speed)
-        print(desc_pos_aim)
+        #计算物体位置
+        desc_pos_aim = [obj_statu['destination'][0], obj_statu['destination'][1], obj_statu['destination'][2] + obj_statu['put_height']] + obj_statu['catch_direction']
+        self.fr5_A.move_to_desc(desc_pos_aim, vel=self.default_speed)
+
+        #移动出去
+        self.fr5_A.move_by(obj_statu['pour_pre_xyz_offset'][0], obj_statu['pour_pre_xyz_offset'][1], obj_statu['pour_pre_xyz_offset'][2], vel=self.default_speed)
         time.sleep(1)
 
         #移动到安全位置
         self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=self.default_speed)
         time.sleep(1)
 
-        self.fr5_C.move_to_catch()
-        self.fr5_C.move_to_shuiyu()
+        self.fr5_C.move_to_safe_catch(1)
 
     def bath_catch(self, name:str):
         obj_statu = self.fr5_A.obj_status[name]
@@ -393,7 +394,7 @@ class HN_SDK(Facility):
         }
         Flowdisplay.update_process_display_dict(Process=None, Action='机械臂交接', Info=Info)
         
-        self.fr5_C.move_to_catch()
+        self.fr5_C.move_to_safe_catch(0)
 
         #根据id确定安全位置, 移动到安全位置
         self.fr5_A.move_to_safe_catch(obj_statu['safe_place_id'])
@@ -438,22 +439,22 @@ class HN_SDK(Facility):
         time.sleep(1)
 
     def bath_put(self, name:str):
-        obj_status = self.fr5_A.obj_status[name]
+        obj_statu = self.fr5_A.obj_status[name]
         Info = {
             '交接单位' : '三颈烧瓶',
-            '交接方向' : obj_status['name']
+            '交接方向' : obj_statu['name']
         }
         Flowdisplay.update_process_display_dict(Process=None, Action='机械臂交接', Info=Info)
 
-        self.fr5_C.move_to_catch()
+        self.fr5_C.move_to_safe_catch(0)
 
         #根据id确定安全位置, 移动到安全位置
-        self.fr5_A.move_to_safe_catch(obj_status['safe_place_id'])
+        self.fr5_A.move_to_safe_catch(obj_statu['safe_place_id'])
 
         #移动到准备位置
-        desc_pos_aim_xyz = list(map(lambda x, y: x + y, obj_status['destination'], obj_status['bath_pre_offset']))
-        desc_pos_aim_pre_2 = desc_pos_aim_xyz + obj_status['catch_direction']
-        desc_pos_aim_pre_1 = list(map(lambda x, y: x + y, desc_pos_aim_xyz, obj_status['catch_pre_xyz_offset'])) + obj_status['catch_direction']
+        desc_pos_aim_xyz = list(map(lambda x, y: x + y, obj_statu['destination'], obj_statu['bath_pre_offset']))
+        desc_pos_aim_pre_2 = desc_pos_aim_xyz + obj_statu['catch_direction']
+        desc_pos_aim_pre_1 = list(map(lambda x, y: x + y, desc_pos_aim_xyz, obj_statu['catch_pre_xyz_offset'])) + obj_statu['catch_direction']
         self.fr5_A.move_to_desc(desc_pos_aim_pre_1, vel=self.default_speed)
         time.sleep(1)
         self.fr5_A.move_to_desc(desc_pos_aim_pre_2, vel=self.default_speed)
@@ -462,7 +463,7 @@ class HN_SDK(Facility):
         self.confirm_safety()
 
         #靠近，完成抓取
-        desc_pos_aim = obj_status['destination'] + obj_status['catch_direction']
+        desc_pos_aim = obj_statu['destination'] + obj_statu['catch_direction']
         self.fr5_A.move_to_desc(desc_pos_aim, vel=self.default_speed)
         time.sleep(1)
 
@@ -482,17 +483,17 @@ class HN_SDK(Facility):
         time.sleep(1)
 
         #移动到准备位置
-        desc_pos_aim_pre = list(map(lambda x, y: x + y, obj_status['destination'], obj_status['catch_pre_xyz_offset'])) + obj_status['catch_direction']
+        desc_pos_aim_pre = list(map(lambda x, y: x + y, obj_statu['destination'], obj_statu['catch_pre_xyz_offset'])) + obj_statu['catch_direction']
         self.fr5_A.move_to_desc(desc_pos_aim_pre, vel=self.default_speed)
         time.sleep(1)
 
         #移动到安全位置
-        self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_status['safe_place_id']], vel=self.default_speed)
+        self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=self.default_speed)
         time.sleep(1)
 
     def add_liquid(self, name:str, rpm=150, volume=0.0, name_space='add_liquid_mode_place'):
 
-        self.fr5_C.move_to_shuiyu()
+        self.fr5_C.move_to_safe_catch(1)
 
         obj_statu = self.fr5_A.obj_status[name]
         Info = {
@@ -691,20 +692,20 @@ class HN_SDK(Facility):
         self.fr5_C.fr5_init()
 
     def fr5_check_place(self):
-        self.fr5_A.fr5_check_place()
+        self.fr5_A.check_place_move()
 
     def HN_init(self):
         Flowdisplay.update_process_display_dict(Process='HN机械臂初始化', Action='', Info={})
         self.fr5A_init()
         self.fr5C_init()
 
-    def move_shaoping_A2C(self):
+    def move_shaoping_support2C(self):
         Flowdisplay.update_process_display_dict(Process='烧瓶转移 A to C', Action='', Info={})
         self.name_catch('sanjinshaoping_support')
         self.bath_put('bath_fr5_put')
 
 
-    def move_shaoping_C2A(self):
+    def move_shaoping_C2support(self):
         Flowdisplay.update_process_display_dict(Process='烧瓶转移 C to A', Action='', Info={})
         self.bath_catch('bath_fr5_catch')
         self.name_put('sanjinshaoping_support_put')

@@ -34,7 +34,7 @@ if __name__ == '__main__':
     # 机械臂初始化
     hn_sdk.HN_init()
     # 抓取三颈烧瓶
-    hn_sdk.move_shaoping_A2C()
+    hn_sdk.move_shaoping_support2C()
     hn_sdk.bath_open()
     hn_sdk.add_liquid_bath('HCl')
     # 固体进料
@@ -50,5 +50,5 @@ if __name__ == '__main__':
     hn_sdk.add_liquid_bath('N2H4')
     hn_sdk.bath_over()
     # 放置三颈烧瓶
-    hn_sdk.move_shaoping_C2A()
+    hn_sdk.move_shaoping_C2support()
 
