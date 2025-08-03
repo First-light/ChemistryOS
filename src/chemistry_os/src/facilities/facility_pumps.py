@@ -162,7 +162,7 @@ class PumpGroup(Facility):
         }
         Flowdisplay.update_process_display_dict(Process=None, Action='液体进料', Info=Info)
 
-        if name=='HCl':
+        if name=='HCl' or name == 'HCl_wash':
             addr=0x12
         elif name=='KMnO4':
             addr=0x13

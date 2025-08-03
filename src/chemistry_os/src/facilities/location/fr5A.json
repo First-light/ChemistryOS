@@ -28,8 +28,8 @@
             "name": "固体进料-试管夹持位置"
         },
         "beaker_add_place": {
-            "destination": [591.0, -488.0, 129.0],
-            "put_offset": 0.0,
+            "destination": [591.0, -488.0, 128.0],
+            "put_offset": 1.0,
             "catch_pre_offset": 190.0,
             "put_height": 30.0,
             "catch_direction": [90.0, 0.0, 90.0],

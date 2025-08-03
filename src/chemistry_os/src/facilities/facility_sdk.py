@@ -69,6 +69,12 @@ class HN_SDK(Facility):
             'volume': lambda c: 26.8 * c,
             'reaction_time':0
         },
+        'HCl_wash': {
+            'temp': 0,
+            'rpm': 100,
+            'volume': lambda c: 2.68 * c,
+            'reaction_time':0
+        },
         'KMnO4': {
             'temp': 25,
             'rpm': 15,
@@ -84,13 +90,13 @@ class HN_SDK(Facility):
         'CH3CN': {
             'temp': 25,
             'rpm': 30,
-            'volume': 20.0,
+            'volume': lambda c: 20.0 * c,
             'reaction_time':0
         },
         'N2H4': {
             'temp': 25,
             'rpm': 30,
-            'volume': 20.0,
+            'volume': lambda c: 20.0 * c,
             'reaction_time':14400
         },
     }
@@ -226,6 +232,9 @@ class HN_SDK(Facility):
         :param liquid_name: 液体名称
         """
         Flowdisplay.update_process_display_dict(Process='添加液体并反应', Action='', Info={})
+
+        self.fr5_C.move_to_safe_catch(1)
+
         config = self.liquid_config.get(liquid_name)
         if not config:
             raise ValueError(f"未知液体: {liquid_name}")
@@ -490,8 +499,7 @@ class HN_SDK(Facility):
         #移动到安全位置
         self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=self.default_speed)
         time.sleep(1)
-
-    def add_liquid(self, name:str, rpm=150, volume=0.0, name_space='add_liquid_mode_place'):
+    def add_liquid(self, name:str, rpm = 150, volume = 0.0, wash = False, name_space='add_liquid_mode_place', volume_batch = 0.1):
 
         self.fr5_C.move_to_safe_catch(1)
 
@@ -540,9 +548,20 @@ class HN_SDK(Facility):
         #下降，完成放置
         self.fr5_A.move_by(0, 0, -obj_statu['put_height'], vel=self.default_speed)
         time.sleep(1)
+        if wash==False:
+            self.add_Liquid.add_liquid(name, rpm, volume)
+            time.sleep(1)
+        else:
+            volume_now = volume
+            t=0
+            dx=[-1,1,1,-1]
+            dy=[1,1,-1,-1]
+            while volume_now > 0:
+                t=(t+1)%4
+                self.fr5_A.move_by(dx[t],dy[t])
+                self.add_Liquid.add_liquid(name, rpm, volume_batch)
+                volume_now -= volume_batch
 
-        self.add_Liquid.add_liquid(name, rpm, volume)
-        time.sleep(1)
 
         self.fr5_A.move_by(0, 0, obj_statu['put_height'], vel=self.default_speed)
 
@@ -578,20 +597,36 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=self.default_speed)
         time.sleep(1)
 
-    def add_solid(self, gram:float, tube_from:str, beaker_from:str, test_tube_add_place:str='test_tube_add_place', beaker_add_place:str='beaker_add_place', pour_place:str='bath_pour_place'):
+    def add_solid(self, gram:float, tube_from:str, beaker_from:str, test_tube_add_place:str='test_tube_add_place', beaker_add_place:str='beaker_add_place', pour_place:str='bath_pour_place', batch_gram:float = 0.5):
         Flowdisplay.update_process_display_dict(Process='固体进料', Action='', Info={})
         self.name_catch(tube_from)
         self.name_put(test_tube_add_place, test_tube_add=True)
         self.name_catch_and_put(beaker_from, beaker_add_place)
 
-        with self.add_Solid:
-            self.add_Solid.add_solid_series(gram)
+        now_gram = gram
+        while now_gram > batch_gram:
+            with self.add_Solid:
+                self.add_Solid.add_solid_series(batch_gram)
+            self.name_catch(beaker_add_place)
+            self.name_pour(pour_place)
+            self.name_put(beaker_add_place)
+            now_gram -= batch_gram
 
-        self.name_catch(test_tube_add_place, test_tube_add=True)
-        self.name_put(tube_from)
-        self.name_catch(beaker_add_place)
-        self.name_pour(pour_place)
-        self.name_put(beaker_from)
+        if now_gram > 0:
+            with self.add_Solid:
+                self.add_Solid.add_solid_series(batch_gram)
+            self.name_catch(test_tube_add_place, test_tube_add=True)
+            self.name_put(tube_from)
+            self.name_catch(beaker_add_place)
+            self.name_pour(pour_place)
+            self.name_put(beaker_from)
+
+        else:
+            self.name_catch(test_tube_add_place, test_tube_add=True)
+            self.name_put(tube_from)
+            self.name_catch(beaker_add_place)
+            self.name_put(beaker_from)
+
     
     def name_catch_and_put(self, name1:str, name2:str):
         self.name_catch(name1)

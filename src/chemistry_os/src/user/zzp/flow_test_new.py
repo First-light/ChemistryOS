@@ -1,4 +1,5 @@
 import sys
+import time
 sys.path.append('src/chemistry_os/src')
 from facilities.facility_filter import Filter
 from facilities.facility_pumps import PumpGroup
@@ -23,7 +24,7 @@ if __name__ == '__main__':
     filter = Filter("filter")
     hn_sdk=HN_SDK()
 
-    main_server= TCPServer(test=True)
+    main_server = TCPServer(test=True)
     main_server.register("log", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
     main_server.register("flow", 50, Flowdisplay.process_display_dict, Flowdisplay.data_update)
     main_server.register("fr5A", 5, fr5_A.data_dict, fr5_A.data_dict_update)
@@ -39,6 +40,7 @@ if __name__ == '__main__':
     hn_sdk.add_liquid_bath('HCl')
     # 固体进料
     hn_sdk.add_solid(CompoundC_solid_add, 'test_tube_support', 'beaker_support')
+    hn_sdk.add_liquid_bath('HCl_wash')
     # 液体进料
     hn_sdk.add_liquid_bath('KMnO4')
     hn_sdk.add_liquid_bath('H2O2')
