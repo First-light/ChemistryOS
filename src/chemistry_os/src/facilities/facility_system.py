@@ -9,7 +9,7 @@ from prettytable import PrettyTable
 from facilities.flowdisplay import Flowdisplay
 from facilities.facility_temp import FacilityTemp
 from structs import FacilityState
-
+from utilities.utility_param import ParamUtils
 
 
 class System(Facility):
@@ -26,6 +26,7 @@ class System(Facility):
             self.log.error(f"无法找到设施位置文件: {self.fac_location_file_path}")
             System.facility_location = {}
         # threading.Thread(target=self.send_data, daemon=True).start()
+        self.init_dict = ParamUtils.get_init_params(self)
 
     def cmd_init(self):
         self.parser.register("fr5arm", self.create_fr5robot, {"name": '', "ip": ''}, "创建 FR5 机械臂")
@@ -33,6 +34,7 @@ class System(Facility):
         self.parser.register("project", self.create_project, {"name": '', "file": ''}, "创建项目")
         self.parser.register("delete", self.destroy, {"name": ''}, "删除对象")
         self.parser.register("check", self.system_check, {}, "列出所有对象")
+        self.parser.register("checkdict",self.check_all_init_dict,{},"检查所有对象初始化参数")
         self.parser.register("!", self.stop_all, {}, "停止所有对象")
 
     def error_check_thread():
@@ -52,7 +54,12 @@ class System(Facility):
             if name != self.name:# 排除系统自身
                 object.cmd_stop 
                 self.log.info(f"对象 {name} 执行急停进程。")
-        
+    
+    def check_all_init_dict(self):
+        self.log.info("检查所有对象初始化参数:")
+        for i, tuple_t in enumerate(Facility.tuple_list):
+            if hasattr(tuple_t.facility, 'init_dict') and tuple_t.facility.init_dict:
+                self.log.info(f"对象 {tuple_t.name} 的初始化参数: {tuple_t.facility.init_dict}")
 
     def system_check(self):
         

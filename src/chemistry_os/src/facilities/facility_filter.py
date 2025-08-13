@@ -5,6 +5,7 @@ from time import sleep
 from serial.tools import list_ports
 import serial
 from facility import Facility
+from utilities.utility_param import ParamUtils
 import time
 
 
@@ -47,21 +48,22 @@ class Filter(Facility):
             "pump": AddressEnum.PUMP.value
         }
         self.ser = None
+        self.liquid_convert_dict = {
+            "solvent": {"volume":20,"speed":0,"param":0.007 * 0.1,"extra_volume":0.0},
+            "water": {"volume":20,"speed":0,"param":0.007 * 0.1,"extra_volume":0.0},
+            "acid": {"volume":20,"speed":0,"param":0.007 * 0.1,"extra_volume":0.0},
+            "pump": {"volume":20,"speed":0,"param":0.007 * 0.1,"extra_volume":0.0},
+        }#extra_volume mL
         super().__init__(name, Filter.type)
         self.connect()
         self.pump_init()  # 初始化蠕动泵
+        self.init_dict = ParamUtils.get_init_params(self)
 
     def cmd_init(self):
         """
         注册指令
         """
         self.parser.register("test", self.test, {}, "send empty command")
-        # self.parser.register("pump", self.pump_control, {
-        #                      "address": self.sub_addresses["solvent"], "state": 0}, "control pump on/off")
-        # self.parser.register("dir", self.set_pump_direction, {
-        #                      "address": self.sub_addresses["solvent"], "direction": 0}, "set pump direction")
-        # self.parser.register("speed", self.set_pump_speed, {
-        #                      "address": self.sub_addresses["solvent"], "speed": 0}, "set pump speed")
         self.parser.register("pump", self.pump_control_name, {
                              "name": "empty", "state": 0}, "control pump on/off by name")
         self.parser.register("dir", self.set_pump_dir_name, {
@@ -71,17 +73,20 @@ class Filter(Facility):
         self.parser.register("valve", self.valve_A_control, {
                              "state": 0}, "control valve on/off")
         
-        # self.parser.register("airpump", self.air_pump_control, {
-        #                      "state": 0}, "control air pump on/off")
         self.parser.register("query", self.pump_query, {
                              "address": self.sub_addresses["solvent"]}, "query pump status")
         self.parser.register("setaddr", self.set_pump_address, {
                              "old_address": self.sub_addresses["solvent"], "new_address": AddressEnum.EMPTY.value}, "set pump address")
+        self.parser.register("setvolume", self.liquid_set_volume_name, {
+                             "name": "", "volume": 0.0}, "set pump volume")
+        
         self.parser.register("init", self.pump_init, {}, "initialize pump")
         self.parser.register("A", self.filter_process_A, {}, "start filter process A")
         self.parser.register("B", self.filter_process_B, {}, "start filter process B")
         self.parser.register("C", self.filter_process_C, {}, "start filter process C")
-        self.parser.register("data", self.data_check, {}, "check data")
+        self.parser.register("data", self.print_data, {}, "check data")
+        self.parser.register("load", self.liquid_load, {
+                             "name": "empty"}, "load liquid into pump by name")
 
     def filter_process_A(self):
         """
@@ -119,18 +124,20 @@ class Filter(Facility):
         # self.pump_control_name("water", 0)
         out = True
         while out == True:
-            self.log.info("酸洗20s")
+            sec = self.liquid_convert_name("acid")
+            self.log.info(f"酸洗{sec:.3f}s")
             self.pump_control_name("acid", 1)
-            time.sleep(20)
+            time.sleep(sec)
             self.pump_control_name("acid", 0)
             if input("是否继续酸洗？(y/n): ").strip().lower() != 'y':
                 out = False
         self.valve_B_control(1)
         out = True
         while out == True:
-            self.log.info("清水清洗20s")
+            sec = self.liquid_convert_name("water")
+            self.log.info(f"清水清洗{sec:.3f}s")
             self.pump_control_name("water", 1)
-            time.sleep(20)
+            time.sleep(sec)
             self.pump_control_name("water", 0)
             if input("是否继续清水清洗？(y/n): ").strip().lower() != 'y':
                 out = False
@@ -149,9 +156,10 @@ class Filter(Facility):
         # self.pump_control_name("solvent", 0)
         out = True
         while out == True:
-            self.log.info("溶剂20s")
+            sec = self.liquid_convert_name("solvent")
+            self.log.info(f"溶剂{sec:.3f}s")
             self.pump_control_name("solvent", 1)
-            time.sleep(20)
+            time.sleep(sec)
             self.pump_control_name("solvent", 0)
             if input("是否继续溶剂？(y/n): ").strip().lower() != 'y':
                 out = False
@@ -164,14 +172,32 @@ class Filter(Facility):
         """
         初始化蠕动泵
         """
-        self.set_pump_dir_name("pump",0)  # 设置蠕动泵方向为正转
-        self.set_pump_speed_name("pump", 800)  # 设置蠕动泵速度为100
-        self.set_pump_dir_name("water",1)  # 设置蠕动泵方向为反转
-        self.set_pump_speed_name("water", 800)  # 设置蠕动泵速度为100
-        self.set_pump_dir_name("acid",1)  # 设置蠕动泵方向为反转
-        self.set_pump_speed_name("acid", 800)  # 设置蠕
-        self.set_pump_dir_name("solvent",1)  # 设置蠕动泵方向为反转
-        self.set_pump_speed_name("solvent", 500)  # 设置
+        # self.log.info(f"蠕动泵初始化")
+        # steps = [
+        #     lambda: self.set_pump_dir_name("pump", 0),
+        #     lambda: self.set_pump_speed_name("pump", 800),
+        #     lambda: self.set_pump_dir_name("water", 1),
+        #     lambda: self.set_pump_speed_name("water", 800),
+        #     lambda: self.set_pump_dir_name("acid", 1),
+        #     lambda: self.set_pump_speed_name("acid", 800),
+        #     lambda: self.set_pump_dir_name("solvent", 1),
+        #     lambda: self.set_pump_speed_name("solvent", 500),
+        # ]
+        # for step in steps:
+        #     result = step()
+        #     if result is None:
+        #         self.log.warning("蠕动泵初始化中断，请检查设备连接和配置")
+        #         return
+        # self.log.info("蠕动泵初始化完成")
+        self.set_pump_dir_name("pump", 0),
+        self.set_pump_speed_name("pump", 800),
+        self.set_pump_dir_name("water", 1),
+        self.set_pump_speed_name("water", 800),
+        self.set_pump_dir_name("acid", 1),
+        self.set_pump_speed_name("acid", 800),
+        self.set_pump_dir_name("solvent", 1),
+        self.set_pump_speed_name("solvent", 500),
+
     def connect(self):
         """
         连接设备
@@ -202,6 +228,53 @@ class Filter(Facility):
             return
         address = self.sub_addresses[name]
         return self.pump_control(address, state)
+    
+    def pump_run_time(self, name: str, sec: float):
+        """
+        控制蠕动泵开关
+        :param name: 蠕动泵名称
+        :param state: 1=打开, 0=关闭
+        """
+        self.pump_control_name(name,state=1)
+        time.sleep(sec)
+        self.pump_control_name(name,state=0)
+    
+    def liquid_convert_name(self,name:str)->float:
+        if name not in self.liquid_convert_dict:
+            self.log.warning(f"无效的蠕动泵名称: {name}")
+            return
+        speed = self.liquid_convert_dict[name]["speed"]
+        param = self.liquid_convert_dict[name]["param"]
+        volume = self.liquid_convert_dict[name]["volume"]
+        extra_volume = self.liquid_convert_dict[name]["extra_volume"]
+        sec = min(self.liquid_convert(volume, speed,param,extra_volume),240.0)
+        return sec
+
+    def liquid_convert(self,volume:float,speed:float,param:float,extra_volume:float)->float:
+        sec = volume/(param*speed) +  extra_volume/(param*speed)
+        return sec
+    
+    def liquid_set_volume_name(self,name:str,volume:float):
+        if name not in self.liquid_convert_dict:
+            self.log.warning(f"无效的蠕动泵名称: {name}")
+            return
+        self.liquid_convert_dict[name]["volume"] = volume
+        self.log.warning(f"蠕动泵：{name} 已设置进料：{volume} mL")
+
+    def liquid_load(self, name: str):
+        """
+        加载液体到蠕动泵
+        :param name: 蠕动泵名称
+        """
+        self.log.info(f"{name}预装载液体")
+        self.set_pump_speed_name(name,300,if_save=False)
+        input("ok?")
+        self.pump_control_name(name, 1)
+        input("over?")
+        self.pump_control_name(name, 0)
+        self.reset_pump_speed_by_dict(name)  # 重置蠕动泵速度为字典中的值
+        self.log.info(f"{name}预装载结束")
+        
 
     def pump_control(self, address: int, state: int):
         """
@@ -251,7 +324,7 @@ class Filter(Facility):
         command_t = bytearray(command)
         if not self.ifconnect:
             self.log.warning(f"发送指令失败 {command_t} 设备未连接，请检查连接")
-            return
+            return None
     
         wait_time = 2.0
         try:
@@ -273,8 +346,6 @@ class Filter(Facility):
                     if time.time() - start_time > wait_time:
                         # 超过等待时间，认为超时
                         self.log.error(f"发送指令失败{command_t}: 超时未收到响应")
-                        # if self.ifconnect:
-                        #     self.test()  # 测试连接
                         return None
            
         except Exception as e:
@@ -300,7 +371,7 @@ class Filter(Facility):
         address = self.sub_addresses[name]
         return self.set_pump_direction(address, direction)
 
-    def set_pump_speed_name(self, name: str, speed: int):
+    def set_pump_speed_name(self, name: str, speed: int,if_save = True):
         """
         设置蠕动泵速度
         :param name: 蠕动泵名称
@@ -308,8 +379,22 @@ class Filter(Facility):
         """
         if name not in self.sub_addresses:
             self.log.warning(f"无效的蠕动泵名称: {name}")
+            return 
+        address = self.sub_addresses[name]
+        if name in self.liquid_convert_dict and if_save:
+            self.liquid_convert_dict[name]["speed"] = speed
+        return self.set_pump_speed(address, speed)
+    
+    def reset_pump_speed_by_dict(self, name: str):
+        """
+        重置蠕动泵速度为字典中的值
+        :param name: 蠕动泵名称
+        """
+        if name not in self.sub_addresses:
+            self.log.warning(f"无效的蠕动泵名称: {name}")
             return
         address = self.sub_addresses[name]
+        speed = self.liquid_convert_dict[name]["speed"]
         return self.set_pump_speed(address, speed)
 
     def set_pump_direction(self, address: int, direction: int):
@@ -378,8 +463,9 @@ class Filter(Facility):
         command = [0x50,0x07,0x55,0x55,0x55,0x55]
         return self.send_command(command)
     
-    def data_check(self):
+    def print_data(self):
         """
         检查数据
         """
         print(f"{self.sub_addresses} 数据检查")
+        print(f"{self.liquid_convert_dict} 数据检查")

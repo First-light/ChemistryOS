@@ -13,6 +13,7 @@ from serial.serialutil import SerialException
 
 from facility import Facility
 from facilities.flowdisplay import Flowdisplay
+from utilities.utility_param import ParamUtils
 
 # --- 配置常量 ---
 # 可以移到 AddSolid 的 __init__ 或作为类变量，这里为方便演示先放外面

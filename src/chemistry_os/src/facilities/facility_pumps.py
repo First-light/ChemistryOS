@@ -5,6 +5,7 @@ import time
 from facility import Facility
 from utilities.events import event_countdown
 from facilities.flowdisplay import Flowdisplay
+from utilities.utility_param import ParamUtils
 
 class PumpGroup(Facility):
 
@@ -14,7 +15,8 @@ class PumpGroup(Facility):
 
     def __init__(self, name: str):
         super().__init__(name, PumpGroup.type)
-
+        self.init_dict = ParamUtils.get_init_params(self)
+        
     def cmd_init(self):
         """
         注册指令
