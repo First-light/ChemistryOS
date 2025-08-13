@@ -4,7 +4,6 @@ from facilities.flowdisplay import Flowdisplay
 from facilities.facility_filter import Filter
 from facilities.facility_bath import Bath
 from facilities.facility_system import System
-from facilities.facility_fr3arm import Fr3Arm
 from facilities.facility_fr5arm import Fr5Arm
 from facility import Facility
 from facilities.facility_parser import CommandParser

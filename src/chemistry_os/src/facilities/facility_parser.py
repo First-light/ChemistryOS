@@ -5,8 +5,10 @@ import threading
 import time
 from facility import Facility
 from structs import BufferMod
+from utilities.utility_param import ParamUtils
 
 class CommandParser(Facility):
+    
     """
     CommandParser is responsible for parsing command lines and executing the corresponding commands
     on the facilities.
@@ -22,6 +24,7 @@ class CommandParser(Facility):
         self.buffer_thread = None
         self.input_thread = None
         self.running = False
+        self.init_dict = ParamUtils.get_init_params(self)
 
     def start(self, input="shell"):
 

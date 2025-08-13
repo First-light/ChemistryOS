@@ -52,6 +52,7 @@ from facilities.facility_pumps import PumpGroup
 from facilities.facility_bath import Bath
 from facilities.facility_filter import Filter
 from exceptions import *
+from utilities.utility_param import ParamUtils
 
 class HN_SDK(Facility):
     type = "Chemistry OS SDK"
@@ -113,7 +114,7 @@ class HN_SDK(Facility):
             self.add_Solid: Add_Solid = Facility.get_facility_by_name("add_Solid", Add_Solid.type,True,True)
             self.bath: Bath = Facility.get_facility_by_name("bath", Bath.type,True,True)
             self.filter: Filter = Facility.get_facility_by_name("filter", Filter.type,True,True)
-
+            self.init_dict = ParamUtils.get_init_params(self)
         except ValueError as e:
             print(e)
 

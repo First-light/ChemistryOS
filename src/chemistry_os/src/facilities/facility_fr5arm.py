@@ -13,6 +13,7 @@ from facility import Facility
 from structs import FacilityState
 from exceptions import *
 from facilities.flowdisplay import Flowdisplay
+from utilities.utility_param import ParamUtils
 
 class Fr5Arm(Facility):
     type = "fr5arm"
@@ -28,6 +29,7 @@ class Fr5Arm(Facility):
 
     def __init__(self, name: str, ip: str):
         super().__init__(name, Fr5Arm.type)
+        
         self.robot = Robot.RPC(ip)
         if self.name=='fr5A':
             self.position_file_path = "src/chemistry_os/src/facilities/location/fr5A.json"
@@ -46,12 +48,14 @@ class Fr5Arm(Facility):
             "gripper_position":0.0,
             "gripper_contain":""
         }
+        # 自动读取 __init__ 形参并保存到 init_dict
+        self.init_dict = ParamUtils.get_init_params(self)
 
     def data_dict_update(self):
         """
         更新机械臂数据
         """
-        joint_angles = [self.robot.robot_state_pkg.jt_cur_pos[i] for i in range(6)]
+        joint_angles = [round(self.robot.robot_state_pkg.jt_cur_pos[i], 2) for i in range(6)]
         self.data_dict["joint_angles"] = joint_angles
         self.data_dict["gripper_position"] = self.robot.robot_state_pkg.gripper_position
 

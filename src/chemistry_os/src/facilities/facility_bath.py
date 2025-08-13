@@ -13,6 +13,7 @@ import sys
 import select
 from pymodbus.client import ModbusSerialClient
 from facilities.flowdisplay import Flowdisplay
+from utilities.utility_param import ParamUtils
 
 class Bath(Facility):
     type = "bath"
@@ -20,8 +21,10 @@ class Bath(Facility):
     bath_addr = 0x11
 
     def __init__(self,name:str):
+        
         super().__init__(name,self.type)
         self.modbus_client = ModbusSerialClient(port=self.bath_com, baudrate=9600)
+        self.init_dict = ParamUtils.get_init_params(self)
         # self.modbus_client.connect()
         # 连接期间会独占串口设备
 

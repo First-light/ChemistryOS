@@ -9,9 +9,10 @@ import time
 from facilities.facility_parser import CommandParser
 from structs import ProjectState
 from structs import FacilityState
-
+from utilities.utility_param import ParamUtils
 
 class Project(Facility):
+    
     type = "project"
 
     def __init__(self, name: str, file: str):
@@ -24,7 +25,7 @@ class Project(Facility):
         self.executor_thread = threading.Thread(target=self.executor)
         self.executor_thread.daemon = True
         self.executor_thread.start()
-
+        self.init_dict = ParamUtils.get_init_params(self)
     def __del__(self):
         # 停止线程
         self.executor_thread.join()
@@ -354,7 +355,13 @@ class Project(Facility):
         self.data_type = "json"
         self.step = self.dict['configs']['startStep']
         self.max_step = self.count_total_steps(self.dict['configs']['sequence'])
+        # 调用新的函数来设置对象参数
+        self.cmd_set_objects_parameters()
 
+    def cmd_set_objects_parameters(self):
+        """
+        将 JSON 中的参数赋值给系统中已存在的对象
+        """
         # 遍历 JSON 中的 objects
         for obj_name, obj_params in self.dict.get('objects', {}).items():
             obj_instance = Facility.get_facility_by_name(name=obj_name)
@@ -362,11 +369,8 @@ class Project(Facility):
                 # 将 JSON 中的参数赋值给对象
                 for param_key, param_value in obj_params.items():
                     if hasattr(obj_instance, param_key):
-                        # setattr(obj_instance, param_key, param_value)
+                        # 实际赋值操作
+                        setattr(obj_instance, param_key, param_value)
                         self.log.info(f"设置对象 {obj_name} 的参数 {param_key} 为 {param_value}")
-                    else:
-                        self.log.warning(f"对象 {obj_name} 不存在参数 {param_key}")
-                break
             else:
                 self.log.warning(f"未找到名称为 {obj_name} 的对象，无法设置参数")
-

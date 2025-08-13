@@ -9,10 +9,12 @@ from facilities.facility_parser import CommandParser
 if __name__ == '__main__':
 
     main_sys = System("os")
-    filter = Filter("filter")
+    # filter = Filter("filter")
     main_parser = CommandParser()
     main_parser.start()
+    num:float = 2.0/3.0
 
+    main_sys.log.info(f"系统初始化{num:.3f}完成")
     
         # 保持主线程运行
     try:
