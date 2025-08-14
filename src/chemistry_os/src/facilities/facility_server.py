@@ -87,7 +87,6 @@ class TCPServer(Facility):
             self.is_running = True
 
             self.log.info(f"服务器启动成功，监听地址: {self.host}:{self.port}")
-            self.log.info("等待客户端连接...")
 
             # 设置循环时间
             self.loop_time = T
@@ -240,6 +239,9 @@ class TCPServer(Facility):
             time.sleep(0.001)
         self.log.info("接收线程已停止")
 
+
+
+
     def send_data(self):
         """
         处理发送缓冲区中的数据。
@@ -251,28 +253,20 @@ class TCPServer(Facility):
                 try:
                     # 将accept()放到独立线程，避免阻塞主发送线程
                     if not hasattr(self, 'accept_thread') or not self.accept_thread.is_alive():
-                        def accept_client():
-                            try:
-                                self.client_socket, self.client_address = self.server_socket.accept()
-                                self.is_connected = True
-                                self.log.info(f"客户端已连接: {self.client_address}")
-                            except Exception as e:
-                                self.log.error(f"接受连接时发生错误: {str(e)}")
-                        self.accept_thread = threading.Thread(target=accept_client, daemon=True)
+                        self.accept_thread = threading.Thread(target=self._accept_client, daemon=True)
                         self.accept_thread.start()
                     # 等待连接建立
-                    time.sleep(0.1)
                 except Exception as e:
                     self.log.error(f"接受连接时发生错误: {str(e)}")
 
             if self.is_connected or self.test:
                 self.package_data()  # 生成数据包并存储到发送缓冲区
-                if self.watch_dog_flag and time.time() - self.watch_dog_start > self.watch_dog_max:
-                    self.is_connected = False
-                    self.watch_dog_flag = False
-                    self.log.error("看门狗超时，客户端连接异常")
-                    self.disconnect_client()
-                    continue
+                # if self.watch_dog_flag and time.time() - self.watch_dog_start > self.watch_dog_max:
+                #     self.is_connected = False
+                #     self.watch_dog_flag = False
+                #     self.log.error("看门狗超时，客户端连接异常")
+                #     self.disconnect_client()
+                #     continue
             # 处理发送缓冲区中的数据
             if self.tx_buffer and (self.is_connected or self.test):
                 try:
@@ -282,11 +276,18 @@ class TCPServer(Facility):
                     if self.is_connected:
                         self.client_socket.sendall(data.encode('utf-8'))
                 except Exception as e:
-                    self.log.error(f"发送数据失败: {str(e)}")
+                    self.log.warning(f"发送数据失败: {str(e)}")
                     self.disconnect_client()
         self.log.info("发送线程已停止")
 
-
+    def _accept_client(self):
+        try:
+            self.log.info(f"等待客户端连接...")
+            self.client_socket, self.client_address = self.server_socket.accept()
+            self.is_connected = True
+            self.log.info(f"客户端已连接: {self.client_address}")
+        except Exception as e:
+            self.log.error(f"接受连接时发生错误: {str(e)}")
 
 
     def package_data(self,end_str: str = ""):

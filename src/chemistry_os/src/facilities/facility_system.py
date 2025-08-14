@@ -25,14 +25,12 @@ class System(Facility):
     facility_location = {}
     
 
-    # 类级别的默认豁免类型白名单
-    default_except_types = [
-        "system",      # 系统对象
-        "parser",      # 
-        "project",     # 
-        "tcp_server"       #
-    ]
-    
+    # 统一的停止处理配置：优先级越低数字越小，不在列表中的类型不执行停止处理
+    stop_priority_config = {
+        "fr5arm": 1,      # 机械臂最优先停止
+        "Add_Solid": 2,        # 温控设备
+
+    }
     
 
     def __init__(self, name: str = "os",error_detect:bool = True):
@@ -186,28 +184,37 @@ class System(Facility):
     def error_check_thread():
         pass
 
+
+
     def stop_all(self):
         self.pause_main_thread()
+        
+        # 收集需要停止的对象并按优先级排序
+        objects_to_stop = []
         for tuple_t in Facility.tuple_list:
             name = tuple_t.name
             object_type = tuple_t.type
             object = tuple_t.facility
             
-            # 检查是否在白名单中
-            if object_type not in System.default_except_types:
+            # 只处理在配置中的对象类型
+            if object_type in System.stop_priority_config:
                 if object.state != FacilityState.ERROR:
                     object.state = FacilityState.STOP
                     self.log.info(f"对象 {name} (类型: {object_type}) 标记停止。")
                 
-        for i, tuple_t in enumerate(Facility.tuple_list):
-            name = tuple_t.name
-            object = tuple_t.facility
-            object_type = tuple_t.type
-            if object_type not in System.default_except_types:
                 if object.state == FacilityState.ERROR or object.state == FacilityState.STOP:
-                    # 执行急停进程
-                    object.cmd_stop_handing()
-                    self.log.info(f"对象 {name} 执行急停进程。")
+                    priority = System.stop_priority_config[object_type]
+                    objects_to_stop.append((priority, name, object, object_type))
+        
+        # 按优先级排序并执行停止处理
+        objects_to_stop.sort(key=lambda x: x[0])  # 按优先级排序
+        
+        for priority, name, object, object_type in objects_to_stop:
+            try:
+                object.cmd_stop_handing()
+                self.log.info(f"对象 {name} (类型: {object_type}, 优先级: {priority}) 执行急停进程。")
+            except Exception as e:
+                self.log.error(f"对象 {name} 执行急停进程时出错: {e}")
     
     def check_all_init_dict(self):
         self.log.info("检查所有对象初始化参数:")

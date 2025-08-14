@@ -22,6 +22,10 @@ class ProjectUtils:
     objects_dict = {}
     configs_dict = {}
     process_dict = {}
+    config_sequence = []
+    sequence_flags = [
+        "PROJECT_SEQUENCE_START"
+        ]
     _process_counter = 1  # 用于自动分配流程名称
     output_dir:str = "src/chemistry_os/src/facilities/projects"
 
@@ -90,6 +94,7 @@ class ProjectUtils:
             }
             
             ProjectUtils.process_dict[process_name] = process_info
+            ProjectUtils.config_sequence.append(process_name)
             LogUtils.log.info(f"注册流程: {process_name} -> {obj_name} {command_name} {final_parameters}")
             
             return True
@@ -106,11 +111,7 @@ class ProjectUtils:
             return None
 
     @staticmethod
-    def _process_parameters(input_params, predef_params: dict):
-        if input_params is None or (isinstance(input_params, list) and len(input_params) == 0):
-            # 如果没有输入参数，返回预制参数
-            return predef_params
-        
+    def _process_parameters(input_params, predef_params: dict = {}):
         # 处理列表形式的参数
         if isinstance(input_params, list):
             param_keys = list(predef_params.keys())
@@ -137,13 +138,62 @@ class ProjectUtils:
         else:
             raise ProjectUtilsError(f"不支持的参数类型: {type(input_params)}，请使用列表或字典形式")
 
+    @staticmethod
+    def register_sub_process_start():
+        ProjectUtils.config_sequence.append("PROJECT_SEQUENCE_START")
     
     @staticmethod
-    def register_sub_process(name: str, sub_process: typing.Any):
-        """Register a subprocess with a name."""
-        if 'sub_processes' not in ProjectUtils.process_dict:
-            ProjectUtils.process_dict['sub_processes'] = {}
-        ProjectUtils.process_dict['sub_processes'][name] = sub_process
+    def register_sub_process(name: str = None):
+        """
+        注册子流程，从最末尾开始往前数，直到到达 config_sequence 的头部或遇到:
+        1. 步骤含有 "sequence" 键的流程
+        2. SUB_SEQUENCE_START 标签
+        
+        将数到的步骤从 config_sequence 中去除，并加入到新的子流程中
+        :param name: 子流程名称
+        """
+
+
+        # 从末尾开始收集步骤
+        collected_steps = []
+        stop_index = 0
+
+        # 从后往前遍历
+        for i in range(len(ProjectUtils.config_sequence) - 1, -1, -1):#起始，结尾，步长
+            step_name = ProjectUtils.config_sequence[i]
+            
+            # 检查是否是 SUB_SEQUENCE_START 标签
+            if step_name == "PROJECT_SEQUENCE_START":
+                stop_index = i + 1
+                break
+            
+            # 检查是否是已存在的子流程（含有 sequence 键）
+            if step_name in ProjectUtils.process_dict:
+                if "sequence" in ProjectUtils.process_dict[step_name]:
+                    stop_index = i + 1
+                    break
+            
+            # 将步骤添加到收集列表的开头（保持原顺序）
+            collected_steps.insert(0, step_name)
+        
+        if not collected_steps:
+            LogUtils.log.warning("没有找到可以归入子流程的步骤")
+            return False
+        ProjectUtils.config_sequence = ProjectUtils.config_sequence[:stop_index]
+        
+        # 创建子流程
+        sub_process_info = {
+            "sequence": collected_steps
+        }
+        if name is None:
+            name = f"sub_process_{ProjectUtils._process_counter}"
+            ProjectUtils._process_counter += 1
+        ProjectUtils.process_dict[name] = sub_process_info
+        # 将子流程名添加到 config_sequence
+        ProjectUtils.config_sequence.append(name)
+        LogUtils.log.info(f"已创建子流程 {name}，包含步骤: {collected_steps}")
+        return True
+
         
 
 
@@ -154,33 +204,40 @@ class ProjectUtils:
         构建 JSON 数据结构
         :return: 完整的 JSON 数据字典
         """
+        # 创建临时配置序列，过滤掉 ProjectSequenceFlags 中的标志
+        temp_config_sequence = [
+            step for step in ProjectUtils.config_sequence 
+            if step not in ProjectUtils.sequence_flags
+        ]
+        
         return {
             "objects": ProjectUtils.objects_dict.copy(),
             "configs": {
-                "sequence": list(ProjectUtils.process_dict.keys()),
+                "sequence": temp_config_sequence,
                 "startStep": 1,
                 "endCondition": "completion"
             },
             "process": ProjectUtils.process_dict.copy()
         }
-
+    
     @staticmethod
-    def make(json_name: str = "generated_project"):
+    def make(json_name: str = None):
         """
         生成 JSON 文件
         :param json_name: JSON 文件名（不包含扩展名）
         """
-        # 使用公共方法构建 JSON 数据
-        json_data = ProjectUtils._build_json_data()
-        
+        if json_name is None:
+            json_name = ProjectUtils.get_program_name()
+
         # 确保目录存在
         output_dir = ProjectUtils.output_dir
         os.makedirs(output_dir, exist_ok=True)
         
-        # 构建文件路径
         file_path = os.path.join(output_dir, f"{json_name}.json")
         
-        # 写入 JSON 文件
+        # 构建和写入 JSON 数据
+        json_data = ProjectUtils._build_json_data()
+        
         try:
             with open(file_path, 'w', encoding='utf-8') as f:
                 json.dump(json_data, f, ensure_ascii=False, indent=4)
@@ -189,10 +246,25 @@ class ProjectUtils:
         except Exception as e:
             LogUtils.log.error(f"生成 JSON 文件时出错: {e}")
             return None
-    
-
-
-
+        
+    @staticmethod
+    def get_program_name():
+        # 获取调用者的文件名
+        import inspect
+        frame = inspect.currentframe()
+        try:
+            caller_frame = frame.f_back
+            while caller_frame and caller_frame.f_code.co_filename.endswith('utility_project.py'):
+                caller_frame = caller_frame.f_back
+            
+            if caller_frame:
+                caller_file = os.path.basename(caller_frame.f_code.co_filename)
+                base_name = os.path.splitext(caller_file)[0]
+            else:
+                base_name = "generated_project"
+        finally:
+            del frame
+        return base_name
 
     
     @staticmethod

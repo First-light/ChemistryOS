@@ -176,7 +176,7 @@ class PumpGroup(Facility):
             '进料转速': '',
             '目标体积': ''
         }
-        Flowdisplay.update_process_display_dict(Process=None, Action='液体进料', Info=Info)
+        Flowdisplay.update_process_display_dict(Process=None, Action='液料滴加', Info=Info)
 
         if name=='HCl' or name == 'HCl_wash':
             addr=0x12
@@ -194,16 +194,16 @@ class PumpGroup(Facility):
             '进料转速': rpm,
             '目标体积': volume,
         }
-        Flowdisplay.update_process_display_dict(Process=None, Action='液体进料', Info=Info)
+        Flowdisplay.update_process_display_dict(Process=None, Action='液料滴加', Info=Info)
         self.writespeed(addr, rpm*10)
         time.sleep(1)
         self.startadd(addr)
-        event_countdown(tim)
+        event_countdown(tim, name=name, volume=volume, rpm=rpm)
         self.stopadd(addr)
         if self.reverse == True:
             self.writedirection(0)
             self.startadd(addr)
-            event_countdown(5)
+            event_countdown(5, name=name, rpm=rpm, directon=0)
             self.stopadd(addr)
             self.writedirection(1)
 

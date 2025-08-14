@@ -1,0 +1,61 @@
+{
+    "objects": {
+        "filter": {
+            "type": "filter"
+        }
+    },
+    "configs": {
+        "sequence": [
+            "sub_process_4",
+            "step5",
+            "sub_process_8"
+        ],
+        "startStep": 1,
+        "endCondition": "completion"
+    },
+    "process": {
+        "step1": {
+            "object": "filter",
+            "command": "test",
+            "parameters": {}
+        },
+        "step2": {
+            "object": "filter",
+            "command": "test",
+            "parameters": {}
+        },
+        "step3": {
+            "object": "filter",
+            "command": "test",
+            "parameters": {}
+        },
+        "sub_process_4": {
+            "sequence": [
+                "step1",
+                "step2",
+                "step3"
+            ]
+        },
+        "step5": {
+            "object": "filter",
+            "command": "test",
+            "parameters": {}
+        },
+        "step6": {
+            "object": "filter",
+            "command": "test",
+            "parameters": {}
+        },
+        "step7": {
+            "object": "filter",
+            "command": "test",
+            "parameters": {}
+        },
+        "sub_process_8": {
+            "sequence": [
+                "step6",
+                "step7"
+            ]
+        }
+    }
+}

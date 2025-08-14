@@ -17,7 +17,7 @@ def main_thread_func():
     
     main_server.register("log", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
     main_server.register("facility_location",200, System.facility_location)
-    
+    main_server.start()
     try:
         while True:
             time.sleep(0.1)

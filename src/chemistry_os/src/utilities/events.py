@@ -3,7 +3,9 @@ import threading
 import sys
 import select
 
-def event_countdown(seconds):
+from chemistry_os.src.facilities.flowdisplay import Flowdisplay
+
+def event_countdown(seconds, name:str = '', rpm:float = 0, volume:float = 0, directon:bool = 1):
     # 用于控制是否继续计时的事件
     stop_event = threading.Event()
     countdown_finished_event = threading.Event()
@@ -11,15 +13,32 @@ def event_countdown(seconds):
     def countdown(seconds):
         start_time = time.time()  # 获取当前时间
         end_time = start_time + seconds  # 计算结束时间
-
-        while seconds > 0 and not stop_event.is_set():  # 计时中如果stop_event触发就停止
+        now = time.time()
+        while now < end_time and not stop_event.is_set():  # 计时中如果stop_event触发就停止
             # 计算剩余时间
-            now = time.time()
             remaining_time = end_time - now
             # 计算预计完成时间
             finish_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(end_time))
             # 打印剩余时间和预计完成时间
             print(f"剩余时间: {int(remaining_time)} 秒 | 预计结束时间: {finish_time}, 输入 \'q\' 以跳过", end="\r")
+            if directon==0:
+                Info = {
+                    '进料液体': name,
+                    '进料转速': str(rpm) + ' 转/min',
+                    '剩余时间' : str(int(remaining_time)) + ' s',
+                    '预计结束时间' : finish_time
+                }
+                Flowdisplay.update_process_display_dict(Process=None, Action='蠕动泵反转', Info=Info)
+            elif name != '':
+                Info = {
+                    '进料液体': name,
+                    '进料转速': str(rpm) + ' 转/min',
+                    '已加料体积': str(volume*(seconds-remaining_time)/seconds) + ' ml',
+                    '目标体积': str(volume) + ' ml',
+                    '剩余时间' : str(int(remaining_time)) + ' s',
+                    '预计结束时间' : finish_time
+                }
+                Flowdisplay.update_process_display_dict(Process=None, Action='液料滴加', Info=Info)
             time.sleep(1)
             seconds -= 1
 

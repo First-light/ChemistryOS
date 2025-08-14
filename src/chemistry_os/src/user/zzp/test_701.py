@@ -17,8 +17,8 @@ from facilities.facility_system import System
 
 add_Solid=Add_Solid('add_Solid')
 with add_Solid:
-    # add_Solid.add_solid_series(0.5)
-    add_Solid.tube_ver()
+    add_Solid.add_solid_series(0.5)
+    # add_Solid.tube_ver()
     # add_Solid.clip_open()
     # add_Solid.clip_close()
     # add_Solid.tube_hor()
