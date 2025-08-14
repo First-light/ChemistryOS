@@ -7,10 +7,8 @@ from facilities.facility_filter import Filter
 from facilities.facility_system import System
 from facilities.facility_parser import CommandParser 
 
-
-if __name__ == '__main__':
-
-    main_sys = System("os")
+@staticmethod
+def main_thread_func():
     # filter = Filter("filter")
     main_parser = CommandParser()
     main_parser.start()
@@ -19,15 +17,14 @@ if __name__ == '__main__':
     
     main_server.register("log", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
     main_server.register("facility_location",200, System.facility_location)
-    # main_server.register("flow", 50, Flowdisplay.process_display_dict, Flowdisplay.update_process_display_dict)
     
-
-    main_server.start()
-
-
-        # 保持主线程运行
     try:
         while True:
             time.sleep(0.1)
     except KeyboardInterrupt:
-        main_parser.end()
+        print("主线程退出")
+
+if __name__ == '__main__':
+    main_sys = System("os")
+    main_sys.main_thread_target = main_thread_func
+    main_sys.start()

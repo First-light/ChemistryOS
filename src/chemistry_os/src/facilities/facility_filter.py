@@ -1,4 +1,6 @@
 import sys
+
+
 sys.path.append('src/chemistry_os/src')
 import time
 from time import sleep
@@ -6,6 +8,7 @@ from serial.tools import list_ports
 import serial
 from facility import Facility
 from utilities.utility_param import ParamUtils
+from utilities.utility_emergency import EmergencyUtils
 import time
 
 
@@ -47,6 +50,12 @@ class Filter(Facility):
             "acid": AddressEnum.ACID.value,
             "pump": AddressEnum.PUMP.value
         }
+        self.pump_dict = {
+            "solvent": {"state": 0, "address": AddressEnum.SOLVENT.value},
+            "water": { "state": 0, "address": AddressEnum.WATER.value},
+            "acid": { "state": 0, "address": AddressEnum.ACID.value},
+            "pump": { "state": 0,"address": AddressEnum.PUMP.value},
+        }
         self.ser = None
         self.liquid_convert_dict = {
             "solvent": {"volume":20,"speed":0,"param":0.007 * 0.1,"extra_volume":0.0},
@@ -87,6 +96,28 @@ class Filter(Facility):
         self.parser.register("data", self.print_data, {}, "check data")
         self.parser.register("load", self.liquid_load, {
                              "name": "empty"}, "load liquid into pump by name")
+
+    def cmd_error_handing(self):
+        self.pump_control_name("solvent",0)
+        self.pump_control_name("acid",0)
+        self.pump_control_name("water",0)
+        self.pump_control_name("pump",0)
+        self.valve_A_control(0)
+        self.valve_B_control(0)
+        self.facility_emergency = True
+
+    def cmd_stop_handing(self):
+        self.pump_control_name("solvent",0)
+        self.pump_control_name("acid",0)
+        self.pump_control_name("water",0)
+        self.pump_control_name("pump",0)
+        self.valve_A_control(0)
+        self.valve_B_control(0)
+        self.facility_emergency = True
+
+
+    def cmd_reset(self):#从error/stop恢复idle的状态
+        pass
 
     def filter_process_A(self):
         """
@@ -172,23 +203,6 @@ class Filter(Facility):
         """
         初始化蠕动泵
         """
-        # self.log.info(f"蠕动泵初始化")
-        # steps = [
-        #     lambda: self.set_pump_dir_name("pump", 0),
-        #     lambda: self.set_pump_speed_name("pump", 800),
-        #     lambda: self.set_pump_dir_name("water", 1),
-        #     lambda: self.set_pump_speed_name("water", 800),
-        #     lambda: self.set_pump_dir_name("acid", 1),
-        #     lambda: self.set_pump_speed_name("acid", 800),
-        #     lambda: self.set_pump_dir_name("solvent", 1),
-        #     lambda: self.set_pump_speed_name("solvent", 500),
-        # ]
-        # for step in steps:
-        #     result = step()
-        #     if result is None:
-        #         self.log.warning("蠕动泵初始化中断，请检查设备连接和配置")
-        #         return
-        # self.log.info("蠕动泵初始化完成")
         self.set_pump_dir_name("pump", 0),
         self.set_pump_speed_name("pump", 800),
         self.set_pump_dir_name("water", 1),
@@ -223,11 +237,15 @@ class Filter(Facility):
         :param name: 蠕动泵名称
         :param state: 1=打开, 0=关闭
         """
+        
         if name not in self.sub_addresses:
             self.log.warning(f"无效的蠕动泵名称: {name}")
-            return
-        address = self.sub_addresses[name]
-        return self.pump_control(address, state)
+        else:
+            address = self.sub_addresses[name]
+            old_state = self.pump_dict[name]["state"]
+            if not old_state == state:
+                self.pump_dict[name]["state"] = state
+                return self.pump_control(address, state)
     
     def pump_run_time(self, name: str, sec: float):
         """
@@ -282,6 +300,7 @@ class Filter(Facility):
         :param address: 蠕动泵设备地址
         :param state: 1=打开, 0=关闭
         """
+
         if address == self.sub_addresses["empty"]:
             self.log.warning("地址为空，无法发送指令")
             return
@@ -289,6 +308,7 @@ class Filter(Facility):
         if state_int not in [0, 1]:
             self.log.warning("无效的阀门状态，请输入 1 或 0")
             return
+        
         state_byte = state_int.to_bytes(1, byteorder='big')
         command = [self.address, 0x01, address, 0x00, state_byte[0], 0x55]
         return self.send_command(command)
@@ -325,7 +345,9 @@ class Filter(Facility):
         if not self.ifconnect:
             self.log.warning(f"发送指令失败 {command_t} 设备未连接，请检查连接")
             return None
-    
+        elif self.facility_emergency:
+            self.log.warning(f"发送指令失败 {command_t} 设备处于紧急状态")
+            return None
         wait_time = 2.0
         try:
             with serial.Serial(port=self.com, baudrate=self.baudrate, timeout=1, stopbits=2) as ser:
@@ -334,14 +356,14 @@ class Filter(Facility):
                 self.log.info(f"发送指令: {command_t}")
                 start_time = time.time()
                 while True:
-                    sleep(0.01)
+                    sleep(0.001)
                     if ser.in_waiting > 0:
                         # 读取设备响应
                         response = ser.read(ser.in_waiting)
                         response_str = response.decode('utf-8', errors='ignore')
                         self.log.info(f"设备响应: {response}")
 
-                        time.sleep(1.0)  # 确保串口数据发送完成
+                        time.sleep(0.1)  # 确保串口数据发送完成
                         return response_str
                     if time.time() - start_time > wait_time:
                         # 超过等待时间，认为超时

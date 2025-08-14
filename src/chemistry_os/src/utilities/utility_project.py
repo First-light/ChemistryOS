@@ -2,10 +2,15 @@ from dataclasses import dataclass
 import sys
 import os
 from datetime import datetime
-from typing import Literal
+from typing import Any, Callable, Literal, overload
 import typing
+import json
+import inspect
 sys.path.append('src/chemistry_os/src')
+from exceptions import ProjectUtilsError
+from utilities.utility_log import LogUtils
 from structs import ServerMod
+from facility import Facility
 
 @dataclass
 class LogTuple:
@@ -17,17 +22,122 @@ class ProjectUtils:
     objects_dict = {}
     configs_dict = {}
     process_dict = {}
+    _process_counter = 1  # 用于自动分配流程名称
+    output_dir:str = "src/chemistry_os/src/facilities/projects"
 
     @staticmethod
-    def register_object(name: str, obj: typing.Any):
-        """Register an object with a name."""
-        ProjectUtils.objects_dict[name] = obj
+    def register_object(name: str, obj_type: str = None, args:dict = {}):
+        """
+        注册对象信息
+        :param name: 对象名称
+        :param obj_type: 对象类型，如果不提供将尝试从 facility 中获取
+        :param kwargs: 对象的其他参数
+        """
+        # 如果没有提供类型，尝试从 Facility.tuple_list 中获取
+        if obj_type is None:
+            facility_obj = Facility.get_facility_by_name(name)
+            if facility_obj:
+                obj_type = facility_obj.type
+            else:
+                raise ValueError(f"未找到名为 {name} 的对象，且未提供对象类型")
+        
+        # 构建对象信息
+        obj_info = {"type": obj_type}
+        obj_info.update(args)
+        
+        ProjectUtils.objects_dict[name] = obj_info
+        LogUtils.log.info(f"json对象: {name}, 类型: {obj_type}, 参数: {args}")
+
 
     @staticmethod
-    def register_process(name: str, process: typing.Any):
-        """Register a process with a name."""
-        ProjectUtils.process_dict[name] = process
+    def register_process(obj_name: str, command_name: str, parameters=None, process_name: str = None):
+        """
+        处理字符串方式的流程注册
+        :param obj_name: 对象名称
+        :param command_name: 命令名称
+        :param parameters: 参数，支持列表或字典形式
+        :param process_name: 流程名称，如果为None则自动生成
+        """
+        try:
+            if parameters is None:
+                parameters = {}
+                
+            # 生成流程名称
+            if process_name is None:
+                process_name = f"step{ProjectUtils._process_counter}"
+                ProjectUtils._process_counter += 1
+                
+            # 验证对象是否存在
+            facility_obj = Facility.get_facility_by_name(obj_name)
 
+            if not facility_obj:
+                raise ProjectUtilsError(f"对象 {obj_name} 不存在于系统中",)
+            
+            # 获取对象的预制参数
+            predef_params = ProjectUtils._get_command_params(facility_obj, command_name)
+            
+            if predef_params is None:
+                raise ProjectUtilsError(f"对象 {obj_name} 中未找到命令 {command_name}")
+            
+            # 处理参数
+            final_parameters = ProjectUtils._process_parameters(parameters, predef_params)
+            
+            # 构建流程信息
+            process_info = {
+                "object": obj_name,
+                "command": command_name,
+                "parameters": final_parameters
+            }
+            
+            ProjectUtils.process_dict[process_name] = process_info
+            LogUtils.log.info(f"注册流程: {process_name} -> {obj_name} {command_name} {final_parameters}")
+            
+            return True
+            
+        except ProjectUtilsError as e:
+            LogUtils.log.error(f"流程注册失败: {e.message}")
+            return False
+
+    @staticmethod
+    def _get_command_params(facility_obj:Facility, command_name: str):
+        if command_name in facility_obj.parser.commands:
+            return facility_obj.parser.commands[command_name]['params'].copy()
+        else:
+            return None
+
+    @staticmethod
+    def _process_parameters(input_params, predef_params: dict):
+        if input_params is None or (isinstance(input_params, list) and len(input_params) == 0):
+            # 如果没有输入参数，返回预制参数
+            return predef_params
+        
+        # 处理列表形式的参数
+        if isinstance(input_params, list):
+            param_keys = list(predef_params.keys())
+            if len(input_params) > len(param_keys):
+                raise ProjectUtilsError(f"参数数量过多:只接受 {len(param_keys)} 个参数，但提供了 {len(input_params)} 个")
+            
+            result_params = predef_params.copy()
+            for i, value in enumerate(input_params):
+                if i < len(param_keys):
+                    key = param_keys[i]
+                    result_params[key] = value
+                
+            return result_params
+        
+        # 处理字典形式的参数
+        elif isinstance(input_params, dict):
+            # 检查输入的键是否都存在于预制参数中
+            for key in input_params.keys():
+                if key not in predef_params:
+                    raise ProjectUtilsError(f"未知参数键: {key}，只支持以下参数: {list(predef_params.keys())}")
+
+            return input_params
+        
+        else:
+            raise ProjectUtilsError(f"不支持的参数类型: {type(input_params)}，请使用列表或字典形式")
+
+    
     @staticmethod
     def register_sub_process(name: str, sub_process: typing.Any):
         """Register a subprocess with a name."""
@@ -35,9 +145,85 @@ class ProjectUtils:
             ProjectUtils.process_dict['sub_processes'] = {}
         ProjectUtils.process_dict['sub_processes'][name] = sub_process
         
+
+
+
     @staticmethod
-    def make_json()
+    def _build_json_data():
+        """
+        构建 JSON 数据结构
+        :return: 完整的 JSON 数据字典
+        """
+        return {
+            "objects": ProjectUtils.objects_dict.copy(),
+            "configs": {
+                "sequence": list(ProjectUtils.process_dict.keys()),
+                "startStep": 1,
+                "endCondition": "completion"
+            },
+            "process": ProjectUtils.process_dict.copy()
+        }
+
+    @staticmethod
+    def make(json_name: str = "generated_project"):
+        """
+        生成 JSON 文件
+        :param json_name: JSON 文件名（不包含扩展名）
+        """
+        # 使用公共方法构建 JSON 数据
+        json_data = ProjectUtils._build_json_data()
+        
+        # 确保目录存在
+        output_dir = ProjectUtils.output_dir
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # 构建文件路径
+        file_path = os.path.join(output_dir, f"{json_name}.json")
+        
+        # 写入 JSON 文件
+        try:
+            with open(file_path, 'w', encoding='utf-8') as f:
+                json.dump(json_data, f, ensure_ascii=False, indent=4)
+            LogUtils.log.info(f"JSON 文件已生成: {file_path}")
+            return file_path
+        except Exception as e:
+            LogUtils.log.error(f"生成 JSON 文件时出错: {e}")
+            return None
+    
+
 
 
 
     
+    @staticmethod
+    def show_registered_data():
+        """显示当前注册的所有数据"""
+        LogUtils.log.info("=== 已注册的对象 ===")
+        for name, info in ProjectUtils.objects_dict.items():
+            LogUtils.log.info(f"  {name}: {info}")
+        
+        LogUtils.log.info("=== 已注册的流程 ===")
+        for name, info in ProjectUtils.process_dict.items():
+            LogUtils.log.info(f"  {name}: {info}")
+        
+        LogUtils.log.info("=== JSON 预览 ===")
+        # 使用公共方法构建 JSON 数据并显示预览
+        preview_json = ProjectUtils._build_json_data()
+        
+        # 格式化 JSON 并显示
+        try:
+            json_preview = json.dumps(preview_json, ensure_ascii=False, indent=2)
+            LogUtils.log.info(f"\n{json_preview}")
+        except Exception as e:
+            LogUtils.log.error(f"生成 JSON 预览时出错: {e}")
+
+    @staticmethod
+    def clear_all():
+        """清空所有注册的数据"""
+        ProjectUtils.objects_dict.clear()
+        ProjectUtils.process_dict.clear()
+        ProjectUtils._process_counter = 1
+        LogUtils.log.info("已清空所有注册数据")
+
+
+

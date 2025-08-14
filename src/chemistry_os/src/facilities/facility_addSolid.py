@@ -488,6 +488,16 @@ class Add_Solid(Facility):
                     return True
             return False
 
+
+    def cmd_error_handing(self):
+        pass
+    
+    def cmd_stop_handing(self):
+        pass
+
+    def cmd_reset(self):#从error/stop恢复idle的状态
+        pass
+
     def cmd_init(self):
         """注册命令到解析器"""
         self.parser.register("add_solid_turn_on", self.turn_on, None, "Turn on the add solid device")

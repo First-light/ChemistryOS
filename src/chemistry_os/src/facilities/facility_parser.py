@@ -18,11 +18,13 @@ class CommandParser(Facility):
     unity_flag = BufferMod.NONE
     type = "parser"
 
-    def __init__(self,name = "parser"):
-        super().__init__(name, type = CommandParser.type)
+    def __init__(self,name = "parser",skip_append=False):
+        super().__init__(name, type = CommandParser.type, skip_append=skip_append)
         self.buffer = []
         self.buffer_thread = None
-        self.input_thread = None
+        self.input_thread_shell = None
+        self.input_thread_curses = None
+        self.input_thread_unity = None
         self.running = False
         self.init_dict = ParamUtils.get_init_params(self)
 
@@ -35,21 +37,21 @@ class CommandParser(Facility):
             self.buffer_thread.daemon = True
             self.buffer_thread.start()
 
-        if input == "shell":
+        if input == "shell" :
             self.log.info("开启命令行输入")
-            self.input_thread = threading.Thread(target=self.shell_input)
-            self.input_thread.daemon = True
-            self.input_thread.start()
+            self.input_thread_shell = threading.Thread(target=self.shell_input)
+            self.input_thread_shell.daemon = True
+            self.input_thread_shell.start()
         elif input == "curses":
-            self.log.info("开启指令解析")
-            self.input_thread = threading.Thread(target=self.curses_input)
-            self.input_thread.daemon = True
-            self.input_thread.start()
+            self.log.info("开启curses输入")
+            self.input_thread_curses = threading.Thread(target=self.curses_input)
+            self.input_thread_curses.daemon = True
+            self.input_thread_curses.start()
         elif input == "unity":
             self.log.info("开启远程输入")
-            self.input_thread = threading.Thread(target=self.unity_input)
-            self.input_thread.daemon = True
-            self.input_thread.start()
+            self.input_thread_unity = threading.Thread(target=self.unity_input)
+            self.input_thread_unity.daemon = True
+            self.input_thread_unity.start()
         elif input == "none":
             pass
         else:
@@ -64,8 +66,8 @@ class CommandParser(Facility):
         
         if self.buffer_thread:
             self.buffer_thread.join()
-        if self.input_thread:
-            self.input_thread.join()
+        if self.input_thread_shell:
+            self.input_thread_shell.join()
 
     def parse_buffer(self):
         while self.running:
@@ -118,6 +120,15 @@ class CommandParser(Facility):
             cmd = facility_t.parser.cmd
             ret = cmd(command)
             return ret
+        
+    def cmd_error_handing(self):
+        pass
+
+    def cmd_stop_handing(self):
+        pass
+
+    def cmd_reset(self):#从error/stop恢复idle的状态
+        pass
 
 
 

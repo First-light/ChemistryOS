@@ -5,3 +5,5 @@ gitlab master 访问令牌:sreFnxGoRU2weEJVk223
 每个人请将自己的测试.py代码放于 user/你的名字/ 下进行运行测试
 
 source .venv/bin/activate 
+
+src/main.py为程序编辑模板

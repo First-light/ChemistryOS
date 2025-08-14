@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from logging import Logger
 import sys
 import os
 from datetime import datetime
@@ -19,5 +20,7 @@ class LogUtils:
         "data": None,
         "server_mod": int(ServerMod.SKIP.value),
     }  # 公用日志缓存区字典
+    log:Logger = None #公用logger
+
 
     
