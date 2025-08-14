@@ -369,7 +369,7 @@ class Add_Solid(Facility):
 
             if self._mode == Add_Solid.ThreadMode.MCU_MODE:
                 print('等待直到 MCU 状态空闲')
-                status = self._thread.wait_until_idle()
+                status = self._thread.wait_until_idle(cmd)
 
         return status
 
@@ -472,15 +472,21 @@ class Add_Solid(Facility):
             with self.sending_lock:
                 self._stop_status = True
 
-        def wait_until_idle(self, timeout: Optional[float] = None) -> bool:
+        def wait_until_idle(self, cmd: 'Add_Solid.McuControlCommandTypedef' = None, timeout: Optional[float] = None) -> bool:
             start_time = time.thread_time_ns()
             end_time = time.thread_time_ns()
-            period = (start_time - end_time) / 1.0e9
+            period = (end_time - start_time) / 1.0e9
             while not timeout or period < timeout:
+                if cmd.cmd == Add_Solid.CommandCode.BEGIN:
+                    Info = {
+                        '现有重量' : str(self.latest_frame.weight_now) + ' g',
+                        '目标重量' : str(self.latest_frame.weight_target) + ' g'
+                    }
+                    Flowdisplay.update_process_display_dict(Process=None, Action='固体振动进料', Info=Info)
                 if self._frame_arrive_event.wait(timeout=timeout - period if timeout else 1.0):
                     self._frame_arrive_event.clear()
                 end_time = time.thread_time_ns()
-                period = (start_time - end_time) / 1.0e9
+                period = (end_time - start_time) / 1.0e9
                 if self.is_alive() and not self._stop_status:
                     if self.latest_frame.status == Add_Solid.Status.IDLE and self.sending_cmd is None:
                         return True
@@ -490,10 +496,10 @@ class Add_Solid(Facility):
 
 
     def cmd_error_handing(self):
-        pass
+        self.turn_off()
     
     def cmd_stop_handing(self):
-        pass
+        self.turn_off()
 
     def cmd_reset(self):#从error/stop恢复idle的状态
         pass
@@ -660,7 +666,7 @@ if __name__ == '__main__':
     with controller:
         # controller.clip_open()
         # controller.tube_hor()
-        # controller.add_solid_series(0.5)
+        controller.add_solid_series(0.5)
         # controller.tube_ver()
         controller.clip_close()
     # controller.initialize_serial()
@@ -710,6 +716,6 @@ if __name__ == '__main__':
     with controller:
         # controller.clip_open()
         # controller.tube_hor()
-        # controller.add_solid_series(0.5)
+        controller.add_solid_series(0.5)
         # controller.tube_ver()
-        controller.clip_close()
+        # controller.clip_close()

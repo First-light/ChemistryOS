@@ -18,6 +18,7 @@ class Project(Facility):
     def __init__(self, name: str, file: str):
         super().__init__(name, Project.type)    
         self.step = 1
+        self.dict = {}
         self.project_state = ProjectState.INIT
         self.data_type = ""
         self.cmd_load(file)
@@ -46,7 +47,7 @@ class Project(Facility):
                 time.sleep(0.1)
 
             elif self.project_state == ProjectState.QUIT:
-                print("quit")
+                self.log.info("流程结束")
                 self.project_state = ProjectState.INIT
                 self.step = self.dict['configs']['startStep']
 
@@ -129,12 +130,11 @@ class Project(Facility):
             return True
 
     def executor_step_up(self,ret):
-        print(f"ret: {ret}")
         if ret != 0:
             self.cmd_project_stop()
-            print(f"Failed to execute step {self.step}.")
+            self.log.error(f"步骤 {self.step} 执行失败.")
         else:
-            print(f"Successfully executed step {self.step}.")
+            self.log.info(f"步骤 {self.step} 执行成功.")
             self.step += 1
         if self.step > self.max_step:
             self.project_state = ProjectState.QUIT
@@ -178,7 +178,7 @@ class Project(Facility):
                     ret = self.sub_parser.parse(result_str)
                     self.executor_step_up(ret)
                 except HNSystemError as e:
-                    print('handle error:', e)
+                    self.log.error('handle error:', e)
                     self.cmd_project_stop()
                     for tuple_t in Facility.tuple_list:
                         name = tuple_t[0]
@@ -191,11 +191,11 @@ class Project(Facility):
 
     def cmd_project_step(self):
         if self.project_state == ProjectState.READY or self.project_state == ProjectState.PAUSE:
-            print("execute one step.")
+            self.log.info("单步执行")
             self.executor_running()
             return
         else :
-            print("Project need Ready.")
+            self.log.warning("流程未处于 READY 或 PAUSE 状态")
 
 
     def cmd_init(self):
@@ -225,35 +225,35 @@ class Project(Facility):
         def print_steps(sequence, global_step_counter, indent=0):
             for step in sequence:
                 if step in self.dict['process'] and 'sequence' in self.dict['process'][step]:
-                    print(f"{' ' * indent}步骤 {global_step_counter[0]}: {step}")
-                    print(f"{' ' * (indent + 2)}子步骤:")
+                    self.log.info(f"{' ' * indent}步骤 {global_step_counter[0]}: {step}")
+                    self.log.info(f"{' ' * (indent + 2)}子步骤:")
                     print_steps(self.dict['process'][step]['sequence'], global_step_counter, indent + 4)
                 else:
                     current_marker = " <-- 当前步骤" if global_step_counter[0] == self.step else ""
-                    print(f"{' ' * indent}步骤 {global_step_counter[0]}: {step}{current_marker}")
+                    self.log.info(f"{' ' * indent}步骤 {global_step_counter[0]}: {step}{current_marker}")
                     global_step_counter[0] += 1
 
-        print("="*40)
-        print(f"当前流程状态: {self.project_state.name}")
-        print("="*40)
+        self.log.info("="*40)
+        self.log.info(f"当前流程状态: {self.project_state.name}")
+        self.log.info("="*40)
         
-        print("流程中的所有步骤:")
+        self.log.info("流程中的所有步骤:")
         global_step_counter = [1]
         print_steps(self.dict['configs']['sequence'], global_step_counter)
         
-        print("\n涉及的对象:")
+        self.log.info("\n涉及的对象:")
         for obj in self.dict['objects']:
-            print(f"对象: {obj}")
+            self.log.info(f"对象: {obj}")
         
-        print("="*40)
+        self.log.info("="*40)
 
 
     def cmd_objects_supple(self):
         if self.dict is None:
-            print("No file loaded")
+            self.log.info("流程信息为空")
             return
         
-        print("Supple missing objects")
+        self.log.warning("查找缺失对象")
         obj_name_list = []
 
         for tuple_t in Facility.tuple_list:
@@ -262,59 +262,61 @@ class Project(Facility):
 
         for file_obj_name in self.dict['objects']:
             if any(obj_name == file_obj_name for obj_name in obj_name_list):
-                print(f"Object {file_obj_name} exists in the system.")
+                self.log.info(f"对象 {file_obj_name} 存在")
             else:
-                # 读取self.data['objects'][file_obj_name]['type']的信息,调用sub_parser的parse方法，输入“os {type} 键1=键的值 ......”
-                print(f"Create object {file_obj_name} in the system.")
-                # 读取 self.data['objects'][file_obj_name]['type'] 的信息
-                obj_type = self.dict['objects'][file_obj_name]['type']
-                obj_params = self.dict['objects'][file_obj_name]
-                # 构建参数字符串
-                obj_params_str = " ".join([f"{key}={value}" for key, value in obj_params.items() if key != 'type'])
-                # 构建最终的命令字符串
-                result_str = f"os {obj_type} name={file_obj_name} {obj_params_str}"
-                # 调用 sub_parser 的 parse 方法
-                ret = self.sub_parser.parse(result_str)
-                if ret != 0:
-                    print(f"Failed to create object {file_obj_name} in the system.")
-                    break
+                self.log.error(f"对象 {file_obj_name} 不存在")
+                break
+                # # 读取self.data['objects'][file_obj_name]['type']的信息,调用sub_parser的parse方法，输入“os {type} 键1=键的值 ......”
+                # print(f"Create object {file_obj_name} in the system.")
+                # # 读取 self.data['objects'][file_obj_name]['type'] 的信息
+                # obj_type = self.dict['objects'][file_obj_name]['type']
+                # obj_params = self.dict['objects'][file_obj_name]
+                # # 构建参数字符串
+                # obj_params_str = " ".join([f"{key}={value}" for key, value in obj_params.items() if key != 'type'])
+                # # 构建最终的命令字符串
+                # result_str = f"os {obj_type} name={file_obj_name} {obj_params_str}"
+                # # 调用 sub_parser 的 parse 方法
+                # ret = self.sub_parser.parse(result_str)
+                # if ret != 0:
+                #     print(f"Failed to create object {file_obj_name} in the system.")
+                #     break
         
     def cmd_project_start_step(self, step: int):
         self.step = step
         self.project_state = ProjectState.INIT
-        print(f"项目从步骤 {step} 开始。")
+        self.log.info(f"项目从步骤 {step} 开始。")
         self.executor_check_all()
 
     def cmd_project_run(self):
         if self.dict is None:
-            print("No file loaded")
+            self.log.warning("未装载文件")
             return
         
         elif self.project_state == ProjectState.INIT:
             self.executor_check_all()
 
         elif self.project_state == ProjectState.READY:
-            print("running")
+            self.log.info("开始运行")
             self.project_state = ProjectState.RUNNING
 
         elif self.project_state == ProjectState.PAUSE:
-            print("PAUSE状态，无法运行。")
+            self.log.warning("PAUSE状态，无法运行。")
         
 
     # stop 即流程控制器不继续派发流程
     def cmd_project_stop(self):
-        print(f"project {self.name} stop")
+        self.log.info(f"流程 {self.name} 暂停")
         self.project_state = ProjectState.PAUSE
 
     def cmd_project_continue(self):
         if self.project_state == ProjectState.PAUSE:
-            print(f"project {self.name} continue")
+            self.log.info(f"流程 {self.name} 继续")
             self.project_state = ProjectState.RUNNING
         else :
-            print("Project need Pause.")
+            self.log.info("状态错误，流程无法继续")
 
     def cmd_project_exit(self):
-        print(f"project {self.name} exit")
+        self.log.info(f"流程 {self.name} 结束")
         self.project_state = ProjectState.QUIT
 
     def cmd_load(self, file: str):

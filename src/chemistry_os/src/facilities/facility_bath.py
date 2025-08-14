@@ -310,7 +310,7 @@ class Bath(Facility):
                     '当前温度': now_tmp,
                     '预计剩余时间': remaining_time
                 }
-                Flowdisplay.update_process_display_dict(Process=None, Action=None, Info=Info)
+                Flowdisplay.update_process_display_dict(Process=None, Action='水浴锅控温', Info=Info)
                 
                 time.sleep(1)
                 now_tmp = self.read_temp()
