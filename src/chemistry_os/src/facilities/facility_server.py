@@ -56,6 +56,15 @@ class TCPServer(Facility):
     def cmd_init(self):
         pass
 
+    def cmd_error_handing(self):
+        pass
+
+    def cmd_stop_handing(self):
+        pass
+
+    def cmd_reset(self):#从error/stop恢复idle的状态
+        pass
+
     def units_init(self):
         pass
         # self.register("temperature_unit", 10, {"temperature": 25.0})

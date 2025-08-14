@@ -4,8 +4,9 @@ import logging  # 添加日志模块
 import os
 from datetime import datetime  # 用于生成时间戳
 from typing import List, Optional
-
 sys.path.append('src/chemistry_os/src')
+from utilities.utility_emergency import EmergencyUtils
+from utilities.utility_log import LogUtils
 from abc import ABC, abstractmethod
 from facilities.pkgcmd import PkgCmdParser
 from structs import FacilityState
@@ -13,9 +14,6 @@ from structs import ServerMod
 from interfaces import IFacility  # 依赖接口而不是具体类
 from utilities.utility_file import FileUtils  
 import time
-
-import typing
-from typing import Callable
 
 @dataclass
 class FacilityTuple:
@@ -33,37 +31,42 @@ class Facility(ABC,IFacility):
     }  # 公用日志缓存区字典
 
 
-    def __init__(self, name: str, type: str):
+    def __init__(self, name: str, type: str,skip_append:bool = False):
         self.name = name
         self.type = type
         self.state = FacilityState.IDLE
-        
+        self.facility_emergency = False  
 
-        # self.object_init_list = ["flowdisplay"]  # 用于存储对象初始化列表
+        if EmergencyUtils.if_emergency:
+            return
+        elif not skip_append:
+            # 检查是否存在重复的 name 和 type 参数对
+            if any(name == facility_tuple.name for facility_tuple in Facility.tuple_list):
+                # if LogUtils.log is not None:
+                LogUtils.log.error(f"重复设备名称:{name}")
+            # 存储 name 和 type 参数对
+            else:
+                # 初始化日志记录器
+                self.log_init()
+                # 注册父类的命令
+                self.parser = PkgCmdParser(self)
+                self.cmd_public_init()
+                # 注册子类的命令
+                self.cmd_init()
 
-        # if type not in self.object_init_list:
-        #     for facility in Facility.tuple_list:
-        #         if facility[0] == name and isinstance(facility[3], expected_type):
-        #             return facility[3]  # 返回实例化的对象引用
-
-
-        # 初始化日志记录器
-        self.log_init()
-        self.parser = PkgCmdParser(self)
-
-        # 注册父类的命令
-        self.cmd_public_init()
-        # 注册子类的命令
-        self.cmd_init()
-        
-        # 检查是否存在重复的 name 和 type 参数对
-        if any(name == facility_tuple.name for facility_tuple in Facility.tuple_list):
-            self.log.warning(f"重复设备名称:{name}")
-        # 存储 name 和 type 参数对
+                facility_tuple = FacilityTuple(name, type, self.parser, self)
+                
+                Facility.tuple_list.append(facility_tuple)
+                self.log.info(f"成功实例化对象:{self}")
         else:
-            facility_tuple = FacilityTuple(name, type, self.parser, self)
-            Facility.tuple_list.append(facility_tuple)
-            self.log.info(f"成功实例化对象:{self}")
+            # 初始化日志记录器
+            self.log = LogUtils.log
+            # 注册父类的命令
+            self.parser = PkgCmdParser(self)
+            self.cmd_public_init()
+            # 注册子类的命令
+            self.cmd_init()
+        
         
     def delay(self, sec):
         print("delay ", sec)
@@ -78,12 +81,17 @@ class Facility(ABC,IFacility):
     def cmd_init(self):
         pass
 
-    def cmd_error(self):
-        self.log.error("error")
+    @abstractmethod
+    def cmd_error_handing(self):
+        pass
 
-    # @abstractmethod
-    def cmd_stop(self):
-        self.log.info("!!!急停启动!!!")
+    @abstractmethod
+    def cmd_stop_handing(self):
+        pass
+
+    @abstractmethod
+    def cmd_reset(self):#从error/stop恢复idle的状态
+        pass
         
     @staticmethod
     def get_facility_by_name(name: str,if_type = None, if_log: bool = False,if_error:bool = False) -> Optional['Facility']:
@@ -126,7 +134,7 @@ class Facility(ABC,IFacility):
             for log in Facility.log_cache:
                 print(log)
             print("=PRINT-END=")
-    
+
     def log_init(self):
         """
         初始化日志记录器，支持控制台和文件输出，并确保日志目录和文件存在
@@ -159,6 +167,7 @@ class Facility(ABC,IFacility):
 
         # 添加日志到缓存区
         self.log.addHandler(self.cache_handler())
+
 
     def cache_handler(self):
         """

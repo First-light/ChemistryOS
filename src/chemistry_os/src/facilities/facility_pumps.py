@@ -16,14 +16,16 @@ class PumpGroup(Facility):
     def __init__(self, name: str):
         super().__init__(name, PumpGroup.type)
         self.init_dict = ParamUtils.get_init_params(self)
-        
+        # self.data_dict = {
+        #     "joint_angles": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        #     "gripper_position":0.0,
+        #     "gripper_contain":""
+        # }
     def cmd_init(self):
         """
         注册指令
         """
         self.parser.register("init", self.cmd_init, {}, "初始化泵组")
-        self.parser.register("error", self.cmd_error, {}, "处理错误")
-        self.parser.register("stop", self.cmd_stop, {}, "停止泵组")
         self.parser.register("writespeed", self.writespeed, {
             "addr": 0, "speed": 0}, "设置泵的转速")
         self.parser.register("startadd", self.startadd, {
@@ -35,11 +37,22 @@ class PumpGroup(Facility):
         self.parser.register("add_liquid", self.add_liquid, {
             "name": "", "rpm": 0, "volume": 0}, "添加液体")
 
-    def cmd_error(self):
-        self.log.info("发生错误")
+    def cmd_error_handing(self):
+        self.stopadd(0x12)
+        self.stopadd(0x13)
+        self.stopadd(0x14)
+        self.stopadd(0x15)
+        pass
 
-    def cmd_stop(self):
-        self.log.info("停止泵组")
+    def cmd_stop_handing(self):
+        self.stopadd(0x12)
+        self.stopadd(0x13)
+        self.stopadd(0x14)
+        self.stopadd(0x15)
+        pass
+
+    def cmd_reset(self):#从error/stop恢复idle的状态
+        pass
 
     def convert_and_split_hex(self, value):
         if value < 0:
@@ -145,6 +158,7 @@ class PumpGroup(Facility):
 
         except Exception as e:
             self.log.info("Error1: " + str(e))
+
     def liquid_wash(self, name, rpm, tim):
         if name=='ice':
             addr=0x02

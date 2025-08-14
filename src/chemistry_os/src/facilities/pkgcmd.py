@@ -6,6 +6,7 @@ import shlex
 from prettytable import PrettyTable
 from structs import FacilityState
 from interfaces import IFacility  # 依赖接口而不是具体类
+from utilities.utility_log import LogUtils
 
 class CommandInfo(TypedDict):
     cmd: Callable

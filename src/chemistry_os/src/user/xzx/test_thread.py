@@ -10,14 +10,12 @@ from facilities.facility_parser import CommandParser
 from facilities.facility_server import TCPServer
 import time
 import sys
-
-sys.path.append('src/chemistry_os/src')
-
 @staticmethod
 def main_thread_func():
     fr5 = Fr5Arm("fr5A","192.168.58.2")
     fr5.Go_to_start_zone_0()
-
+    bath = Bath('bath')
+    filter = Filter("filter")
 
     main_server = TCPServer()
     
@@ -30,7 +28,17 @@ def main_thread_func():
     main_parser.parse("os project name=pro file=fr5.json")
     main_parser.parse("os check")
     main_parser.start()
-    
+
+    input("ok?")
+
+    bath.power_ctr(1)
+    bath.mix_ctr(1)
+    bath.circle_ctr(1)# 允许circle
+    bath.hot_ctr(1)# 加热
+    bath.cold_ctr(1)# 允许制冷
+
+    filter.pump_control_name("acid",1)
+
     try:
         while True:
             time.sleep(0.1)

@@ -15,6 +15,15 @@ class Item_Cup(Facility):
     def cmd_init(self):
         self.parser.register("data", self.show_data, {"param1": 0, "param2": 1}, "output test")
 
+    def cmd_error_handing(self):
+        pass
+
+    def cmd_stop_handing(self):
+        pass
+
+    def cmd_reset(self):#从error/stop恢复idle的状态
+        pass
+
     def listen(self):
         while True:
             if self.state == FacilityState.ERROR:

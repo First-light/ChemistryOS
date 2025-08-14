@@ -5,10 +5,9 @@ from dataclasses import dataclass
 
 class FacilityState(Enum):
     IDLE = 0 # 空闲
-    WAIT = 1 # 等待
-    BUSY = 2 # 忙碌
-    STOP = 3 # 停止
-    ERROR = 4  # 错误
+    BUSY = 1 # 忙碌
+    STOP = 2 # 停止
+    ERROR = 3  # 错误
 
 class ProjectState(Enum):
     INIT = 0  # 初始化

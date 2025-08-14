@@ -1,7 +1,9 @@
+import datetime
 import heapq
 import json
 import sys
 import sys
+import threading
 sys.path.append('src/chemistry_os/src')
 import lib.fairino.Robot as Robot
 from user.zzp.simple_client import TCPClient
@@ -27,9 +29,11 @@ class Fr5Arm(Facility):
     angle_offset = 45.0
     saved_pose = [0,0,0,0,0,0]
 
-    def __init__(self, name: str, ip: str):
+    def __init__(self, name: str, ip: str,emergency_detect:bool=True):
         super().__init__(name, Fr5Arm.type)
-        
+        self.emergency_detect = emergency_detect
+        self.emergency_detect_thread = None
+
         self.robot = Robot.RPC(ip)
         if self.name=='fr5A':
             self.position_file_path = "src/chemistry_os/src/facilities/location/fr5A.json"
@@ -41,8 +45,10 @@ class Fr5Arm(Facility):
             self.obj_status = text['obj_status']
             self.safe_place = text['safe_place']
             self.graph = {int(k): {int(inner_k): inner_v for inner_k, inner_v in v.items()} for k, v in text['graph'].items()}
+        
         self.obj_status_init()
         self.arm_init()
+        self.start_emergency_detect()
         self.data_dict = {
             "joint_angles": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
             "gripper_position":0.0,
@@ -50,6 +56,30 @@ class Fr5Arm(Facility):
         }
         # 自动读取 __init__ 形参并保存到 init_dict
         self.init_dict = ParamUtils.get_init_params(self)
+
+    def start_emergency_detect(self):
+        if self.emergency_detect and self.emergency_detect_thread is None:
+            try:
+                self.emergency_detect_thread = threading.Thread(target=self.emergency_detect_func)
+                self.emergency_detect_thread.daemon = True
+                self.emergency_detect_thread.start()
+            except Exception as e:
+                self.log.error(f"安全检测线程启动失败: {e}")
+                self.emergency_detect = False
+
+    def emergency_detect_func(self):
+    #检测机械臂急停标志位，检测到后将机械臂软件标签位设置为ERROR
+        while self.emergency_detect:
+            # print(self.robot.robot_state_pkg.EmergencyStop)
+            if self.robot.robot_state_pkg.EmergencyStop and self.state != FacilityState.ERROR:
+                self.log.error(f"{self.name}机械臂检测到急停，设置状态为ERROR")
+                self.state = FacilityState.ERROR
+            time.sleep(0.03)
+            # print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3])
+            #输出时间戳 
+
+
+
 
     def data_dict_update(self):
         """
@@ -264,6 +294,15 @@ class Fr5Arm(Facility):
                             },
                             "Reset the arm to the start zone")
         self.parser.register("reset_gripper", self.reset_gripper, {}, "reset_gripper")
+
+    def cmd_error_handing(self):
+        pass
+
+    def cmd_stop_handing(self):
+        pass
+
+    def cmd_reset(self):#从error/stop恢复idle的状态
+        pass
 
     def analyse_angle(self,x:float,y:float):
         # 计算极坐标中的 θ（与 x 轴的夹角，以弧度表示）

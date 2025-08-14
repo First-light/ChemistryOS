@@ -142,6 +142,15 @@ class HN_SDK(Facility):
         self.parser.register("move_shaoping_C2A", self.move_shaoping_C2support, {}, "move_shaoping_C2A")
         self.parser.register("confirm_safety", self.confirm_safety, {"text":'ok?'}, "confirm_safety")
 
+    def cmd_error_handing(self):
+        pass
+
+    def cmd_stop_handing(self):
+        pass
+
+    def cmd_reset(self):#从error/stop恢复idle的状态
+        pass
+
     def confirm_safety(self, text:str='ok?'):
         if self.should_safe:
             input(text)

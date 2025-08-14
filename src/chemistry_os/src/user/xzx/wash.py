@@ -13,8 +13,8 @@ from facilities.facility_addSolid import Add_Solid
 from facilities.facility_bath import Bath
 from facilities.facility_sdk import HN_SDK
 
-
-if __name__ == '__main__':
+@staticmethod
+def main_thread_func():
     CompoundC_solid_add = 0.5 # 化合物C的添加量
     HCL_volume_add = 26.8*CompoundC_solid_add # 浓盐酸
     KMnO4_volume_add = 53.52*CompoundC_solid_add # 高锰酸钾添加量 
@@ -39,9 +39,6 @@ if __name__ == '__main__':
     fr5_A = Fr5Arm("fr5A","192.168.58.2")
     bath = Bath('bath')
     filter = Filter("filter")
-    
-    main_sys = System("os")
-
     hn_sdk=HN_SDK()
     hn_sdk.HN_init()
 
@@ -62,12 +59,14 @@ if __name__ == '__main__':
     hn_sdk.name_catch("sanjinshaoping_support")
     hn_sdk.move_wash('sanjinshaoping_wash_1', 2)
     hn_sdk.name_put("sanjinshaoping_support")
-
-
-        # 保持主线程运行
+    
     try:
-        
         while True:
             time.sleep(0.1)
     except KeyboardInterrupt:
-        main_parser.end()
+        print("主线程退出")
+
+if __name__ == '__main__':
+    main_sys = System("os")
+    main_sys.main_thread_target = main_thread_func
+    main_sys.start()

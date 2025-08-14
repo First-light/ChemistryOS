@@ -16,16 +16,18 @@ class Project(Facility):
     type = "project"
 
     def __init__(self, name: str, file: str):
-        super().__init__(name, Project.type)
+        super().__init__(name, Project.type)    
         self.step = 1
         self.project_state = ProjectState.INIT
         self.data_type = ""
         self.cmd_load(file)
-        self.sub_parser = CommandParser()
+        self.sub_parser = CommandParser(skip_append=True)
         self.executor_thread = threading.Thread(target=self.executor)
         self.executor_thread.daemon = True
         self.executor_thread.start()
         self.init_dict = ParamUtils.get_init_params(self)
+
+
     def __del__(self):
         # 停止线程
         self.executor_thread.join()
@@ -98,9 +100,9 @@ class Project(Facility):
         all_steps_exist = True
         for step in sequence_steps:
             if step in process_steps:
-                print(f"步骤 {step} 存在在流程库中.")
+                self.log.info(f"步骤 {step} 存在在流程库中.")
             else:
-                print(f"！步骤 {step} 不在流程库中.")
+                self.log.warning(f"！步骤 {step} 不在流程库中.")
                 all_steps_exist = False
 
         return all_steps_exist
@@ -206,6 +208,15 @@ class Project(Facility):
         self.parser.register("stop", self.cmd_project_stop, {}, "stop project")
         self.parser.register("continue", self.cmd_project_continue, {}, "continue project")
         self.parser.register("exit", self.cmd_project_exit, {}, "exit project")
+
+    def cmd_error_handing(self):
+        pass
+
+    def cmd_stop_handing(self):
+        pass
+
+    def cmd_reset(self):#从error/stop恢复idle的状态
+        pass
 
     # 定义了一个递归函数 print_steps，用于打印步骤序列。
     # 在 print_steps 函数中，检查每个步骤是否包含子步骤，如果包含，则递归调用 print_steps 来打印子步骤。

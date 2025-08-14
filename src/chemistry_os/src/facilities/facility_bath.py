@@ -37,11 +37,14 @@ class Bath(Facility):
         self.parser.register("wait", self.wait, {"time": 0}, "wait for time")
         self.parser.register("control", self.control, {}, "control")
 
-    def cmd_error(self):
-        print("error")
+    def cmd_error_handing(self):
+        self.power_ctr(on=0)
 
-    def cmd_stop(self):
-        print("stop")
+    def cmd_stop_handing(self):
+        self.power_ctr(on=0)
+        
+    def cmd_reset(self):#从error/stop恢复idle的状态
+        pass
 
     def listen(self):
         while True:

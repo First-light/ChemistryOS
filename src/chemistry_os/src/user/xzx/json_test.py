@@ -11,7 +11,9 @@ from facilities.facility_parser import CommandParser
 from facilities.facility_server import TCPServer
 import time
 
-if __name__ == '__main__':
+
+@staticmethod
+def main_thread_func():
     CompoundC_solid_add = 0.5 # 化合物C的添加量
     HCL_volume_add = 26.8*CompoundC_solid_add # 浓盐酸
     KMnO4_volume_add = 53.52*CompoundC_solid_add # 高锰酸钾添加量 
@@ -39,9 +41,6 @@ if __name__ == '__main__':
     # 机械臂初始化
     hn_sdk.HN_init()
     # 抓取三颈烧瓶
-
-    main_sys = System("os")
-
     main_server = TCPServer()
     main_server.register("example_unit", 5,fr5_A.data_dict,)
     main_server.start()
@@ -51,12 +50,15 @@ if __name__ == '__main__':
     main_parser.parse("os check")
     # main_parser.parse("pro run")
     main_parser.start()
-
-
     try:
         while True:
             time.sleep(0.1)
     except KeyboardInterrupt:
-        main_parser.end()
+        print("主线程退出")
+
+if __name__ == '__main__':
+    main_sys = System("os")
+    main_sys.main_thread_target = main_thread_func
+    main_sys.start()
 
 
