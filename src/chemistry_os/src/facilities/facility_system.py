@@ -22,14 +22,16 @@ from utilities.utility_param import ParamUtils
 
 class System(Facility):
     type = "system"
-    facility_location = {}
-    
+    facility_location_dict = {}
+    facility_state_dict = {}
 
     # 统一的停止处理配置：优先级越低数字越小，不在列表中的类型不执行停止处理
     stop_priority_config = {
         "fr5arm": 1,      # 机械臂最优先停止
         "Add_Solid": 2,        # 温控设备
-
+        "bath":3,
+        "filter":4,
+        "PumpGroup":5,
     }
     
 
@@ -42,18 +44,18 @@ class System(Facility):
 
         self.error_detect = error_detect
         self.error_detect_thread = None
-        
-        
         self.objects = []  # 用于存储创建的实例
 
 
+
     def cmd_init(self):
-        self.parser.register("fr5arm", self.create_fr5robot, {"name": '', "ip": ''}, "创建 FR5 机械臂")
-        self.parser.register("temp", self.create_temp, {"name": '', "param1": '', "param2": ''}, "创建温控设备")
+        # self.parser.register("fr5arm", self.create_fr5robot, {"name": '', "ip": ''}, "创建 FR5 机械臂")
+        # self.parser.register("temp", self.create_temp, {"name": '', "param1": '', "param2": ''}, "创建温控设备")
         self.parser.register("project", self.create_project, {"name": '', "file": ''}, "创建项目")
         self.parser.register("delete", self.destroy, {"name": ''}, "删除对象")
         self.parser.register("check", self.system_check, {}, "列出所有对象")
         self.parser.register("check_dict",self.check_all_init_dict,{},"检查所有对象初始化参数")
+        self.parser.register("reset", self.facility_reset, {"name": ''}, "重置对象状态")
         self.parser.register("!", self.stop_all, {}, "停止所有对象")
         self.parser.register("thread_pause", self.pause_main_thread, {}, "暂停主线程")
         self.parser.register("thread_resume", self.resume_main_thread, {}, "恢复主线程")
@@ -76,17 +78,36 @@ class System(Facility):
             except KeyboardInterrupt:
                 print("程序退出")
 
-
             return True
+        
+    @staticmethod
+    def facility_state_dict_update():
+        for i, tuple_t in enumerate(Facility.tuple_list):
+            name = tuple_t.name
+            state = tuple_t.facility.state
+            System.facility_state_dict[name] = state.value
+
+    def facility_reset(self,name:str):
+        try:
+            facility_obj = Facility.get_facility_by_name(name)
+            if facility_obj:
+                facility_obj.cmd_reset()
+                facility_obj.state = FacilityState.IDLE
+                self.log.info(f"对象 {name} 状态已重置")
+            else:
+                self.log.warning(f"未找到名称为 {name} 的对象，无法重置。")
+        except Exception:
+            self.log.warning(f"初始化设备{name}失败")
+
         
     def load_data(self):
         try:
             self.fac_location_file_path = "src/chemistry_os/src/facilities/location/fac_location.json"
             with open(self.fac_location_file_path, 'r') as file:
-                System.facility_location = json.load(file)
+                System.facility_location_dict = json.load(file)
         except FileNotFoundError:
             self.log.error(f"无法找到设施位置文件: {self.fac_location_file_path}")
-            System.facility_location = {}
+            System.facility_location_dict = {}
 
     def start_main_thread(self):
         try:
@@ -187,34 +208,38 @@ class System(Facility):
 
 
     def stop_all(self):
-        self.pause_main_thread()
-        
         # 收集需要停止的对象并按优先级排序
-        objects_to_stop = []
-        for tuple_t in Facility.tuple_list:
-            name = tuple_t.name
-            object_type = tuple_t.type
-            object = tuple_t.facility
-            
-            # 只处理在配置中的对象类型
-            if object_type in System.stop_priority_config:
-                if object.state != FacilityState.ERROR:
-                    object.state = FacilityState.STOP
-                    self.log.info(f"对象 {name} (类型: {object_type}) 标记停止。")
+        try:
+            objects_to_stop = []
+            for tuple_t in Facility.tuple_list:
+                name = tuple_t.name
+                object_type = tuple_t.type
+                object = tuple_t.facility
                 
-                if object.state == FacilityState.ERROR or object.state == FacilityState.STOP:
-                    priority = System.stop_priority_config[object_type]
-                    objects_to_stop.append((priority, name, object, object_type))
-        
-        # 按优先级排序并执行停止处理
-        objects_to_stop.sort(key=lambda x: x[0])  # 按优先级排序
-        
-        for priority, name, object, object_type in objects_to_stop:
-            try:
-                object.cmd_stop_handing()
-                self.log.info(f"对象 {name} (类型: {object_type}, 优先级: {priority}) 执行急停进程。")
-            except Exception as e:
-                self.log.error(f"对象 {name} 执行急停进程时出错: {e}")
+                # 只处理在配置中的对象类型
+                if object_type in System.stop_priority_config:
+
+                    if object.state != FacilityState.ERROR:
+                        object.state = FacilityState.STOP
+                        self.log.info(f"对象 {name} (类型: {object_type}) 标记停止。")
+                    
+                    if object.state == FacilityState.ERROR or object.state == FacilityState.STOP:
+                        priority = System.stop_priority_config[object_type]
+                        objects_to_stop.append((priority, name, object, object_type))
+
+            # 按优先级排序并执行停止处理
+            objects_to_stop.sort(key=lambda x: x[0])  # 按优先级排序
+            
+            for priority, name, object, object_type in objects_to_stop:
+                try:
+                    object.cmd_stop_handing()
+                    self.log.info(f"对象 {name} (类型: {object_type}, 优先级: {priority}) 执行急停进程。")
+                except Exception as e:
+                    self.log.error(f"对象 {name} 执行急停进程时出错: {e}")
+        except Exception as e:
+            self.log.error(f"停止所有对象时出错: {e}")
+
+        self.pause_main_thread()
     
     def check_all_init_dict(self):
         self.log.info("检查所有对象初始化参数:")

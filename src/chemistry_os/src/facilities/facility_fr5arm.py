@@ -102,7 +102,6 @@ class Fr5Arm(Facility):
                 temp, ip_check = temp_ip
                 if temp == 0:
                     self.log.info(f"FR5控制器IP :{ip_check}")
-                    self.state = FacilityState.IDLE
                 else:
                     raise RuntimeError(f"FR5机械臂IP检查错误，错误码: {temp}")
             else:
@@ -296,12 +295,15 @@ class Fr5Arm(Facility):
         self.parser.register("reset_gripper", self.reset_gripper, {}, "reset_gripper")
 
     def cmd_error_handing(self):
+        self.shut_down()
         pass
 
     def cmd_stop_handing(self):
+        self.shut_down()
         pass
 
     def cmd_reset(self):#从error/stop恢复idle的状态
+        self.open_up()
         pass
 
     def analyse_angle(self,x:float,y:float):
@@ -330,10 +332,12 @@ class Fr5Arm(Facility):
         consecutive_non_zero_count = 0
         while True:
             if self.state == FacilityState.ERROR:
+                self.log.error(f"{self.name}监听到 ERROR")
                 self.shut_down()
                 res = 2
                 break
             if self.state == FacilityState.STOP:
+                self.log.error(f"{self.name}监听到 STOP")
                 self.shut_down()
                 res = 2
                 break
@@ -341,19 +345,19 @@ class Fr5Arm(Facility):
             if isinstance(ret, (list, tuple)):
                 if ret[1] != 0:
                     consecutive_non_zero_count += 1 # 连续5次非0状态 因为开始运动时受到的第一个结果是运动完成
-                    if consecutive_non_zero_count >= 5:
+                    if consecutive_non_zero_count >= 3:
                         break
                 else:
                     consecutive_non_zero_count = 0
             else:
                 if ret != -4:
-                    self.log.info(f"{self.name}状态查询错误，错误码: {ret}")
+                    self.log.error(f"{self.name}状态查询错误，错误码: {ret}")
                     self.shut_down()
                     res = 2
                     break
-            time.sleep(0.002)
+            time.sleep(0.002)  # 短暂休眠，避免过于频繁的查询
         if res==2:
-            raise SystemError(f"{self.name}机械臂运动异常，已关闭")
+            self.log.error(f"机械臂运动异常")
         return res
 
     def move(self, new_pose: list, type="MoveL", vel_t=default_speed, acc_t=default_acc):
@@ -639,7 +643,6 @@ class Fr5Arm(Facility):
             self.log.warning(f"机械臂使能失败，错误码: {ret}")
         else:
             self.log.info(f"机械臂使能")
-            self.state = FacilityState.IDLE
 
     def clear_error_code(self):
         ret = self.robot.ResetAllError()

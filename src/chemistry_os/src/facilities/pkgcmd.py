@@ -18,6 +18,7 @@ class PkgCmdParser:
 
     def __init__(self, facility:IFacility):
         self.commands: Dict[str, CommandInfo] = {}
+        self.facility = facility
         self.obj_name = facility.name
         self.obj_state = facility.state
         self.obj_log = facility.log
@@ -41,73 +42,81 @@ class PkgCmdParser:
             "description": description
         }
 
-    def cmd(self, command_line):
+    def cmd(self, command_line) -> bool:
+        
+        result = True
+        self.obj_state = self.facility.state # 更新状态
         tokens = shlex.split(command_line)
+        command_name = tokens[0]
+        
         if len(tokens) < 1:
             self.obj_log.warning("指令不能为空")
-            return 2
-
-        # 解析指令名称
-        command_name = tokens[0]
-
-        # 优先处理特殊指令
-        if command_name in self.special_commands:
+            result = False
+        elif command_name in self.special_commands:
             self.special_commands[command_name]()
-            return 0
-
+        else:
+            if self._cmd_check(command_name):
+                if not self._cmd_execute(tokens):result = False
+            else:
+                result = False
+        return result
+    
+    def _cmd_check(self, command_name):
+        # 优先处理特殊指令
+        result = False
         if command_name not in self.commands:
             self.obj_log.warning(f"未知指令 {command_name}")
-            return 2
-        
-        if self.obj_state == FacilityState.BUSY:
+        elif self.obj_state == FacilityState.BUSY:
             self.obj_log.warning(f"{self.obj_name} 设备忙碌.")
-            return 2
         elif self.obj_state == FacilityState.STOP:
             self.obj_log.warning(f"{self.obj_name} 设备已停机.")
-            return 2
         elif self.obj_state == FacilityState.ERROR:
             self.obj_log.warning(f"{self.obj_name} 设备故障.")
-            return 2
         else:
-            self.obj_state = FacilityState.BUSY
+            result = True
+        return result
 
-        handler = self.commands[command_name]["function"]
+    
+
+    def _cmd_execute(self,tokens):
+        handler = self.commands[tokens[0]]["function"]
         args = tokens[1:]
-        params = self.commands[command_name]["params"].copy()  # 现在类型明确了
-        # print(params)
+        params = self.commands[tokens[0]]["params"].copy()
+        result = True
         if not params:
-            handler()  # 无参数指令直接执行
+            handler()
         else:
             for arg in args:
                 if '=' in arg:
                     key, value = arg.split('=', 1)
                     try:
-                        # 尝试将 value 转换为浮点数
                         value = float(value)
                     except ValueError:
-                        # 如果转换失败，则保持为字符串
                         pass
                 else:
                     self.obj_log.warning("错误的指令格式，请按要求输入:'param=value'")
-                    return 2
+                    result = False
+                    break
                 if key in params:
                     params[key] = value
                 else:
                     self.obj_log.warning(f"未知键值: {key}")
-                    return 2
+                    result = False
+                    break
                 if value == '':
                     self.obj_log.warning(f"键值{key}参数不能为空")
-                    return 2
-            handler(**params)  # 执行函数
-
-        if self.obj_state == FacilityState.BUSY:
-            self.obj_state = FacilityState.IDLE
-            return 0
-        else:
-            self.obj_log.warning(f"{self.obj_name} is {self.obj_state}.")
-            return 2
-        
-
+                    result = False
+                    break
+            else:
+                if self.obj_state == FacilityState.IDLE:
+                    self.obj_state = FacilityState.BUSY
+                handler(**params)
+                if self.obj_state == FacilityState.BUSY:
+                    self.obj_state = FacilityState.IDLE
+                else:
+                    self.obj_log.error(f"设备运行时状态异常：{self.obj_state}")
+                    result = False
+        return result
 
     def list(self):
         table = PrettyTable()

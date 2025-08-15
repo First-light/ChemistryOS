@@ -48,7 +48,7 @@ class CommandParser(Facility):
             self.input_thread_curses.daemon = True
             self.input_thread_curses.start()
         elif input == "unity":
-            self.log.info("开启远程输入")
+            self.log.info("开启unity远程输入")
             self.input_thread_unity = threading.Thread(target=self.unity_input)
             self.input_thread_unity.daemon = True
             self.input_thread_unity.start()
@@ -104,10 +104,10 @@ class CommandParser(Facility):
                 CommandParser.unity_flag = BufferMod.NONE
             time.sleep(0.01)
 
-    def parse(self, command_line):
+    def parse(self, command_line) -> bool:
         tokens = shlex.split(command_line)
         if len(tokens) < 1:#检查是否有输入，如果没有则直接忽略
-            return 0
+            return True
 
         objectname = tokens[0]
         command = " ".join(tokens[1:])  # 将命令和参数列表转换为字符串
@@ -115,10 +115,9 @@ class CommandParser(Facility):
         facility_t = Facility.get_facility_by_name(objectname)
         if facility_t is None:
             self.log.warning(f"未知设备:{objectname}")
-            return 1
+            return False
         else:
-            cmd = facility_t.parser.cmd
-            ret = cmd(command)
+            ret:bool = facility_t.parser.cmd(command)
             return ret
         
     def cmd_error_handing(self):

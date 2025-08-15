@@ -125,13 +125,14 @@ class HN_SDK(Facility):
         self.parser.register("bath_catch", self.bath_catch, {"name":''}, "fr5 bath catch")
         self.parser.register("bath_put", self.bath_put, {"name":''}, "fr5 bath put")
         self.parser.register("add_liquid", self.add_liquid, {"name":'', "rpm":150, "volume":0.0}, "add liquid to named place")
-        self.parser.register("add_liquid_bath", self.add_liquid_bath, {"name":''}, "add liquid to named place and bath")
+        self.parser.register("add_liquid_bath", self.add_liquid_bath, {"liquid_name":''}, "add liquid to named place and bath")
         self.parser.register("add_solid", self.add_solid, {"gram":0.0, "tube_from":'', "beaker_from":''}, "add solid to named place")  # 修正参数名
         self.parser.register("name_catch_and_put", self.name_catch_and_put, {"name1":'', "name2":''}, "fr5 catch name1 and put name2")
         self.parser.register("name_catch_pour_put", self.name_catch_pour_put, {"name1":'', "name2":'', "name3":''}, "catch, pour and put")
         self.parser.register("fr5_gripper_activate", self.fr5_gripper_activate, {}, "activate fr5 gripper")
         self.parser.register("fr5_Go_to_start_zone_0", self.fr5_Go_to_start_zone_0, {}, "fr5 go to start zone 0")
         self.parser.register("bath_open", self.bath_open, {}, "initialize bath")
+        self.parser.register("bath_over",self.bath_over,{},"bath over")
         self.parser.register("bath_close", self.bath_close, {}, "close bath")
         self.parser.register("bath_writetmp", self.bath_writetmp, {"tmp":0.0}, "write temperature to bath")
         self.parser.register("interactable_countdown", self.interactable_countdown, {"seconds":0.0}, "start interactive countdown")
@@ -141,6 +142,7 @@ class HN_SDK(Facility):
         self.parser.register("move_shaoping_A2C", self.move_shaoping_support2C, {}, "move_shaoping_A2C")
         self.parser.register("move_shaoping_C2A", self.move_shaoping_C2support, {}, "move_shaoping_C2A")
         self.parser.register("confirm_safety", self.confirm_safety, {"text":'ok?'}, "confirm_safety")
+        self.parser.register("bath_wash",self.bath_wash,{},"bath_wash")
 
     def cmd_error_handing(self):
         pass

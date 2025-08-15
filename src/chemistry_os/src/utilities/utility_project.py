@@ -30,7 +30,7 @@ class ProjectUtils:
     output_dir:str = "src/chemistry_os/src/facilities/projects"
 
     @staticmethod
-    def register_object(name: str, obj_type: str = None, args:dict = {}):
+    def register_object(name: str, obj_type: str = None, args:dict =None):
         """
         注册对象信息
         :param name: 对象名称
@@ -38,13 +38,18 @@ class ProjectUtils:
         :param kwargs: 对象的其他参数
         """
         # 如果没有提供类型，尝试从 Facility.tuple_list 中获取
+        facility_obj = Facility.get_facility_by_name(name)
         if obj_type is None:
-            facility_obj = Facility.get_facility_by_name(name)
             if facility_obj:
                 obj_type = facility_obj.type
             else:
                 raise ValueError(f"未找到名为 {name} 的对象，且未提供对象类型")
         
+        if args is None:
+            if facility_obj and  hasattr(facility_obj,"init_dict"):
+                args = facility_obj.init_dict
+            else:
+                args = {}
         # 构建对象信息
         obj_info = {"type": obj_type}
         obj_info.update(args)

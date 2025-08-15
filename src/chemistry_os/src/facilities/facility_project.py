@@ -18,7 +18,8 @@ class Project(Facility):
     def __init__(self, name: str, file: str):
         super().__init__(name, Project.type)    
         self.step = 1
-        self.dict = {}
+        self.top_step_name = ""
+        self.project_dict = {}
         self.project_state = ProjectState.INIT
         self.data_type = ""
         self.cmd_load(file)
@@ -27,8 +28,18 @@ class Project(Facility):
         self.executor_thread.daemon = True
         self.executor_thread.start()
         self.init_dict = ParamUtils.get_init_params(self)
+        self.data_dict = {
+            "project_state":self.project_state.value,
+            "step" : self.step,
+            "top_step_name" : "",
+        }
 
-
+    def data_dict_update(self):
+        self.data_dict.update({
+            "project_state": self.project_state.value,
+            "step": self.step,
+            "top_step_name" : self.top_step_name
+        })
     def __del__(self):
         # 停止线程
         self.executor_thread.join()
@@ -49,7 +60,8 @@ class Project(Facility):
             elif self.project_state == ProjectState.QUIT:
                 self.log.info("流程结束")
                 self.project_state = ProjectState.INIT
-                self.step = self.dict['configs']['startStep']
+                self.top_step_name = ""
+                self.step = self.project_dict['configs']['startStep']
 
             elif self.project_state == ProjectState.INIT:
                 time.sleep(0.1)
@@ -77,7 +89,7 @@ class Project(Facility):
         all_objects_exist = True
 
         # 遍历 self.dict['objects'] 中的对象
-        for obj_name in self.dict['objects'].keys():
+        for obj_name in self.project_dict['objects'].keys():
             # 在 Facility.tuple_list 中查找对应的对象
             matching_tuple = next((tuple_t for tuple_t in Facility.tuple_list if tuple_t.name == obj_name), None)
 
@@ -95,8 +107,8 @@ class Project(Facility):
 
     def json_check_step(self):
         self.log.info("开始检查所有步骤...")
-        sequence_steps = self.dict['configs']['sequence']
-        process_steps = self.dict['process'].keys()
+        sequence_steps = self.project_dict['configs']['sequence']
+        process_steps = self.project_dict['process'].keys()
 
         all_steps_exist = True
         for step in sequence_steps:
@@ -111,8 +123,8 @@ class Project(Facility):
     def count_total_steps(self,sequence):
         total_steps = 0
         for step_name in sequence:
-            if step_name in self.dict['process'] and 'sequence' in self.dict['process'][step_name]:
-                sub_sequence = self.dict['process'][step_name]['sequence']
+            if step_name in self.project_dict['process'] and 'sequence' in self.project_dict['process'][step_name]:
+                sub_sequence = self.project_dict['process'][step_name]['sequence']
                 total_steps += self.count_total_steps(sub_sequence)
             else:
                 total_steps += 1
@@ -120,7 +132,7 @@ class Project(Facility):
     
     def json_check_start_step(self):
         start_step = self.step
-        total_steps = self.count_total_steps(self.dict['configs']['sequence'])
+        total_steps = self.count_total_steps(self.project_dict['configs']['sequence'])
         
         if start_step < 1 or start_step > total_steps:
             self.log.warning(f"错误: 开始步骤 {start_step} 超出范围。有效范围是 1 到 {total_steps}。")
@@ -129,8 +141,8 @@ class Project(Facility):
             self.log.info(f"开始步骤 {start_step} 检查通过。")
             return True
 
-    def executor_step_up(self,ret):
-        if ret != 0:
+    def executor_step_up(self,ret:bool):
+        if ret is not True:
             self.cmd_project_stop()
             self.log.error(f"步骤 {self.step} 执行失败.")
         else:
@@ -141,19 +153,25 @@ class Project(Facility):
 
     def executor_running(self):
         # 执行任务
-        sequence = self.dict['configs']['sequence']
+        sequence = self.project_dict['configs']['sequence']
         global_step_counter = [0]
         self.executor_run_step(self.step,sequence,global_step_counter)
 
     def executor_run_step(self, step_num: int, sequence, global_step_counter: list):
         # 遍历当前序列中的每个步骤
-        for step_name in sequence:
+        for step_name_t in sequence:
             # 检查是否是子步骤的标题
-            if step_name in self.dict['process'] and 'sequence' in self.dict['process'][step_name]:
+            
+            if step_name_t in self.project_dict['process'] and 'sequence' in self.project_dict['process'][step_name_t]:
                 # 递归处理子步骤，但不更新全局步骤计数器
-                sub_sequence = self.dict['process'][step_name]['sequence']
-                self.executor_run_step(step_num, sub_sequence, global_step_counter)
-                continue
+                if self.top_step_name == "":self.top_step_name = step_name_t
+                sub_sequence = self.project_dict['process'][step_name_t]['sequence']
+                ret = self.executor_run_step(step_num, sub_sequence, global_step_counter)#成功找到步骤，返回True
+                if ret:
+                    break
+                else:
+                    self.top_step_name = ""
+                    continue
                 
 
             # 更新全局步骤计数器
@@ -163,16 +181,19 @@ class Project(Facility):
             # 检查是否达到了目标步骤
             if current_step == step_num:
                 # 在process中查找对应的步骤
-                step_info = self.dict['process'][step_name]
+                step_info = self.project_dict['process'][step_name_t]
 
                 # 获取步骤的object, command, parameters
                 obj = step_info['object']
                 command = step_info['command']
                 parameters = step_info['parameters']
+                
                 # 将parameters转换为字符串
                 parameters_str = " ".join([f"{key}={value}" for key, value in parameters.items()])
                 # 将object, command, parameters串成字符串
                 result_str = f"{obj} {command} {parameters_str}"
+
+                if self.top_step_name == "":self.top_step_name = step_name_t 
 
                 try:
                     ret = self.sub_parser.parse(result_str)
@@ -184,7 +205,10 @@ class Project(Facility):
                         name = tuple_t[0]
                         if name == obj:
                             tuple_t[3].state = FacilityState.STOP
-                break
+                return True
+            
+        return False
+                
         
         
         
@@ -224,10 +248,10 @@ class Project(Facility):
     def check(self):
         def print_steps(sequence, global_step_counter, indent=0):
             for step in sequence:
-                if step in self.dict['process'] and 'sequence' in self.dict['process'][step]:
+                if step in self.project_dict['process'] and 'sequence' in self.project_dict['process'][step]:
                     self.log.info(f"{' ' * indent}步骤 {global_step_counter[0]}: {step}")
                     self.log.info(f"{' ' * (indent + 2)}子步骤:")
-                    print_steps(self.dict['process'][step]['sequence'], global_step_counter, indent + 4)
+                    print_steps(self.project_dict['process'][step]['sequence'], global_step_counter, indent + 4)
                 else:
                     current_marker = " <-- 当前步骤" if global_step_counter[0] == self.step else ""
                     self.log.info(f"{' ' * indent}步骤 {global_step_counter[0]}: {step}{current_marker}")
@@ -239,17 +263,17 @@ class Project(Facility):
         
         self.log.info("流程中的所有步骤:")
         global_step_counter = [1]
-        print_steps(self.dict['configs']['sequence'], global_step_counter)
+        print_steps(self.project_dict['configs']['sequence'], global_step_counter)
         
         self.log.info("\n涉及的对象:")
-        for obj in self.dict['objects']:
+        for obj in self.project_dict['objects']:
             self.log.info(f"对象: {obj}")
         
         self.log.info("="*40)
 
 
     def cmd_objects_supple(self):
-        if self.dict is None:
+        if self.project_dict is None:
             self.log.info("流程信息为空")
             return
         
@@ -260,7 +284,7 @@ class Project(Facility):
             name = tuple_t[0]
             obj_name_list.append(name)
 
-        for file_obj_name in self.dict['objects']:
+        for file_obj_name in self.project_dict['objects']:
             if any(obj_name == file_obj_name for obj_name in obj_name_list):
                 self.log.info(f"对象 {file_obj_name} 存在")
             else:
@@ -288,7 +312,7 @@ class Project(Facility):
         self.executor_check_all()
 
     def cmd_project_run(self):
-        if self.dict is None:
+        if self.project_dict is None:
             self.log.warning("未装载文件")
             return
         
@@ -363,11 +387,11 @@ class Project(Facility):
     def cmd_load_json_data(self,data):
         self.log.info("开始加载 JSON 数据...")
         # 检查 JSON 数据的结构
-        self.dict = data
+        self.project_dict = data
         # 创建并启动线程
         self.data_type = "json"
-        self.step = self.dict['configs']['startStep']
-        self.max_step = self.count_total_steps(self.dict['configs']['sequence'])
+        self.step = self.project_dict['configs']['startStep']
+        self.max_step = self.count_total_steps(self.project_dict['configs']['sequence'])
         # 调用新的函数来设置对象参数
         self.cmd_set_objects_parameters()
 
@@ -376,7 +400,7 @@ class Project(Facility):
         将 JSON 中的参数赋值给系统中已存在的对象
         """
         # 遍历 JSON 中的 objects
-        for obj_name, obj_params in self.dict.get('objects', {}).items():
+        for obj_name, obj_params in self.project_dict.get('objects', {}).items():
             obj_instance = Facility.get_facility_by_name(name=obj_name)
             if obj_instance:
                 # 将 JSON 中的参数赋值给对象
