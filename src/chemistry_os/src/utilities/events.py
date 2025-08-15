@@ -3,7 +3,8 @@ import threading
 import sys
 import select
 
-from chemistry_os.src.facilities.flowdisplay import Flowdisplay
+sys.path.append('src/chemistry_os/src')
+from facilities.flowdisplay import Flowdisplay
 
 def event_countdown(seconds, name:str = '', rpm:float = 0, volume:float = 0, directon:bool = 1):
     # 用于控制是否继续计时的事件

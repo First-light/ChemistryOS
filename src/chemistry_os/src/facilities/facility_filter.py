@@ -29,8 +29,15 @@ class AddressEnum(Enum):
 
 class Filter(Facility):
     type = "filter"
+    default_sub_addresses = {
+        "empty": AddressEnum.EMPTY.value,
+        "solvent": AddressEnum.SOLVENT.value,
+        "water": AddressEnum.WATER.value,
+        "acid": AddressEnum.ACID.value,
+        "pump": AddressEnum.PUMP.value
+    }
 
-    def __init__(self, name: str, com: str = "/dev/ttyUSB0", baudrate: int = 9600, address = 0x50, sub_addresses: dict = None):
+    def __init__(self, name: str, com: str = "/dev/ttyUSB0", baudrate: int = 9600, address = 0x50, sub_addresses: dict = default_sub_addresses):
         """
         初始化抽滤装置类
         :param name: 设备名称
@@ -43,18 +50,16 @@ class Filter(Facility):
         self.ifconnect = False
         self.baudrate = baudrate
         self.address = address
-        self.sub_addresses = sub_addresses or {
-            "empty": AddressEnum.EMPTY.value,
-            "solvent": AddressEnum.SOLVENT.value,
-            "water": AddressEnum.WATER.value,
-            "acid": AddressEnum.ACID.value,
-            "pump": AddressEnum.PUMP.value
-        }
-        self.pump_dict = {
-            "solvent": {"state": 0, "address": AddressEnum.SOLVENT.value},
-            "water": { "state": 0, "address": AddressEnum.WATER.value},
-            "acid": { "state": 0, "address": AddressEnum.ACID.value},
-            "pump": { "state": 0,"address": AddressEnum.PUMP.value},
+        self.sub_addresses = sub_addresses
+        self.data_dict = {
+            "solvent": {"state": 0, "address": AddressEnum.SOLVENT.value,"speed":0,"dir":0},
+            "water": { "state": 0, "address": AddressEnum.WATER.value,"speed":0,"dir":0},
+            "acid": { "state": 0, "address": AddressEnum.ACID.value,"speed":0,"dir":0},
+            "pump": { "state": 0,"address": AddressEnum.PUMP.value,"speed":0,"dir":0},
+            "valve_A": {"state": 0},  # 三通阀门
+            "valve_B": {"state": 0},  # 三通阀门
+            "if_connect":self.ifconnect,
+            "com":self.com,
         }
         self.ser = None
         self.liquid_convert_dict = {
@@ -118,6 +123,12 @@ class Filter(Facility):
 
     def cmd_reset(self):#从error/stop恢复idle的状态
         pass
+
+    def data_dict_update(self):
+        self.data_dict.update({
+            "if_connect":self.ifconnect,
+            "com":self.com,
+        })
 
     def filter_process_A(self):
         """
@@ -242,9 +253,9 @@ class Filter(Facility):
             self.log.warning(f"无效的蠕动泵名称: {name}")
         else:
             address = self.sub_addresses[name]
-            old_state = self.pump_dict[name]["state"]
+            old_state = self.data_dict[name]["state"]
             if not old_state == state:
-                self.pump_dict[name]["state"] = state
+                self.data_dict[name]["state"] = state
                 return self.pump_control(address, state)
     
     def pump_run_time(self, name: str, sec: float):
@@ -391,8 +402,9 @@ class Filter(Facility):
             self.log.warning(f"无效的蠕动泵名称: {name}")
             return
         address = self.sub_addresses[name]
+        self.data_dict[name]["dir"] = direction
         return self.set_pump_direction(address, direction)
-
+        
     def set_pump_speed_name(self, name: str, speed: int,if_save = True):
         """
         设置蠕动泵速度
@@ -405,6 +417,7 @@ class Filter(Facility):
         address = self.sub_addresses[name]
         if name in self.liquid_convert_dict and if_save:
             self.liquid_convert_dict[name]["speed"] = speed
+            self.data_dict[name]["speed"] = speed
         return self.set_pump_speed(address, speed)
     
     def reset_pump_speed_by_dict(self, name: str):
@@ -417,6 +430,7 @@ class Filter(Facility):
             return
         address = self.sub_addresses[name]
         speed = self.liquid_convert_dict[name]["speed"]
+        self.data_dict[name]["speed"] = speed
         return self.set_pump_speed(address, speed)
 
     def set_pump_direction(self, address: int, direction: int):
@@ -461,6 +475,7 @@ class Filter(Facility):
             return
         state_byte = state_int.to_bytes(1, byteorder='big')
         command = [self.address, 0x05, state_byte[0], 0x55, 0x55, 0x55]
+        self.data_dict["valve_A"]["state"] = state
         return self.send_command(command)
 
     def valve_B_control(self, state: int):
@@ -474,6 +489,7 @@ class Filter(Facility):
             return
         state_byte = state_int.to_bytes(1, byteorder='big')
         command = [self.address, 0x06, state_byte[0], 0x55, 0x55, 0x55]
+        self.data_dict["valve_B"]["state"] = state
         return self.send_command(command)
 
     def pump_query(self, address: int):
