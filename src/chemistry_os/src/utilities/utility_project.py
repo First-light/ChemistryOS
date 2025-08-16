@@ -12,12 +12,6 @@ from utilities.utility_log import LogUtils
 from structs import ServerMod
 from facility import Facility
 
-@dataclass
-class LogTuple:
-    name: str
-    log_cache: str
-    log_cache_dict: dict[str, typing.Any]
-
 class ProjectUtils:
     objects_dict = {}
     configs_dict = {}
@@ -28,6 +22,7 @@ class ProjectUtils:
         ]
     _process_counter = 1  # 用于自动分配流程名称
     output_dir:str = "src/chemistry_os/src/facilities/projects"
+    file_name: str = None
 
     @staticmethod
     def register_object(name: str, obj_type: str = None, args:dict =None):
@@ -200,8 +195,13 @@ class ProjectUtils:
         return True
 
         
+    @staticmethod
+    def make_func():
+        pass
 
-
+    @staticmethod
+    def redefine_make_func(new_func: Callable[[], None]):
+        ProjectUtils.make_func = staticmethod(new_func)
 
     @staticmethod
     def _build_json_data():
@@ -209,6 +209,9 @@ class ProjectUtils:
         构建 JSON 数据结构
         :return: 完整的 JSON 数据字典
         """
+
+        ProjectUtils.make_func()
+
         # 创建临时配置序列，过滤掉 ProjectSequenceFlags 中的标志
         temp_config_sequence = [
             step for step in ProjectUtils.config_sequence 
@@ -234,6 +237,8 @@ class ProjectUtils:
         if json_name is None:
             json_name = ProjectUtils.get_program_name()
 
+        
+
         # 确保目录存在
         output_dir = ProjectUtils.output_dir
         os.makedirs(output_dir, exist_ok=True)
@@ -242,6 +247,7 @@ class ProjectUtils:
         
         # 构建和写入 JSON 数据
         json_data = ProjectUtils._build_json_data()
+        ProjectUtils.file_name = f"{json_name}.json"
         
         try:
             with open(file_path, 'w', encoding='utf-8') as f:

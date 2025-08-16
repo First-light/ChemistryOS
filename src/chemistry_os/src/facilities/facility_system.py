@@ -62,6 +62,7 @@ class System(Facility):
         self.parser.register("thread_pause", self.pause_main_thread, {}, "暂停主线程")
         self.parser.register("thread_resume", self.resume_main_thread, {}, "恢复主线程")
         self.parser.register("thread_stop", self.stop_main_thread, {}, "停止主线程")
+        self.parser.register("set_params", self.set_params, {"params": {}}, "设置参数表")
 
 
     def start(self):
@@ -82,6 +83,11 @@ class System(Facility):
 
             return True
         
+    def set_params(self,params: dict):
+        self.log.info(f"新的参数表 {params} ")
+        for param_name, value in params.items():
+            ParamUtils.set_param_value(param_name, value)
+
     @staticmethod
     def json_make():
         ProjectUtils.make()
@@ -245,7 +251,7 @@ class System(Facility):
         except Exception as e:
             self.log.error(f"停止所有对象时出错: {e}")
 
-        self.pause_main_thread()
+        # self.pause_main_thread()
     
     def check_all_init_dict(self):
         self.log.info("检查所有对象初始化参数:")

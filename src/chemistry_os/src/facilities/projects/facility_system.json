@@ -1,0 +1,288 @@
+{
+    "objects": {
+        "filter": {
+            "type": "filter",
+            "name": "filter",
+            "com": "/dev/ttyUSB0",
+            "baudrate": 9600,
+            "address": 80,
+            "sub_addresses": {
+                "empty": 0,
+                "solvent": 4,
+                "water": 2,
+                "acid": 3,
+                "pump": 1
+            }
+        },
+        "add_Liquid": {
+            "type": "add_Liquid",
+            "name": "add_Liquid"
+        },
+        "add_Solid": {
+            "type": "Add_Solid"
+        },
+        "fr5C": {
+            "type": "fr5arm",
+            "name": "fr5C",
+            "ip": "192.168.58.3",
+            "emergency_detect": true
+        },
+        "fr5A": {
+            "type": "fr5arm",
+            "name": "fr5A",
+            "ip": "192.168.58.2",
+            "emergency_detect": true
+        },
+        "bath": {
+            "type": "bath",
+            "name": "bath"
+        },
+        "sdk": {
+            "type": "Chemistry OS SDK"
+        }
+    },
+    "configs": {
+        "sequence": [
+            "用户初始化",
+            "浓HCL的滴加",
+            "化合物C的称量和混合",
+            "固液混合，反应过程",
+            "高锰酸钾的滴加",
+            "双氧水的滴加",
+            "抽滤",
+            "滴加水合肼",
+            "E产物转移",
+            "用户初始化",
+            "浓HCL的滴加",
+            "化合物C的称量和混合",
+            "固液混合，反应过程",
+            "高锰酸钾的滴加",
+            "双氧水的滴加",
+            "抽滤",
+            "滴加水合肼",
+            "E产物转移"
+        ],
+        "startStep": 1,
+        "endCondition": "completion"
+    },
+    "process": {
+        "step1": {
+            "object": "sdk",
+            "command": "HN_init",
+            "parameters": {}
+        },
+        "用户初始化": {
+            "sequence": [
+                "step15"
+            ]
+        },
+        "step2": {
+            "object": "sdk",
+            "command": "move_shaoping_A2C",
+            "parameters": {}
+        },
+        "step3": {
+            "object": "sdk",
+            "command": "bath_open",
+            "parameters": {}
+        },
+        "step4": {
+            "object": "sdk",
+            "command": "add_liquid_bath",
+            "parameters": {
+                "liquid_name": "HCl"
+            }
+        },
+        "浓HCL的滴加": {
+            "sequence": [
+                "step16",
+                "step17",
+                "step18"
+            ]
+        },
+        "step5": {
+            "object": "sdk",
+            "command": "add_solid",
+            "parameters": {
+                "gram": 0.5,
+                "tube_from": "test_tube_support",
+                "beaker_from": "beaker_support"
+            }
+        },
+        "化合物C的称量和混合": {
+            "sequence": [
+                "step19"
+            ]
+        },
+        "step6": {
+            "object": "sdk",
+            "command": "add_liquid_bath",
+            "parameters": {
+                "liquid_name": "HCl_wash"
+            }
+        },
+        "固液混合，反应过程": {
+            "sequence": [
+                "step20"
+            ]
+        },
+        "step7": {
+            "object": "sdk",
+            "command": "add_liquid_bath",
+            "parameters": {
+                "liquid_name": "KMnO4"
+            }
+        },
+        "高锰酸钾的滴加": {
+            "sequence": [
+                "step21"
+            ]
+        },
+        "step8": {
+            "object": "sdk",
+            "command": "add_liquid_bath",
+            "parameters": {
+                "liquid_name": "H2O2"
+            }
+        },
+        "双氧水的滴加": {
+            "sequence": [
+                "step22"
+            ]
+        },
+        "step9": {
+            "object": "sdk",
+            "command": "bath_over",
+            "parameters": {}
+        },
+        "step10": {
+            "object": "sdk",
+            "command": "bath_wash",
+            "parameters": {}
+        },
+        "抽滤": {
+            "sequence": [
+                "step23",
+                "step24"
+            ]
+        },
+        "step11": {
+            "object": "sdk",
+            "command": "bath_open",
+            "parameters": {}
+        },
+        "step12": {
+            "object": "sdk",
+            "command": "add_liquid_bath",
+            "parameters": {
+                "liquid_name": "N2H4"
+            }
+        },
+        "滴加水合肼": {
+            "sequence": [
+                "step25",
+                "step26"
+            ]
+        },
+        "step13": {
+            "object": "sdk",
+            "command": "bath_over",
+            "parameters": {}
+        },
+        "step14": {
+            "object": "sdk",
+            "command": "move_shaoping_C2A",
+            "parameters": {}
+        },
+        "E产物转移": {
+            "sequence": [
+                "step27",
+                "step28"
+            ]
+        },
+        "step15": {
+            "object": "sdk",
+            "command": "HN_init",
+            "parameters": {}
+        },
+        "step16": {
+            "object": "sdk",
+            "command": "move_shaoping_A2C",
+            "parameters": {}
+        },
+        "step17": {
+            "object": "sdk",
+            "command": "bath_open",
+            "parameters": {}
+        },
+        "step18": {
+            "object": "sdk",
+            "command": "add_liquid_bath",
+            "parameters": {
+                "liquid_name": "HCl"
+            }
+        },
+        "step19": {
+            "object": "sdk",
+            "command": "add_solid",
+            "parameters": {
+                "gram": 0.5,
+                "tube_from": "test_tube_support",
+                "beaker_from": "beaker_support"
+            }
+        },
+        "step20": {
+            "object": "sdk",
+            "command": "add_liquid_bath",
+            "parameters": {
+                "liquid_name": "HCl_wash"
+            }
+        },
+        "step21": {
+            "object": "sdk",
+            "command": "add_liquid_bath",
+            "parameters": {
+                "liquid_name": "KMnO4"
+            }
+        },
+        "step22": {
+            "object": "sdk",
+            "command": "add_liquid_bath",
+            "parameters": {
+                "liquid_name": "H2O2"
+            }
+        },
+        "step23": {
+            "object": "sdk",
+            "command": "bath_over",
+            "parameters": {}
+        },
+        "step24": {
+            "object": "sdk",
+            "command": "bath_wash",
+            "parameters": {}
+        },
+        "step25": {
+            "object": "sdk",
+            "command": "bath_open",
+            "parameters": {}
+        },
+        "step26": {
+            "object": "sdk",
+            "command": "add_liquid_bath",
+            "parameters": {
+                "liquid_name": "N2H4"
+            }
+        },
+        "step27": {
+            "object": "sdk",
+            "command": "bath_over",
+            "parameters": {}
+        },
+        "step28": {
+            "object": "sdk",
+            "command": "move_shaoping_C2A",
+            "parameters": {}
+        }
+    }
+}

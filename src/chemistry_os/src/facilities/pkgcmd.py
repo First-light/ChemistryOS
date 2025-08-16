@@ -47,18 +47,19 @@ class PkgCmdParser:
         result = True
         self.obj_state = self.facility.state # 更新状态
         tokens = shlex.split(command_line)
-        command_name = tokens[0]
         
         if len(tokens) < 1:
             self.obj_log.warning("指令不能为空")
             result = False
-        elif command_name in self.special_commands:
-            self.special_commands[command_name]()
         else:
-            if self._cmd_check(command_name):
-                if not self._cmd_execute(tokens):result = False
+            command_name = tokens[0]
+            if command_name in self.special_commands:
+                self.special_commands[command_name]()
             else:
-                result = False
+                if self._cmd_check(command_name):
+                    if not self._cmd_execute(tokens):result = False
+                else:
+                    result = False
         return result
     
     def _cmd_check(self, command_name):
