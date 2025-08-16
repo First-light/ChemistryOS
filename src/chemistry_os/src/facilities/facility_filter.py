@@ -248,7 +248,7 @@ class Filter(Facility):
         :param name: 蠕动泵名称
         :param state: 1=打开, 0=关闭
         """
-        
+        result = None
         if name not in self.sub_addresses:
             self.log.warning(f"无效的蠕动泵名称: {name}")
         else:
@@ -256,8 +256,9 @@ class Filter(Facility):
             old_state = self.data_dict[name]["state"]
             if not old_state == state:
                 self.data_dict[name]["state"] = state
-                return self.pump_control(address, state)
-    
+                result = self.pump_control(address, state)
+        return result
+
     def pump_run_time(self, name: str, sec: float):
         """
         控制蠕动泵开关
@@ -269,26 +270,27 @@ class Filter(Facility):
         self.pump_control_name(name,state=0)
     
     def liquid_convert_name(self,name:str)->float:
+        result = None
         if name not in self.liquid_convert_dict:
             self.log.warning(f"无效的蠕动泵名称: {name}")
-            return
-        speed = self.liquid_convert_dict[name]["speed"]
-        param = self.liquid_convert_dict[name]["param"]
-        volume = self.liquid_convert_dict[name]["volume"]
-        extra_volume = self.liquid_convert_dict[name]["extra_volume"]
-        sec = min(self.liquid_convert(volume, speed,param,extra_volume),240.0)
-        return sec
+        else:
+            speed = self.liquid_convert_dict[name]["speed"]
+            param = self.liquid_convert_dict[name]["param"]
+            volume = self.liquid_convert_dict[name]["volume"]
+            extra_volume = self.liquid_convert_dict[name]["extra_volume"]
+            sec = min(self.liquid_convert(volume, speed,param,extra_volume),240.0)
+            result = sec
+        return result
 
-    def liquid_convert(self,volume:float,speed:float,param:float,extra_volume:float)->float:
-        sec = volume/(param*speed) +  extra_volume/(param*speed)
-        return sec
-    
     def liquid_set_volume_name(self,name:str,volume:float):
+        result = True
         if name not in self.liquid_convert_dict:
             self.log.warning(f"无效的蠕动泵名称: {name}")
-            return
-        self.liquid_convert_dict[name]["volume"] = volume
-        self.log.warning(f"蠕动泵：{name} 已设置进料：{volume} mL")
+            result = False
+        else:
+            self.liquid_convert_dict[name]["volume"] = volume
+            self.log.warning(f"蠕动泵：{name} 已设置进料：{volume} mL")
+        return result
 
     def liquid_load(self, name: str):
         """
@@ -311,18 +313,18 @@ class Filter(Facility):
         :param address: 蠕动泵设备地址
         :param state: 1=打开, 0=关闭
         """
-
+        result = None
         if address == self.sub_addresses["empty"]:
             self.log.warning("地址为空，无法发送指令")
-            return
-        state_int = int(state)
-        if state_int not in [0, 1]:
-            self.log.warning("无效的阀门状态，请输入 1 或 0")
-            return
-        
-        state_byte = state_int.to_bytes(1, byteorder='big')
-        command = [self.address, 0x01, address, 0x00, state_byte[0], 0x55]
-        return self.send_command(command)
+        else:
+            state_int = int(state)
+            if state_int not in [0, 1]:
+                self.log.warning("无效的阀门状态，请输入 1 或 0")
+            else:
+                state_byte = state_int.to_bytes(1, byteorder='big')
+                command = [self.address, 0x01, address, 0x00, state_byte[0], 0x55]
+                result = self.send_command(command)
+        return result
 
     def set_pump_address(self, old_address: int, new_address: int):
         """
@@ -330,22 +332,24 @@ class Filter(Facility):
         :param old_address: 当前设备地址
         :param new_address: 新地址 (0x00 表示不设置新地址)
         """
+        result = False
         if new_address == self.sub_addresses["empty"]:
             self.log.warning("新地址无效，未进行设置")
-            return
-
-        command = [self.address, 0x04, old_address, 0x00, new_address, 0x55]
-        response = self.send_command(command)
-
-        # 如果设置成功，更新类中的 sub_addresses
-        if response:
-            for key, addr in self.sub_addresses.items():
-                if addr == old_address:
-                    self.sub_addresses[key] = new_address
-                    self.log.info(f"{key} 的地址已更新为: {hex(new_address)}")
-                    break
         else:
-            self.log.warning("设置蠕动泵地址失败")
+            command = [self.address, 0x04, old_address, 0x00, new_address, 0x55]
+            response = self.send_command(command)
+
+            # 如果设置成功，更新类中的 sub_addresses
+            if response:
+                for key, addr in self.sub_addresses.items():
+                    if addr == old_address:
+                        self.sub_addresses[key] = new_address
+                        self.log.info(f"{key} 的地址已更新为: {hex(new_address)}")
+                        break
+                result = True
+            else:
+                self.log.warning("设置蠕动泵地址失败")
+        return result
 
     def send_command(self, command: list):
         """
@@ -398,12 +402,14 @@ class Filter(Facility):
         :param name: 蠕动泵名称
         :param direction: 方向，1=正转, 0=反转
         """
+        result = None
         if name not in self.sub_addresses:
             self.log.warning(f"无效的蠕动泵名称: {name}")
-            return
-        address = self.sub_addresses[name]
-        self.data_dict[name]["dir"] = direction
-        return self.set_pump_direction(address, direction)
+        else:
+            address = self.sub_addresses[name]
+            self.data_dict[name]["dir"] = direction
+            result = self.set_pump_direction(address, direction)
+        return result
         
     def set_pump_speed_name(self, name: str, speed: int,if_save = True):
         """
@@ -411,27 +417,31 @@ class Filter(Facility):
         :param name: 蠕动泵名称
         :param speed: 速度值 (0-65535)
         """
+        result = None
         if name not in self.sub_addresses:
             self.log.warning(f"无效的蠕动泵名称: {name}")
-            return 
-        address = self.sub_addresses[name]
-        if name in self.liquid_convert_dict and if_save:
-            self.liquid_convert_dict[name]["speed"] = speed
-            self.data_dict[name]["speed"] = speed
-        return self.set_pump_speed(address, speed)
-    
+        else:
+            address = self.sub_addresses[name]
+            if name in self.liquid_convert_dict and if_save:
+                self.liquid_convert_dict[name]["speed"] = speed
+                self.data_dict[name]["speed"] = speed
+            result = self.set_pump_speed(address, speed)
+        return result
+
     def reset_pump_speed_by_dict(self, name: str):
         """
         重置蠕动泵速度为字典中的值
         :param name: 蠕动泵名称
         """
+        result = None
         if name not in self.sub_addresses:
             self.log.warning(f"无效的蠕动泵名称: {name}")
-            return
-        address = self.sub_addresses[name]
-        speed = self.liquid_convert_dict[name]["speed"]
-        self.data_dict[name]["speed"] = speed
-        return self.set_pump_speed(address, speed)
+        else:
+            address = self.sub_addresses[name]
+            speed = self.liquid_convert_dict[name]["speed"]
+            self.data_dict[name]["speed"] = speed
+            result = self.set_pump_speed(address, speed)
+        return result
 
     def set_pump_direction(self, address: int, direction: int):
         """
@@ -439,13 +449,15 @@ class Filter(Facility):
         :param address: 蠕动泵设备地址
         :param direction: 方向，1=正转, 0=反转
         """
+        result = None
         direction_int = int(direction)
         if direction_int not in [0, 1]:
             self.log.info("无效的方向，请输入 1 或 0")
-            return
-        direction_byte = direction_int.to_bytes(1, byteorder='big')
-        command = [self.address, 0x02, address, 0x00, direction_byte[0], 0x55]
-        return self.send_command(command)
+        else:
+            direction_byte = direction_int.to_bytes(1, byteorder='big')
+            command = [self.address, 0x02, address, 0x00, direction_byte[0], 0x55]
+            result = self.send_command(command)
+        return result
 
     def set_pump_speed(self, address: int, speed: int):
         """
@@ -453,14 +465,16 @@ class Filter(Facility):
         :param address: 蠕动泵设备地址
         :param speed: 速度值 (0-65535)
         """
+        result = None
         speed = int(speed)
         if speed < 0 or speed > 65535:
             self.log.warning("速度值超出范围，请输入 0-65535")
-            return
-        high_byte = (speed >> 8) & 0xFF
-        low_byte = speed & 0xFF
-        command = [self.address, 0x03, address, high_byte, low_byte, 0x55]
-        return self.send_command(command)
+        else:
+            high_byte = (speed >> 8) & 0xFF
+            low_byte = speed & 0xFF
+            command = [self.address, 0x03, address, high_byte, low_byte, 0x55]
+            result = self.send_command(command)
+        return result
 
     def valve_A_control(self, state: int):
         """
@@ -469,28 +483,33 @@ class Filter(Facility):
         1 = 蠕动泵端关
         0 = 气泵端关
         """
+        result = None
         state_int = int(state)
         if state_int not in [0, 1]:
             self.log.warning("无效的阀门状态，请输入 1 或 0")
-            return
-        state_byte = state_int.to_bytes(1, byteorder='big')
-        command = [self.address, 0x05, state_byte[0], 0x55, 0x55, 0x55]
-        self.data_dict["valve_A"]["state"] = state
-        return self.send_command(command)
+        else:
+            state_byte = state_int.to_bytes(1, byteorder='big')
+            command = [self.address, 0x05, state_byte[0], 0x55, 0x55, 0x55]
+            self.data_dict["valve_A"]["state"] = state
+            result = self.send_command(command)
+        return result
 
     def valve_B_control(self, state: int):
         """
         控制阀门B开关
         :param state: 1=打开, 0=关闭
         """
+        result = True
         state_int = int(state)
         if state_int not in [0, 1]:
             self.log.warning("无效的阀门状态，请输入 1 或 0")
-            return
-        state_byte = state_int.to_bytes(1, byteorder='big')
-        command = [self.address, 0x06, state_byte[0], 0x55, 0x55, 0x55]
-        self.data_dict["valve_B"]["state"] = state
-        return self.send_command(command)
+            result = False
+        else:
+            state_byte = state_int.to_bytes(1, byteorder='big')
+            command = [self.address, 0x06, state_byte[0], 0x55, 0x55, 0x55]
+            self.send_command(command)
+            self.data_dict["valve_B"]["state"] = state
+        return result
 
     def pump_query(self, address: int):
         """

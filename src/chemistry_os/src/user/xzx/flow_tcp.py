@@ -86,8 +86,9 @@ def main_thread_func():
     # main_server.register("add_Liquid_data", 5, add_Liquid.data_dict, add_Liquid.data_dict_update)
     # main_server.register("add_Solid_data", 5, add_Solid.data_dict, add_Solid.data_dict_update)
     # main_server.register("hn_sdk_data", 5, hn_sdk.data_dict, hn_sdk.data_dict_update)
-
     main_server.start()
+
+    main_parser.parse("pro run")#启动json流程
 
     try:
         while True:

@@ -8,6 +8,7 @@ import threading
 import time
 from types import MethodType
 sys.path.append('src/chemistry_os/src')
+from utilities.utility_project import ProjectUtils
 from utilities.utility_emergency import EmergencyUtils
 from utilities.utility_log import LogUtils
 from facility import Facility
@@ -56,6 +57,7 @@ class System(Facility):
         self.parser.register("check", self.system_check, {}, "列出所有对象")
         self.parser.register("check_dict",self.check_all_init_dict,{},"检查所有对象初始化参数")
         self.parser.register("reset", self.facility_reset, {"name": ''}, "重置对象状态")
+        self.parser.register("json_make", self.json_make, {}, "生成项目json文件")
         self.parser.register("!", self.stop_all, {}, "停止所有对象")
         self.parser.register("thread_pause", self.pause_main_thread, {}, "暂停主线程")
         self.parser.register("thread_resume", self.resume_main_thread, {}, "恢复主线程")
@@ -80,6 +82,10 @@ class System(Facility):
 
             return True
         
+    @staticmethod
+    def json_make():
+        ProjectUtils.make()
+
     @staticmethod
     def facility_state_dict_update():
         for i, tuple_t in enumerate(Facility.tuple_list):
