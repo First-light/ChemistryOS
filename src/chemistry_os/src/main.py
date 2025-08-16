@@ -46,7 +46,7 @@ hn_sdk=HN_SDK()
 
 # json项目生成函数
 def project_make_func():
-    # 在这里实现您的自定义逻辑
+    # json项目生成函数
     ProjectUtils.register_object("filter")
     ProjectUtils.register_object("add_Liquid")
     ProjectUtils.register_object("add_Solid")
@@ -54,7 +54,7 @@ def project_make_func():
     ProjectUtils.register_object("fr5A")
     ProjectUtils.register_object('bath')
     ProjectUtils.register_object(hn_sdk.name)
-
+    # json项目生成函数
     ProjectUtils.register_process(hn_sdk.name,"HN_init")
     ProjectUtils.register_sub_process("用户初始化")
     ProjectUtils.register_process(hn_sdk.name,"move_shaoping_A2C")
@@ -78,7 +78,6 @@ def project_make_func():
     ProjectUtils.register_process(hn_sdk.name,"bath_over")
     ProjectUtils.register_process(hn_sdk.name,"move_shaoping_C2A")
     ProjectUtils.register_sub_process("E产物转移")
-    # 添加您需要的功能
     pass
 
 #主线程运行函数
