@@ -2,6 +2,7 @@ import sys
 
 
 sys.path.append('src/chemistry_os/src')
+from utilities.utility_param import ParamTuple
 from facilities.flowdisplay import Flowdisplay
 from facilities.facility_pumps import PumpGroup
 from facilities.facility_addSolid import Add_Solid
@@ -18,20 +19,35 @@ from utilities.utility_project import ProjectUtils
 import time
 
 # 宏定义
-CompoundC_solid_add = 0.5 # 化合物C的添加量
+ParamTuple.CompoundC_solid_add = 0.5 # 化合物C的添加量
+ParamTuple.HCL_volume_add = 26.8*ParamTuple.CompoundC_solid_add # 浓盐酸
+ParamTuple.KMnO4_volume_add = 53.52*ParamTuple.CompoundC_solid_add # 高锰酸钾添加量 
+ParamTuple.H2O2_volume_add = 20.0*ParamTuple.CompoundC_solid_add # 双氧水添加量
+ParamTuple.HCL_L_volume_add = 80.0*ParamTuple.CompoundC_solid_add
+ParamTuple.CH3CN_volume_add = 20.0 # 乙腈添加量
+ParamTuple.N2H4_volume_add = 0.4854 # 肼添加量
+ParamTuple.HCl_rpm = 100
+ParamTuple.KMnO4_rpm = 15
+ParamTuple.H2O2_rpm = 30
+ParamTuple.CH3CN_rpm = 30
+ParamTuple.N2H4_rpm = 30
+ParamTuple.tmp_0 = 0
+ParamTuple.tmp_25 = 25
+ParamTuple.reaction_time_1 = 7200
+ParamTuple.reaction_time_2 = 1200
+ParamTuple.reaction_time_3 = 14400
 
+filter = Filter("filter")
+add_Liquid=PumpGroup('add_Liquid')
+add_Solid=Add_Solid('add_Solid')
+fr5_C = Fr5Arm("fr5C","192.168.58.3")
+fr5_A = Fr5Arm("fr5A","192.168.58.2")
+bath = Bath('bath')
+hn_sdk=HN_SDK()
 
-@staticmethod
-def main_thread_func():
-
-    filter = Filter("filter")
-    add_Liquid=PumpGroup('add_Liquid')
-    add_Solid=Add_Solid('add_Solid')
-    fr5_C = Fr5Arm("fr5C","192.168.58.3")
-    fr5_A = Fr5Arm("fr5A","192.168.58.2")
-    bath = Bath('bath')
-    hn_sdk=HN_SDK()
-
+# json项目
+def project_make_func():
+    # 在这里实现您的自定义逻辑
     ProjectUtils.register_object("filter")
     ProjectUtils.register_object("add_Liquid")
     ProjectUtils.register_object("add_Solid")
@@ -46,7 +62,7 @@ def main_thread_func():
     ProjectUtils.register_process(hn_sdk.name,"bath_open")
     ProjectUtils.register_process(hn_sdk.name,"add_liquid_bath",['HCl'])
     ProjectUtils.register_sub_process("浓HCL的滴加")
-    ProjectUtils.register_process(hn_sdk.name,"add_solid",[CompoundC_solid_add, 'test_tube_support', 'beaker_support'])
+    ProjectUtils.register_process(hn_sdk.name,"add_solid",[ParamTuple.CompoundC_solid_add, 'test_tube_support', 'beaker_support'])
     ProjectUtils.register_sub_process("化合物C的称量和混合")
     ProjectUtils.register_process(hn_sdk.name,"add_liquid_bath",['HCl_wash'])
     ProjectUtils.register_sub_process("固液混合，反应过程")
@@ -63,10 +79,15 @@ def main_thread_func():
     ProjectUtils.register_process(hn_sdk.name,"bath_over")
     ProjectUtils.register_process(hn_sdk.name,"move_shaoping_C2A")
     ProjectUtils.register_sub_process("E产物转移")
+    # 添加您需要的功能
+    pass
+
+def main_thread_func():
+    ProjectUtils.redefine_make_func(project_make_func)
     ProjectUtils.make()
 
-    pro = Project(name="pro",file="flow_tcp.json") 
-
+    pro = Project(name="pro",file=ProjectUtils.file_name) 
+    
     main_parser = CommandParser()
     main_parser.parse("os check")
     main_parser.start()
@@ -88,7 +109,7 @@ def main_thread_func():
     # main_server.register("hn_sdk_data", 5, hn_sdk.data_dict, hn_sdk.data_dict_update)
     main_server.start()
 
-    main_parser.parse("pro run")#启动json流程
+    # main_parser.parse("pro run")#启动json流程
 
     try:
         while True:

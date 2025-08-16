@@ -7,3 +7,5 @@ gitlab master 访问令牌:sreFnxGoRU2weEJVk223
 source .venv/bin/activate 
 
 src/main.py为程序编辑模板
+
+飞书记录：https://hustdian.feishu.cn/wiki/KuMswP7SLitj5ykyIYLcOjbknLb

@@ -18,6 +18,7 @@ class Project(Facility):
     def __init__(self, name: str, file: str):
         super().__init__(name, Project.type)    
         self.step = 1
+        self.file = None
         self.top_step_name = ""
         self.project_dict = {}
         self.project_state = ProjectState.INIT
@@ -344,29 +345,29 @@ class Project(Facility):
         self.project_state = ProjectState.QUIT
 
     def cmd_load(self, file: str):
-        if file == '':
-            self.log.info("请输入文件名。")
-            return
-
-        # 获取文件后缀
-        file_extension = os.path.splitext(file)[1]
-        if file_extension == '':
-            self.log.info("请提供带有后缀的文件。")
-            return
-
-        # 构建文件路径
-        file_path = os.path.join('src/chemistry_os/src/facilities/projects', file)
-        # self.log.info("路径: ", file_path)
-
-        if not os.path.isfile(file_path):
-            self.log.info(f"文件 {file} 不存在。")
-            return
-
-        # 根据文件后缀分类处理
-        if file_extension == '.json':
-            self.cmd_load_json(file_path)
+        if file is None:
+            if self.file:
+                self.cmd_load_json(self.file)#使用备份
         else:
-            self.log.info(f"不支持的文件类型: {file_extension}")
+            # 获取文件后缀
+            file_extension = os.path.splitext(file)[1]
+            if file_extension == '':
+                self.log.info("请提供带有后缀的文件。")
+                return
+
+            # 构建文件路径
+            file_path = os.path.join('src/chemistry_os/src/facilities/projects', file)
+            # self.log.info("路径: ", file_path)
+
+            if not os.path.isfile(file_path):
+                self.log.info(f"文件 {file} 不存在。")
+                return
+
+            # 根据文件后缀分类处理
+            if file_extension == '.json':
+                self.cmd_load_json(file_path)
+            else:
+                self.log.info(f"不支持的文件类型: {file_extension}")
 
 
     def cmd_load_json(self, json_file_path: str):
