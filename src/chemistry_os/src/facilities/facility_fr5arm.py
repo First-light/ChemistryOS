@@ -73,7 +73,7 @@ class Fr5Arm(Facility):
             # print(self.robot.robot_state_pkg.EmergencyStop)
             if self.robot.robot_state_pkg.EmergencyStop and self.state != FacilityState.ERROR:
                 self.log.error(f"{self.name}机械臂检测到急停，设置状态为ERROR")
-                self.state = FacilityState.ERROR
+                self.state = ParamUtils.set_facility_state(self.state,FacilityState.ERROR)
             time.sleep(0.03)
             # print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3])
             #输出时间戳 
@@ -304,6 +304,7 @@ class Fr5Arm(Facility):
 
     def cmd_reset(self):#从error/stop恢复idle的状态
         self.open_up()
+        self.facility_emergency = False
         pass
 
     def analyse_angle(self,x:float,y:float):
@@ -358,6 +359,7 @@ class Fr5Arm(Facility):
             time.sleep(0.002)  # 短暂休眠，避免过于频繁的查询
         if res==2:
             self.log.error(f"机械臂运动异常")
+            self.facility_emergency = True
         return res
 
     def move(self, new_pose: list, type="MoveL", vel_t=default_speed, acc_t=default_acc):
@@ -633,8 +635,7 @@ class Fr5Arm(Facility):
             self.log.warning(f"机械臂下使能失败，错误码: {ret}")
         else:
             self.log.info(f"机械臂下使能")
-            if self.state == FacilityState.IDLE or self.state == FacilityState.BUSY:
-                self.state = FacilityState.STOP
+            self.state = ParamUtils.set_facility_state(self.state,FacilityState.STOP)
 
     def open_up(self):
         self.clear_error_code()

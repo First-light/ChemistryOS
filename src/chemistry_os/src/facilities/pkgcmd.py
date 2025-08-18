@@ -1,12 +1,15 @@
 import sys
 from typing import TypedDict, Dict, Any, Callable
 
+
+
 sys.path.append('src/chemistry_os/src')
 import shlex
 from prettytable import PrettyTable
 from structs import FacilityState
 from interfaces import IFacility  # 依赖接口而不是具体类
 from utilities.utility_log import LogUtils
+from utilities.utility_param import ParamUtils
 
 class CommandInfo(TypedDict):
     cmd: Callable
@@ -25,7 +28,6 @@ class PkgCmdParser:
         self.special_commands = {
             "list": self.list,
             "lock": self.lock,
-            "unlock": self.unlock,
             # 可以在这里添加更多特殊指令及其处理函数
         }
 
@@ -110,12 +112,14 @@ class PkgCmdParser:
                     break
             else:
                 if self.obj_state == FacilityState.IDLE:
-                    self.obj_state = FacilityState.BUSY
+                    self.obj_state = ParamUtils.set_facility_state(self.facility.state, FacilityState.BUSY)
                 handler(**params)
-                if self.obj_state == FacilityState.BUSY:
+                if self.obj_state == FacilityState.BUSY and self.facility.facility_emergency is not True:
                     self.obj_state = FacilityState.IDLE
                 else:
                     self.obj_log.error(f"设备运行时状态异常：{self.obj_state}")
+                    if self.facility.facility_emergency:
+                        self.obj_state = ParamUtils.set_facility_state(self.facility.state, FacilityState.ERROR)
                     result = False
         return result
 
@@ -131,12 +135,9 @@ class PkgCmdParser:
 
     def lock(self):
         self.obj_log.info("设备锁定")
-        self.obj_state = FacilityState.STOP
+        self.obj_state = ParamUtils.set_facility_state(self.obj_state,FacilityState.STOP)
+        self.facility.facility_emergency = True
     
-    def unlock(self):
-        self.obj_log.info("设备解锁")
-        self.obj_state = FacilityState.IDLE
-
     def cmd_print(self,message):
         print(f"{self.obj_name}: {message}")
 

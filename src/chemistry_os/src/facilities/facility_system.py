@@ -231,13 +231,11 @@ class System(Facility):
                 # 只处理在配置中的对象类型
                 if object_type in System.stop_priority_config:
 
-                    if object.state != FacilityState.ERROR:
-                        object.state = FacilityState.STOP
-                        self.log.info(f"对象 {name} (类型: {object_type}) 标记停止。")
+                    object.state = ParamUtils.set_facility_state(object.state,FacilityState.STOP)
+                    self.log.info(f"对象 {name} (类型: {object_type}) 标记停止。")
                     
-                    if object.state == FacilityState.ERROR or object.state == FacilityState.STOP:
-                        priority = System.stop_priority_config[object_type]
-                        objects_to_stop.append((priority, name, object, object_type))
+                    priority = System.stop_priority_config[object_type]
+                    objects_to_stop.append((priority, name, object, object_type))
 
             # 按优先级排序并执行停止处理
             objects_to_stop.sort(key=lambda x: x[0])  # 按优先级排序

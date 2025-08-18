@@ -9,6 +9,12 @@ class FacilityState(Enum):
     STOP = 2 # 停止
     ERROR = 3  # 错误
 
+class ParserState(Enum):
+    READY = 0 # 空闲
+    INPUT_WAIT = 1 
+    STOP = 2 # 停止
+    ERROR = 3  # 错误
+
 class ProjectState(Enum):
     INIT = 0  # 初始化
     READY = 1    # 准备

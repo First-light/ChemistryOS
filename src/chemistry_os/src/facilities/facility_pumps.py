@@ -16,11 +16,63 @@ class PumpGroup(Facility):
     def __init__(self, name: str):
         super().__init__(name, PumpGroup.type)
         self.init_dict = ParamUtils.get_init_params(self)
-        # self.data_dict = {
-        #     "joint_angles": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        #     "gripper_position":0.0,
-        #     "gripper_contain":""
-        # }
+        self.data_dict = {
+            "HCl":{
+                'address': 0x12,
+                'direction': 1,
+                'speed': 0,
+                'on_off': 0
+            },
+            "KMnO4":{
+                'address': 0x13,
+                'direction': 1,
+                'speed': 0,
+                'on_off': 0
+            },
+            "H2O2":{
+                'address': 0x14,
+                'direction': 1,
+                'speed': 0,
+                'on_off': 0
+            },
+            "N2H4":{
+                'address': 0x15,
+                'direction': 1,
+                'speed': 0,
+                'on_off': 0
+            }
+        }
+
+    def update_data_dict(self, addr, direction=None, speed=None, on_off=None):
+        """
+        更新数据字典，支持通过名称或地址进行更新
+        :param identifier: 可以是名称(str)或地址(int)
+        """
+        name = None
+        
+        # 判断标识符类型并找到对应的名称
+        if isinstance(addr, str):
+            # 通过名称查找
+            if addr in self.data_dict:
+                name = addr
+        elif isinstance(addr, int):
+            # 通过地址查找名称
+            for pump_name, data in self.data_dict.items():
+                if data['address'] == addr:
+                    name = pump_name
+                    break
+        
+        # 更新数据
+        if name:
+            if direction is not None:
+                self.data_dict[name]['direction'] = direction
+            if speed is not None:
+                self.data_dict[name]['speed'] = speed
+            if on_off is not None:
+                self.data_dict[name]['on_off'] = on_off
+        else:
+            self.log.warning(f"未找到标识符为 {addr} 的泵")
+
     def cmd_init(self):
         """
         注册指令
@@ -85,9 +137,10 @@ class PumpGroup(Facility):
             with serial.Serial(port=self.usb_name, baudrate=9600, timeout=1, stopbits=2) as ser:
                 self.log.info("成功连接")
                 ser.write(command)
-                time.sleep(0.2)
+                time.sleep(0.05)
                 response = ser.read(ser.in_waiting)
                 self.log.info(f"设备响应: {response}")
+            self.update_data_dict(addr=addr, direction=forward)
 
         except Exception as e:
             self.log.info(f"发送命令失败: {str(e)}")
@@ -116,9 +169,10 @@ class PumpGroup(Facility):
             with serial.Serial(port=self.usb_name, baudrate=9600, timeout=1, stopbits=2) as ser:
                 self.log.info("成功连接")
                 ser.write(command)
-                time.sleep(0.2)
+                time.sleep(0.05)
                 response = ser.read(ser.in_waiting)
                 self.log.info(f"设备响应: {response}")
+            self.update_data_dict(addr=addr, speed=speed)
 
         except Exception as e:
             self.log.info(f"发送命令失败: {str(e)}")
@@ -134,9 +188,10 @@ class PumpGroup(Facility):
             with serial.Serial(port=self.usb_name, baudrate=9600, timeout=1, stopbits=2) as ser:
                 self.log.info("成功连接")
                 ser.write(command)
-                time.sleep(0.2)
+                time.sleep(0.05)
                 response = ser.read(ser.in_waiting)
                 self.log.info(f"设备响应: {response}")
+            self.update_data_dict(addr=addr, on_off='on')
 
         except Exception as e:
             self.log.info("Error1:", str(e))
@@ -152,9 +207,10 @@ class PumpGroup(Facility):
             with serial.Serial(port=self.usb_name, baudrate=9600, timeout=1, stopbits=2) as ser:
                 self.log.info("成功连接")
                 ser.write(command)
-                time.sleep(0.2)
+                time.sleep(0.05)
                 response = ser.read(ser.in_waiting)
                 self.log.info(f"设备响应: {response}")
+            self.update_data_dict(addr=addr, on_off='off')
 
         except Exception as e:
             self.log.info("Error1: " + str(e))

@@ -2,6 +2,7 @@ import time
 import sys
 
 sys.path.append('src/chemistry_os/src')
+from utilities.events import event_countdown
 from facilities.facility_pumps import PumpGroup
 from facilities.facility_addSolid import Add_Solid
 import logging
@@ -15,21 +16,22 @@ from facilities.facility_filter import Filter
 from facilities.facility_parser import CommandParser
 from facilities.facility_system import System
 
-add_Solid=Add_Solid('add_Solid')
-with add_Solid:
-    add_Solid.add_solid_series(0.5)
-    # add_Solid.tube_ver()
-    # add_Solid.clip_open()
-    # add_Solid.clip_close()
-    # add_Solid.tube_hor()
-    # add_Solid.set_pid(1.2,1.75,2.1)
-exit()
+# add_Solid=Add_Solid('add_Solid')
+# with add_Solid:
+#     # add_Solid.add_solid_series(0.5)
+#     # add_Solid.tube_ver()
+#     add_Solid.clip_open()
+#     # add_Solid.clip_close()
+#     # add_Solid.tube_hor()
+#     # add_Solid.set_pid(1.2,1.75,2.1)
+
 
 CompoundC_solid_add = 0.5 # 化合物C的添加量
 
 main_sys = System("os")
 
-# main_parser = CommandParser()  
+main_parser = CommandParser()  
+main_parser.start(input="shell")  # 启动命令解析器，使用 shell 输入方式
 add_Liquid=PumpGroup('add_Liquid')
 add_Solid=Add_Solid('add_Solid')
 fr5_C = Fr5Arm("fr5C","192.168.58.3")
@@ -46,12 +48,16 @@ filter = Filter("filter")
 # main_server.start()
 
 hn_sdk=HN_SDK()
-hn_sdk.fr5A_init()
-fr5_C.check_place_move()
-hn_sdk.name_catch('beaker_add_place')
-# fr5_A.catch()
-hn_sdk.name_pour('bath_pour_place')
-hn_sdk.name_put('beaker_support')
+# event_countdown(10)
+# exit()
+hn_sdk.HN_init()
+hn_sdk.add_liquid_bath('HCl_wash')
+# hn_sdk.fr5A_init()
+# fr5_C.check_place_move()
+# hn_sdk.name_catch('beaker_add_place')
+# # fr5_A.catch()
+# hn_sdk.name_pour('bath_pour_place')
+# hn_sdk.name_put('beaker_support')
 # exit()
 # hn_sdk.HN_init()
 # hn_sdk.move_shaoping_support2C()

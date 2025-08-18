@@ -2,6 +2,7 @@ import sys
 from enum import Enum
 
 sys.path.append('src/chemistry_os/src')
+from facilities.facility_parser import CommandParser
 from facility import Facility
 from structs import FacilityState
 from time import sleep
@@ -25,8 +26,39 @@ class Bath(Facility):
         super().__init__(name,self.type)
         self.modbus_client = ModbusSerialClient(port=self.bath_com, baudrate=9600)
         self.init_dict = ParamUtils.get_init_params(self)
+        # 初始化水浴锅各项参数字典
+        self.data_dict = {
+            'power': 0,      # 电源状态
+            'cold': 0,       # 制冷状态
+            'hot': 0,        # 加热状态
+            'mix': 0,        # 搅拌状态
+            'circle': 0,     # 循环状态
+            'temp': 0,       # 当前温度
+            'temp_set': 0,   # 设定温度
+        }
+        self.init_data_dict()
         # self.modbus_client.connect()
         # 连接期间会独占串口设备
+
+    def update_data_dict(self, power = None, cold = None, hot = None, mix = None, circle = None, temp = None, temp_set = None):
+        if power:
+            self.data_dict['power'] = power
+        if cold:
+            self.data_dict['cold'] = cold
+        if hot:
+            self.data_dict['hot'] = hot
+        if mix:
+            self.data_dict['mix'] = mix
+        if circle:
+            self.data_dict['circle'] = circle
+        if temp:
+            self.data_dict['temp'] = temp
+        if temp_set:
+            self.data_dict['temp_set'] = temp_set
+
+    def init_data_dict(self):
+        self.data_dict['temp'] = self.read_temp()
+        self.data_dict['temp_set'] = self.read_temp_set()
 
     def output(self,param1,param2):
         print("output:",param1,param2)
@@ -140,6 +172,7 @@ class Bath(Facility):
         此为电源状态控制函数
         接受整数作为控制器的开关，on=1为开，on=0为关，若状态不变则不进行操作
         """
+        self.update_data_dict(power=on)
         return self._common_ctr(on,
                                 Bath.ControlBit.POWER,
                                '开机',
@@ -150,6 +183,7 @@ class Bath(Facility):
         此为制冷状态控制函数
         接受整数作为控制器的开关，on=1为开，on=0为关，若状态不变则不进行操作
         """
+        self.update_data_dict(cold=on)
         return self._common_ctr(on,
                                 Bath.ControlBit.COOLING,
                                '制冷',
@@ -160,6 +194,7 @@ class Bath(Facility):
         此为加热状态控制函数
         接受整数作为控制器的开关，on=1为开，on=0为关，若状态不变则不进行操作
         """
+        self.update_data_dict(hot=on)
         return self._common_ctr(on,
                                 Bath.ControlBit.HEATING,
                                '加热',
@@ -170,6 +205,7 @@ class Bath(Facility):
         此为搅拌器控制函数
         接受整数作为控制器的开关，on=1为开，on=0为关，若状态不变则不进行操作
         """
+        self.update_data_dict(mix=on)
         return self._common_ctr(on,
                                 Bath.ControlBit.STIRRING,
                                '搅拌器',
@@ -180,6 +216,7 @@ class Bath(Facility):
         此为循环系统控制函数
         接受整数作为控制器的开关，on=1为开，on=0为关，若状态不变则不进行操作
         """
+        self.update_data_dict(circle=on)
         return self._common_ctr(on,
                                 Bath.ControlBit.CIRCULATION,
                                '循环系统',
@@ -206,6 +243,7 @@ class Bath(Facility):
 
             if result.isError():
                 return ERROR
+            self.update_data_dict(temp_set=temp)
         finally:
             if close_serial:
                 self.modbus_client.close()
@@ -253,7 +291,7 @@ class Bath(Facility):
             if close_serial:
                 self.modbus_client.close()
 
-    def read_temp(self, test=0, close_serial=True):
+    def read_temp(self, close_serial=True):
         """
         读取当前温度
         """
@@ -275,6 +313,7 @@ class Bath(Facility):
                 temp -= 0x10000
 
             temp /= 10.0
+            self.update_data_dict(temp=temp)
             return temp
         finally:
             if close_serial:
@@ -282,61 +321,65 @@ class Bath(Facility):
 
     def interactable_writetmp(self, tmp):
         Info = {
-            '控制温度': tmp,
-            '当前温度': '',
-            '剩余时间': '',
-        }
+                '控制温度': tmp,
+                '当前温度': '',
+                '剩余时间': '',
+            }
         Flowdisplay.update_process_display_dict(Process=None, Action='水浴锅控温', Info=Info)
 
-        # 用于控制是否继续计时的事件
-        stop_event = threading.Event()
-        countdown_finished_event = threading.Event()
-        def wait_tmp(tmp):
-            now_tmp = self.read_temp()# 避免短时间内多次调用温度读取函数，以免读到错误数值
-            start_tmp = now_tmp+0.001
-            start_time = time.time()
-            self.write_temp(tmp)# 设置水浴锅温度
-            print('控温中...')
-            while(now_tmp > tmp+5 or now_tmp < tmp-5) and not stop_event.is_set():
-                bias = 5 if abs(tmp + 5 - start_tmp) < abs(tmp - 5 - start_tmp) else -5
-                remaining_time = (tmp - now_tmp + bias)/((now_tmp - start_tmp)/(time.time() - start_time))
-                if remaining_time<0:
-                    remaining_time*=-1
-                # 计算预计完成时间
-                finish_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()+remaining_time))
-                print(f"当前温度为:{now_tmp},未达到指定温度{tmp}附近，继续控温，预计剩余时间: {int(remaining_time)} 秒 | 预计结束时间: {finish_time}, 输入 \'q\' 以跳过", end="\r")
-                Info = {
-                    '控制温度': tmp,
-                    '当前温度': now_tmp,
-                    '预计剩余时间': remaining_time
-                }
-                Flowdisplay.update_process_display_dict(Process=None, Action='水浴锅控温', Info=Info)
+        now_tmp = self.read_temp()
+        start_tmp = now_tmp + 0.001
+        start_time = time.time()
+        self.write_temp(tmp)
+        self.log.info('控温中...')
+        
+        # 用于控制是否停止的标志
+        stop_flag = threading.Event()
+        
+        def input_thread():
+            while not stop_flag.is_set():
+                try:
+                    user_input = CommandParser.wait_input("parser", "输入 'q' 跳过控温...")
+                    # print("===",user_input)
+                    if user_input.lower() == 'q':
+                        stop_flag.set()
+                        break
+                except:
+                    break
+        
+        # 启动输入线程
+        input_t = threading.Thread(target=input_thread, daemon=True)
+        input_t.start()
+        
+        while now_tmp > tmp + 5 or now_tmp < tmp - 5:
+            # 检查是否收到停止信号
+            if stop_flag.is_set():
+                self.log.info("手动停止控温")
+                break
                 
-                time.sleep(1)
-                now_tmp = self.read_temp()
-                continue
-            if not stop_event.is_set():
-                print(f"\n到达指定温度附近，当前温度为{now_tmp}，共耗时{time.time() - start_time}秒")
-                countdown_finished_event.set()
-
-        def check_exit():
-            # 监听键盘输入，按 'q' 停止温控
-            while not countdown_finished_event.is_set():
-                if sys.stdin in select.select([sys.stdin], [], [], 1)[0]:  # 使用 select 监听输入
-                    input_char = sys.stdin.read(1).strip()  # 读取输入字符
-                    if input_char.lower() == 'q':
-                        print("\n手动停止计时")
-                        stop_event.set()  # 触发事件停止
-                        break  # 停止监听输入，后续程序继续执行
-            # print("计时结束，手动停止线程已退出")
-
-        # 创建线程监听键盘输入
-        exit_thread = threading.Thread(target=check_exit)
-        exit_thread.daemon = True  # 设置为守护线程，使主线程结束时它自动退出
-        exit_thread.start()
-
-        # 启动温度控制
-        wait_tmp(tmp)
+            bias = 5 if abs(tmp + 5 - start_tmp) < abs(tmp - 5 - start_tmp) else -5
+            remaining_time = (tmp - now_tmp + bias) / ((now_tmp - start_tmp) / (time.time() - start_time))
+            if remaining_time < 0:
+                remaining_time *= -1
+            
+            finish_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time() + remaining_time))
+            
+            # 使用 \r 回到行首覆盖输出，end='' 避免换行
+            print(f"\r当前温度为:{now_tmp},未达到指定温度{tmp}附近，继续控温，预计剩余时间: {int(remaining_time)} 秒 | 预计结束时间: {finish_time}", end='', flush=True)
+            
+            Info = {
+                '控制温度': tmp,
+                '当前温度': now_tmp,
+                '预计剩余时间': remaining_time
+            }
+            Flowdisplay.update_process_display_dict(Process=None, Action='水浴锅控温', Info=Info)
+            
+            # 短暂等待后继续监控
+            time.sleep(1)
+            now_tmp = self.read_temp()
+        
+        stop_flag.set()  # 确保输入线程结束
+        self.log.info(f"到达指定温度附近，当前温度为{now_tmp}，共耗时{time.time() - start_time}秒")
 
 if __name__ == '__main__':
     bath = Bath('bath')
