@@ -35,7 +35,7 @@ class Facility(ABC,IFacility):
         self.name = name
         self.type = type
         self.state = FacilityState.IDLE
-        self.facility_emergency = False  
+        self.facility_emergency:bool = False  
 
         if EmergencyUtils.if_emergency:
             return
@@ -91,6 +91,7 @@ class Facility(ABC,IFacility):
 
     @abstractmethod
     def cmd_reset(self):#从error/stop恢复idle的状态
+        self.facility_emergency = False
         pass
         
     @staticmethod
@@ -200,7 +201,10 @@ class Facility(ABC,IFacility):
         :return: 缓存区中的所有日志信息
         """
         logs = Facility.log_cache[:]
-        Facility.log_cache.clear()
+        if not logs:
+            logs = ""
+        else:
+            Facility.log_cache.clear()
         return logs
     
     def log_cache_dict_update():
@@ -209,6 +213,8 @@ class Facility(ABC,IFacility):
         """
 
         extracted_logs = Facility.extract_log_cache()
+        Facility.log_cache_dict["data"] = extracted_logs
+        Facility.log_cache_dict["server_mod"] = int(ServerMod.ADJUST.value)# 设置 server_mod 为 ADJUST（临时修改）
         if extracted_logs:# 如果没有日志数据，则设置 server_mod 为 SKIP
             Facility.log_cache_dict["data"] = extracted_logs
             Facility.log_cache_dict["server_mod"] = int(ServerMod.ADJUST.value)

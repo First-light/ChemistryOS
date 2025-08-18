@@ -1,11 +1,14 @@
 import sys
+
+
 sys.path.append('src/chemistry_os/src')
 import shlex
 import threading
 import time
 from facility import Facility
-from structs import BufferMod
+from structs import BufferMod, ParserState
 from utilities.utility_param import ParamUtils
+from utilities.utility_log import LogUtils
 
 class CommandParser(Facility):
     
@@ -27,13 +30,15 @@ class CommandParser(Facility):
         self.input_thread_unity = None
         self.running = False
         self.init_dict = ParamUtils.get_init_params(self)
+        self.parser_state:ParserState = ParserState.READY
+        self._last_input = ""  # 存储最后的输入
 
     def start(self, input="shell"):
 
         if self.running == False:
             self.log.info("开启指令解析")
             self.running = True
-            self.buffer_thread = threading.Thread(target=self.parse_buffer)
+            self.buffer_thread = threading.Thread(target=self.parser_thread)
             self.buffer_thread.daemon = True
             self.buffer_thread.start()
 
@@ -69,17 +74,24 @@ class CommandParser(Facility):
         if self.input_thread_shell:
             self.input_thread_shell.join()
 
-    def parse_buffer(self):
+    def parser_thread(self):
         while self.running:
             if self.buffer:
                 # 将比特流转换为字符串
                 command_line = ''.join(self.buffer)
+                self._last_input = command_line
                 self.buffer.clear()
                 # 调用命令解析器
-                self.parse(command_line)
+                if self.parser_state is ParserState.READY:
+                    self.parse(command_line)
+                elif self.parser_state is ParserState.INPUT_WAIT:
+                    self.parser_state = ParserState.READY
+                else:
+                    pass
             time.sleep(0.01)  # 模拟读取间隔
 
     def cmd_init(self):
+
         pass
 
     def shell_input(self):
@@ -103,6 +115,28 @@ class CommandParser(Facility):
                 CommandParser.unity_buffer.clear()
                 CommandParser.unity_flag = BufferMod.NONE
             time.sleep(0.01)
+
+    @staticmethod
+    def wait_input(name:str,tips:str = "请输入任意内容继续...") -> str:
+        facility_parser = Facility.get_facility_by_name(name)
+        input_data:str = ""
+        if facility_parser and isinstance(facility_parser, CommandParser) and facility_parser.running is True:
+            facility_parser.log.info(tips)
+            facility_parser.parser_state = ParserState.INPUT_WAIT
+            while facility_parser.parser_state == ParserState.INPUT_WAIT:
+                time.sleep(0.01)
+            input_data = facility_parser._last_input
+        elif facility_parser is None:
+            LogUtils.log.warning(f"未找到名为 {name} 的解析器")
+        elif not isinstance(facility_parser, CommandParser):
+            LogUtils.log.warning(f"名为 {name} 的解析器不是 CommandParser 类型")
+        elif facility_parser.running is False:
+            LogUtils.log.warning(f"名为 {name} 的解析器未运行，无法等待输入")
+        else:
+            pass
+            
+        return input_data
+
 
     def parse(self, command_line) -> bool:
         tokens = shlex.split(command_line)

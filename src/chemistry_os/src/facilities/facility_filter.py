@@ -1,5 +1,7 @@
 import sys
 
+from chemistry_os.src.facilities.facility_parser import CommandParser
+
 
 sys.path.append('src/chemistry_os/src')
 import time
@@ -122,6 +124,7 @@ class Filter(Facility):
 
 
     def cmd_reset(self):#从error/stop恢复idle的状态
+        self.facility_emergency = False
         pass
 
     def data_dict_update(self):
@@ -142,7 +145,7 @@ class Filter(Facility):
             self.pump_control_name("pump", 1)# 泵启动
             time.sleep(30)  
             self.pump_control_name("pump", 0)
-            if input("是否继续抽滤？(y/n): ").strip().lower() != 'y':
+            if CommandParser.wait_input("parser","是否继续抽滤？(y/n): ").strip().lower() is not 'y':
                 out = False
 
         self.valve_A_control(0)  # 
@@ -171,7 +174,7 @@ class Filter(Facility):
             self.pump_control_name("acid", 1)
             time.sleep(sec)
             self.pump_control_name("acid", 0)
-            if input("是否继续酸洗？(y/n): ").strip().lower() != 'y':
+            if CommandParser.wait_input("parser","是否继续酸洗？(y/n): ").strip().lower() != 'y':
                 out = False
         self.valve_B_control(1)
         out = True
@@ -181,7 +184,7 @@ class Filter(Facility):
             self.pump_control_name("water", 1)
             time.sleep(sec)
             self.pump_control_name("water", 0)
-            if input("是否继续清水清洗？(y/n): ").strip().lower() != 'y':
+            if CommandParser.wait_input("parser","是否继续清水清洗？(y/n): ").strip().lower() != 'y':
                 out = False
         self.valve_A_control(0)  # 打开三通阀门
         self.valve_B_control(0)  # 
@@ -203,7 +206,7 @@ class Filter(Facility):
             self.pump_control_name("solvent", 1)
             time.sleep(sec)
             self.pump_control_name("solvent", 0)
-            if input("是否继续溶剂？(y/n): ").strip().lower() != 'y':
+            if CommandParser.wait_input("parser","是否继续溶剂？(y/n): ").strip().lower() is not 'y':
                 out = False
         self.valve_A_control(0)  # 打开三通阀门
         self.valve_B_control(0)  # 
@@ -278,7 +281,7 @@ class Filter(Facility):
             param = self.liquid_convert_dict[name]["param"]
             volume = self.liquid_convert_dict[name]["volume"]
             extra_volume = self.liquid_convert_dict[name]["extra_volume"]
-            sec = min(self.liquid_convert(volume, speed,param,extra_volume),240.0)
+            sec = min(self.liquid_convert_dict(volume, speed,param,extra_volume),240.0)
             result = sec
         return result
 
@@ -299,9 +302,9 @@ class Filter(Facility):
         """
         self.log.info(f"{name}预装载液体")
         self.set_pump_speed_name(name,300,if_save=False)
-        input("ok?")
+        CommandParser.wait_input("parser","ok?")
         self.pump_control_name(name, 1)
-        input("over?")
+        CommandParser.wait_input("parser","over?")
         self.pump_control_name(name, 0)
         self.reset_pump_speed_by_dict(name)  # 重置蠕动泵速度为字典中的值
         self.log.info(f"{name}预装载结束")

@@ -1,9 +1,11 @@
 from dataclasses import dataclass
 import inspect
+import sys
 from typing import Dict, Any
-
+sys.path.append('src/chemistry_os/src')
+from structs import FacilityState
+from interfaces import IFacility
 from utilities.utility_log import LogUtils
-
 
 @dataclass
 class ParamTuple:
@@ -74,3 +76,14 @@ class ParamUtils:
             setattr(ParamTuple, param_name, value)
         else:
             LogUtils.log.info(f"ParamTuple没有参数: {param_name}")
+
+    @staticmethod 
+    def set_facility_state(old_state:FacilityState,state:FacilityState) -> FacilityState:
+        result:FacilityState
+        if state.value < old_state.value:
+            # LogUtils.log.warning(f"设备状态不能降级: {facility.name} {facility_old_state} -> {state}")
+            result = old_state
+        else:
+            result = state
+        return result
+

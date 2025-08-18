@@ -84,31 +84,40 @@ def project_make_func():
 
 
 def main_thread_func():
-    ProjectUtils.redefine_make_func(project_make_func)
-    ProjectUtils.make()
+    # ProjectUtils.redefine_make_func(project_make_func)
+    # ProjectUtils.make()
 
-    pro = Project(name="pro",file=ProjectUtils.file_name) 
+    # pro = Project(name="pro",file=ProjectUtils.file_name) 
     
     main_parser = CommandParser()
     main_parser.parse("os check")
     main_parser.start()
     main_parser.start(input="unity")
 
-    main_server = TCPServer(test=True)
-    main_server.register("flow", 50, Flowdisplay.process_display_dict, Flowdisplay.data_update)
-    main_server.register("log", 10, Facility.log_cache_dict, Facility.log_cache_dict_update)
-    main_server.register("project_json", 200, pro.project_dict,enable=False)
-    main_server.register("project_data_dict", 20, pro.data_dict,pro.data_dict_update)
-    main_server.register("facility_location",200, System.facility_location_dict,enable=False)
-    main_server.register("facility_state",10, System.facility_state_dict,System.facility_state_dict_update)
-    main_server.register("fr5A_data", 5, fr5_A.data_dict, fr5_A.data_dict_update)
-    main_server.register("fr5C_data", 5, fr5_C.data_dict, fr5_C.data_dict_update)
-    main_server.register("bath_data", 20, bath.data_dict)
-    main_server.register("filter_data", 20, filter.data_dict, filter.data_dict_update)
-    main_server.register("add_Liquid_data", 20, add_Liquid.data_dict)
-    main_server.register("add_Solid_data", 20, add_Solid.data_dict)
-    # main_server.register("hn_sdk_data", 5, hn_sdk.data_dict, hn_sdk.data_dict_update)
-    main_server.start()
+    config = hn_sdk.liquid_config.get("HCl")
+    hn_sdk.bath_writetmp(config['temp'])
+    
+
+    CommandParser.wait_input("parser")
+    CommandParser.wait_input("parser")
+    CommandParser.wait_input("parser")
+
+    
+    # main_server = TCPServer(test=True)
+    # main_server.register("flow", 50, Flowdisplay.process_display_dict, Flowdisplay.data_update)
+    # main_server.register("log", 10, Facility.log_cache_dict, Facility.log_cache_dict_update)
+    # main_server.register("project_json", 200, pro.project_dict,enable=False)
+    # main_server.register("project_data_dict", 20, pro.data_dict,pro.data_dict_update)
+    # main_server.register("facility_location",200, System.facility_location_dict,enable=False)
+    # main_server.register("facility_state",10, System.facility_state_dict,System.facility_state_dict_update)
+    # main_server.register("fr5A_data", 5, fr5_A.data_dict, fr5_A.data_dict_update)
+    # main_server.register("fr5C_data", 5, fr5_C.data_dict, fr5_C.data_dict_update)
+    # # main_server.register("bath_data", 5, bath.data_dict)
+    # main_server.register("filter_data", 20, filter.data_dict, filter.data_dict_update)
+    # main_server.register("add_Liquid_data", 5, add_Liquid.data_dict)
+    # main_server.register("add_Solid_data", 5, add_Solid.data_dict)
+    # # main_server.register("hn_sdk_data", 5, hn_sdk.data_dict, hn_sdk.data_dict_update)
+    # main_server.start()
 
     # main_parser.parse("pro run") # 运行流程
 

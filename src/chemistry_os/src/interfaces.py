@@ -6,3 +6,4 @@ class IFacility():
     name: str
     state: FacilityState
     log: logging.Logger
+    facility_emergency:bool

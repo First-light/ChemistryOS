@@ -4,64 +4,77 @@ import sys
 import select
 
 sys.path.append('src/chemistry_os/src')
+from utilities.utility_log import LogUtils
 from facilities.flowdisplay import Flowdisplay
+from facilities.facility_parser import CommandParser
 
 def event_countdown(seconds, name:str = '', rpm:float = 0, volume:float = 0, directon:bool = 1):
-    # 用于控制是否继续计时的事件
-    stop_event = threading.Event()
-    countdown_finished_event = threading.Event()
-
-    def countdown(seconds):
-        start_time = time.time()  # 获取当前时间
-        end_time = start_time + seconds  # 计算结束时间
+    start_time = time.time()
+    end_time = start_time + seconds
+    
+    # 用于控制是否停止的标志
+    stop_flag = threading.Event()
+    
+    def input_thread():
+        while not stop_flag.is_set():
+            try:
+                user_input = CommandParser.wait_input("parser", "输入 'q' 跳过倒计时...")
+                if user_input.lower() == 'q':
+                    stop_flag.set()
+                    break
+            except:
+                break
+    
+    # 启动输入线程
+    input_t = threading.Thread(target=input_thread, daemon=True)
+    input_t.start()
+    
+    while time.time() < end_time:
+        # 检查是否收到停止信号
+        if stop_flag.is_set():
+            print("\n手动停止计时")
+            break
+            
+        # 计算剩余时间
         now = time.time()
-        while now < end_time and not stop_event.is_set():  # 计时中如果stop_event触发就停止
-            # 计算剩余时间
-            remaining_time = end_time - now
-            # 计算预计完成时间
-            finish_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(end_time))
-            # 打印剩余时间和预计完成时间
-            print(f"剩余时间: {int(remaining_time)} 秒 | 预计结束时间: {finish_time}, 输入 \'q\' 以跳过", end="\r")
-            if directon==0:
-                Info = {
-                    '进料液体': name,
-                    '进料转速': str(rpm) + ' 转/min',
-                    '剩余时间' : str(int(remaining_time)) + ' s',
-                    '预计结束时间' : finish_time
-                }
-                Flowdisplay.update_process_display_dict(Process=None, Action='蠕动泵反转', Info=Info)
-            elif name != '':
-                Info = {
-                    '进料液体': name,
-                    '进料转速': str(rpm) + ' 转/min',
-                    '已加料体积': str(volume*(seconds-remaining_time)/seconds) + ' ml',
-                    '目标体积': str(volume) + ' ml',
-                    '剩余时间' : str(int(remaining_time)) + ' s',
-                    '预计结束时间' : finish_time
-                }
-                Flowdisplay.update_process_display_dict(Process=None, Action='液料滴加', Info=Info)
-            time.sleep(1)
-            seconds -= 1
-
-        if not stop_event.is_set():
-            print("\n时间到")
-            countdown_finished_event.set()
-
-    def check_exit():
-        # 监听键盘输入，按 'q' 停止倒计时
-        while not countdown_finished_event.is_set():
-            if sys.stdin in select.select([sys.stdin], [], [], 1)[0]:  # 使用 select 监听输入
-                input_char = sys.stdin.read(1).strip()  # 读取输入字符
-                if input_char.lower() == 'q':
-                    print("\n手动停止计时")
-                    stop_event.set()  # 触发事件停止倒计时
-                    break  # 停止监听输入，后续程序继续执行
-        # print("计时结束，手动停止线程已退出")
-
-    # 创建线程监听键盘输入
-    exit_thread = threading.Thread(target=check_exit)
-    exit_thread.daemon = True  # 设置为守护线程，使主线程结束时它自动退出
-    exit_thread.start()
-
-    # 启动倒计时
-    countdown(seconds)
+        remaining_time = end_time - now
+        
+        if remaining_time <= 0:
+            break
+            
+        finish_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(end_time))
+        
+        # 使用 \r 回到行首覆盖输出，end='' 避免换行
+        print(f"\r剩余时间: {int(remaining_time)} 秒 | 预计结束时间: {finish_time}", end='', flush=True)
+        
+        if directon==0:
+            Info = {
+                '进料液体': name,
+                '进料转速': str(rpm) + ' 转/min',
+                '剩余时间' : str(int(remaining_time)) + ' s',
+                '预计结束时间' : finish_time
+            }
+            Flowdisplay.update_process_display_dict(Process=None, Action='蠕动泵反转', Info=Info)
+        elif name != '':
+            elapsed_time = now - start_time
+            current_volume = volume * elapsed_time / seconds
+            Info = {
+                '进料液体': name,
+                '进料转速': str(rpm) + ' 转/min',
+                '已加料体积': f"{current_volume:.2f} ml",
+                '目标体积': str(volume) + ' ml',
+                '剩余时间' : str(int(remaining_time)) + ' s',
+                '预计结束时间' : finish_time
+            }
+            Flowdisplay.update_process_display_dict(Process=None, Action='液料滴加', Info=Info)
+        
+        # 短暂等待后继续监控
+        time.sleep(1)
+    
+    stop_flag.set()  # 确保输入线程结束
+    
+    if time.time() >= end_time:
+        LogUtils.log.info("时间到")
+    
+    total_time = time.time() - start_time
+    LogUtils.log.info(f"倒计时结束，总耗时: {int(total_time)} 秒")

@@ -179,9 +179,39 @@ class Add_Solid(Facility):
 
         # FIFO 队列，保存最近10帧状态
         self.fifo_frame: deque['Add_Solid.McuStatusCommandTypedef'] = deque(maxlen=10)
+
         self.data_dict: dict = {
-            "gripper_contain":""
+            "on_off": "off",                    # 设备开关状态：'on'/'off'
+            "tube_direction": "vertical",       # 试管方向：'vertical'(垂直)/'horizon'(水平)
+            "clip_status": "open",              # 夹爪状态：'open'(打开)/'close'(关闭)
+            "weight_target": 0.0,               # 目标重量 (克)
+            "weight_now": 0.0,                  # 当前实际重量 (克)
+            "p": 0.0,                           # PID控制器的比例参数
+            "d": 0.0,                           # PID控制器的微分参数
+            "offset": 0.0,                      # 重量偏移量 (克)
+            "status_raw": 0,                    # MCU原始状态值
+            "gripper_contain": "",              # 夹爪夹持的物质名称
         }
+
+    def update_data_dict(self, on_off = None, tube_direction = None, clip_status = None, weight_target = None, weight_now = None, p = None, d = None, offset = None, status_raw = None):
+        if weight_target:
+            self.data_dict['weight_target'] = weight_target
+        if weight_now:
+            self.data_dict['weight_now'] = weight_now
+        if p:
+            self.data_dict['p'] = p
+        if d:
+            self.data_dict['d'] = d
+        if offset:
+            self.data_dict['offset'] = offset
+        if status_raw:
+            self.data_dict['status_raw'] = status_raw
+        if on_off:
+            self.data_dict['on_off'] = on_off
+        if tube_direction:
+            self.data_dict['tube_direction'] = tube_direction
+        if clip_status:
+            self.data_dict['clip_status'] = clip_status
 
     def _calculate_timing(self):
         bits_per_char = 1 + self.bytesize + (0 if self.parity == serial.PARITY_NONE else 1) + self.stopbits
@@ -419,6 +449,14 @@ class Add_Solid(Facility):
                 received_frame = self.upper._read_needed_frame()
                 if received_frame:
                     self.latest_frame = Add_Solid.McuStatusCommandTypedef.parse(received_frame)
+                    self.upper.update_data_dict(
+                        weight_target = self.latest_frame.weight_target,
+                        weight_now = self.latest_frame.weight_now,
+                        p = self.latest_frame.p,
+                        d = self.latest_frame.d,
+                        offset = self.latest_frame.offset,
+                        status_raw = self.latest_frame.status_raw
+                    )
                     self.upper.fifo_frame.append(self.latest_frame)
                     self._frame_arrive_event.set()
 
@@ -526,6 +564,7 @@ class Add_Solid(Facility):
 
     def turn_on(self) -> bool:
         """打开设备。"""
+        self.update_data_dict(on_off='on')
         return self.send_command(Add_Solid.McuControlCommandTypedef(
                 addr=self.addr,
                 cmd=Add_Solid.CommandCode.TURN_ON
@@ -533,6 +572,7 @@ class Add_Solid(Facility):
 
     def turn_off(self) -> bool:
         """关闭设备。"""
+        self.update_data_dict(on_off = 'off')
         return self.send_command(Add_Solid.McuControlCommandTypedef(
                 addr=self.addr,
                 cmd=Add_Solid.CommandCode.TURN_OFF
@@ -540,6 +580,7 @@ class Add_Solid(Facility):
 
     def clip_open(self) -> bool:
         """打开夹爪。"""
+        self.update_data_dict(clip_status = 'open')
         return self.send_command(Add_Solid.McuControlCommandTypedef(
                 addr=self.addr,
                 cmd=Add_Solid.CommandCode.CLIP_OPEN,
@@ -548,6 +589,7 @@ class Add_Solid(Facility):
 
     def clip_close(self) -> bool:
         """关闭夹爪。"""
+        self.update_data_dict(clip_status = 'close')
         return self.send_command(Add_Solid.McuControlCommandTypedef(
                 addr=self.addr,
                 cmd=Add_Solid.CommandCode.CLIP_CLOSE,
@@ -556,6 +598,7 @@ class Add_Solid(Facility):
 
     def tube_hor(self) -> bool:
         """将管子设置为水平位置。"""
+        self.update_data_dict(tube_direction = 'horizon')
         return self.send_command(Add_Solid.McuControlCommandTypedef(
                 addr=self.addr,
                 cmd=Add_Solid.CommandCode.TUBE_HOR,
@@ -564,6 +607,7 @@ class Add_Solid(Facility):
 
     def tube_ver(self) -> bool:
         """将管子设置为垂直位置。"""
+        self.update_data_dict(tube_direction = 'vertical')
         return self.send_command(Add_Solid.McuControlCommandTypedef(
                 addr=self.addr,
                 cmd=Add_Solid.CommandCode.TUBE_VER,
@@ -588,6 +632,7 @@ class Add_Solid(Facility):
 
     def add_solid_series(self, weight: float) -> bool:
         """开始添加指定重量的固体系列操作。"""
+        self.update_data_dict(tube_direction = 'horizon', clip_status = 'close')
         Info = {
             '现有重量' : '0 g',
             '目标重量' : str(weight) + ' g'

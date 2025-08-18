@@ -203,9 +203,9 @@ class Project(Facility):
                     self.log.error('handle error:', e)
                     self.cmd_project_stop()
                     for tuple_t in Facility.tuple_list:
-                        name = tuple_t[0]
+                        name = tuple_t.name
                         if name == obj:
-                            tuple_t[3].state = FacilityState.STOP
+                            tuple_t.facility.state = ParamUtils.set_facility_state(tuple_t.facility.state,FacilityState.STOP)
                 return True
             
         return False
@@ -349,11 +349,6 @@ class Project(Facility):
             if self.file:
                 self.cmd_load_json(self.file)#使用备份
         else:
-            # 获取文件后缀
-            file_extension = os.path.splitext(file)[1]
-            if file_extension == '':
-                self.log.info("请提供带有后缀的文件。")
-                return
 
             # 构建文件路径
             file_path = os.path.join('src/chemistry_os/src/facilities/projects', file)
@@ -361,13 +356,9 @@ class Project(Facility):
 
             if not os.path.isfile(file_path):
                 self.log.info(f"文件 {file} 不存在。")
-                return
-
-            # 根据文件后缀分类处理
-            if file_extension == '.json':
-                self.cmd_load_json(file_path)
             else:
-                self.log.info(f"不支持的文件类型: {file_extension}")
+                self.cmd_load_json(file_path)
+
 
 
     def cmd_load_json(self, json_file_path: str):
