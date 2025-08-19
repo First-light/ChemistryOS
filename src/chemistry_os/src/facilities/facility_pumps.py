@@ -269,18 +269,9 @@ class PumpGroup(Facility):
 if __name__ == "__main__":
     add_Liquid=PumpGroup('add_Liquid')
 
-    add_Liquid.writespeed(0x12, 100)
-    add_Liquid.writespeed(0x13, 100)
-    add_Liquid.writespeed(0x14, 100)
-    add_Liquid.writespeed(0x15, 100)
+    # add_Liquid.writespeed(0x12, 100)
+    # add_Liquid.writespeed(0x13, 100)
+    # add_Liquid.writespeed(0x14, 100)
+    # add_Liquid.writespeed(0x15, 100)
 
-    # Add_liquid_fixed.startadd(0x02)
-    # Add_liquid_fixed.stopadd(0x02)
-    # Add_liquid_fixed.add_liquid('H2O2', 0x01, 14.3, 10)
-    # Add_liquid_fixed.add_liquid('H2O2', 0x01, 100, 10)
-    # Add_liquid_fixed.liquid_wash('ice', 0x01, rpm=150, tim=5)
-    # Add_liquid_fixed.add_liquid('addHCl', rpm=150, volume=5)
-    # add_Liquid.add_liquid('addHCl', rpm=100, volume=20)
-    # add_Liquid.liquid_wash('addHCl', rpm=100, tim=5)
-    # add_Liquid.writespeed(0x01, 0)
-    # Add_liquid_fixed.stopadd('H2O2',0x01)
+    add_Liquid.add_liquid('HCl', 150, 180)

@@ -33,6 +33,8 @@ class Fr5Arm(Facility):
         super().__init__(name, Fr5Arm.type)
         self.emergency_detect = emergency_detect
         self.emergency_detect_thread = None
+        self.version = ""
+        self.ip = ""
 
         self.robot = Robot.RPC(ip)
         if self.name=='fr5A':
@@ -91,9 +93,9 @@ class Fr5Arm(Facility):
 
 
     def arm_init(self):
-        ret, version = self.robot.GetSDKVersion()  # 查询SDK版本号
+        ret, self.version = self.robot.GetSDKVersion()  # 查询SDK版本号
         if ret == 0:
-            self.log.info(f"FR5机械臂SDK版本号为: {', '.join(version)}")
+            self.log.info(f"FR5机械臂SDK版本号为: {', '.join(self.version)}")
         else:
             self.log.info(f"FR5机械臂查询失败，错误码: {ret}")
         try:
@@ -102,6 +104,7 @@ class Fr5Arm(Facility):
                 temp, ip_check = temp_ip
                 if temp == 0:
                     self.log.info(f"FR5控制器IP :{ip_check}")
+                    self.ip = ip_check
                 else:
                     raise RuntimeError(f"FR5机械臂IP检查错误，错误码: {temp}")
             else:
