@@ -100,6 +100,7 @@
             "put_height": 80,
             "catch_direction": [90.0, 0.0, 180.0],
             "safe_place_id": 3,
+            "wash_r": 5.0,
             "name": "液体进料-滴加位"
         },
         "sanjinshaoping_support": {

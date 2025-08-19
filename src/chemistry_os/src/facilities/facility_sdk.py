@@ -75,7 +75,7 @@ class HN_SDK(Facility):
         'HCl_wash': {
             'temp': 0,
             'rpm': 100,
-            'volume': lambda c: 2.68 * c,
+            'volume': lambda c: 2.68 * 2 * c,
             'reaction_time':0,
             'wash': True
         },
@@ -574,15 +574,24 @@ class HN_SDK(Facility):
             self.add_Liquid.add_liquid(name, rpm, volume)
             time.sleep(1)
         else:
-            volume_now = volume
-            t=0
-            dx=[-1,1,1,-1]
-            dy=[1,1,-1,-1]
-            while volume_now > 0:
-                t=(t+1)%4
-                self.fr5_A.move_by(dx[t],dy[t])
-                self.add_Liquid.add_liquid(name, rpm, volume_batch)
-                volume_now -= volume_batch
+            stop_event = threading.Event()
+            t = 0
+            dx = [-1, 1, 1, -1]
+            dy = [1, 1, -1, -1]
+
+            def add_liquid_thread():
+                self.add_Liquid.add_liquid(name, rpm, volume)
+                stop_event.set()  # 通知主线程停止移动
+
+            thread_add_liquid = threading.Thread(target=add_liquid_thread, daemon=True)
+            thread_add_liquid.start()
+
+            while not stop_event.is_set():
+                t = (t + 1) % 4
+                self.fr5_A.move_by(dx[t] * obj_statu['wash_r'], dy[t] * obj_statu['wash_r'])
+                time.sleep(0.5)
+
+            thread_add_liquid.join()
 
 
         self.fr5_A.move_by(0, 0, obj_statu['put_height'], vel=self.default_speed)
@@ -736,7 +745,7 @@ class HN_SDK(Facility):
             print(f"\r剩余时间: {int(remaining_time)} 秒 | 预计结束时间: {finish_time}", end='', flush=True)
             
             Info = {
-                '剩余时间': str(remaining_time) + ' s',
+                '剩余时间': str(int(remaining_time)) + ' s',
             }
             Flowdisplay.update_process_display_dict(Process=None, Action='化学反应', Info=Info)
             
