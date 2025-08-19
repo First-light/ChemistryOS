@@ -193,17 +193,20 @@ class Add_Solid(Facility):
             "gripper_contain": "",              # 夹爪夹持的物质名称
         }
 
+        with self:
+            pass
+
     def update_data_dict(self, on_off = None, tube_direction = None, clip_status = None, weight_target = None, weight_now = None, p = None, d = None, offset = None, status_raw = None):
         if weight_target:
-            self.data_dict['weight_target'] = weight_target
+            self.data_dict['weight_target'] = round(weight_target, 2)
         if weight_now:
-            self.data_dict['weight_now'] = weight_now
+            self.data_dict['weight_now'] = round(weight_now, 2)
         if p:
-            self.data_dict['p'] = p
+            self.data_dict['p'] = round(p, 2)
         if d:
-            self.data_dict['d'] = d
+            self.data_dict['d'] = round(d, 2)
         if offset:
-            self.data_dict['offset'] = offset
+            self.data_dict['offset'] = round(offset, 2)
         if status_raw:
             self.data_dict['status_raw'] = status_raw
         if on_off:

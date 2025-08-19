@@ -777,7 +777,7 @@ class HN_SDK(Facility):
         self.fr5C_init()
 
     def move_shaoping_support2C(self):
-        Flowdisplay.update_process_display_dict(Process='烧瓶转移 A to C', Action='', Info={})
+        Flowdisplay.update_process_display_dict(Process='烧瓶转移 A to C', Action='', Info={})   
         self.name_catch('sanjinshaoping_support')
         self.bath_put('bath_fr5_put')
 
