@@ -20,15 +20,19 @@ class CommandParser(Facility):
     unity_buffer = []
     unity_flag = BufferMod.NONE
     type = "parser"
+    
 
-    def __init__(self,name = "parser",skip_append=False):
-        super().__init__(name, type = CommandParser.type, skip_append=skip_append)
-        self.buffer = []
-        self.buffer_thread = None
+    def __init__(self,name = "parser",parse_only=False):
+        super().__init__(name, type = CommandParser.type, skip_append=parse_only)
+        self.parser_thread = None
+        self.execute_thread = None
+        self.parser_buffer = []
+        self.execute_buffer = []
         self.input_thread_shell = None
         self.input_thread_curses = None
         self.input_thread_unity = None
         self.running = False
+        self.is_executing = False
         self.init_dict = ParamUtils.get_init_params(self)
         self.parser_state:ParserState = ParserState.READY
         self._last_input = ""  # 存储最后的输入
@@ -38,9 +42,12 @@ class CommandParser(Facility):
         if self.running == False:
             self.log.info("开启指令解析")
             self.running = True
-            self.buffer_thread = threading.Thread(target=self.parser_thread)
-            self.buffer_thread.daemon = True
-            self.buffer_thread.start()
+            self.parser_thread = threading.Thread(target=self.parser_thread_func)
+            self.parser_thread.daemon = True
+            self.parser_thread.start()
+            self.execute_thread = threading.Thread(target=self.execute_thread_func)
+            self.execute_thread.daemon = True
+            self.execute_thread.start()
 
         if input == "shell" :
             self.log.info("开启命令行输入")
@@ -69,26 +76,36 @@ class CommandParser(Facility):
             from lib.curses.simple import cleanup_curses_ui
             cleanup_curses_ui()
         
-        if self.buffer_thread:
-            self.buffer_thread.join()
+        if self.parser_thread:
+            self.parser_thread.join()
         if self.input_thread_shell:
             self.input_thread_shell.join()
 
-    def parser_thread(self):
+    def execute_thread_func(self):
         while self.running:
-            if self.buffer:
+            if self.execute_buffer:
+                self.is_executing = True
+                command_line_t = self.execute_buffer.pop(0)
+                self.parse(command_line_t)
+                self.is_executing = False
+            time.sleep(0.002)
+        self.log.info("执行器线程退出")
+
+    def parser_thread_func(self):
+        while self.running:
+            if self.parser_buffer:
                 # 将比特流转换为字符串
-                command_line = ''.join(self.buffer)
-                self._last_input = command_line
-                self.buffer.clear()
+                command_line_t = self.parser_buffer.pop(0)  # 改为 pop(0) 获取第一个完整命令
+                self._last_input = command_line_t
                 # 调用命令解析器
                 if self.parser_state is ParserState.READY:
-                    self.parse(command_line)
+                    if not self.is_executing: self.execute_buffer.append(command_line_t)
                 elif self.parser_state is ParserState.INPUT_WAIT:
                     self.parser_state = ParserState.READY
                 else:
                     pass
-            time.sleep(0.01)  # 模拟读取间隔
+            time.sleep(0.002)  # 模拟读取间隔
+        self.log.info("解析器线程退出")
 
     def cmd_init(self):
 
@@ -97,7 +114,7 @@ class CommandParser(Facility):
     def shell_input(self):
         while self.running:
             user_input = input(">")
-            self.buffer.extend(user_input)
+            self.parser_buffer.append(user_input)  # 改为 append，保持完整命令
             time.sleep(0.01)
 
     def curses_input(self):#不算好用
@@ -111,7 +128,7 @@ class CommandParser(Facility):
         CommandParser.using_unity = True
         while self.running:
             if CommandParser.unity_flag == BufferMod.READY:
-                self.buffer.extend(CommandParser.unity_buffer)
+                self.parser_buffer.append(''.join(CommandParser.unity_buffer))
                 CommandParser.unity_buffer.clear()
                 CommandParser.unity_flag = BufferMod.NONE
             time.sleep(0.01)

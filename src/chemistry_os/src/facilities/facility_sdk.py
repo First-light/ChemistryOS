@@ -736,7 +736,7 @@ class HN_SDK(Facility):
             print(f"\r剩余时间: {int(remaining_time)} 秒 | 预计结束时间: {finish_time}", end='', flush=True)
             
             Info = {
-                '剩余时间': remaining_time,
+                '剩余时间': str(remaining_time) + ' s',
             }
             Flowdisplay.update_process_display_dict(Process=None, Action='化学反应', Info=Info)
             

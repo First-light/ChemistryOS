@@ -321,7 +321,7 @@ class Bath(Facility):
 
     def interactable_writetmp(self, tmp):
         Info = {
-                '控制温度': tmp,
+                '控制温度': str(tmp) + ' ℃',
                 '当前温度': '',
                 '剩余时间': '',
             }
@@ -368,9 +368,9 @@ class Bath(Facility):
             print(f"\r当前温度为:{now_tmp},未达到指定温度{tmp}附近，继续控温，预计剩余时间: {int(remaining_time)} 秒 | 预计结束时间: {finish_time}", end='', flush=True)
             
             Info = {
-                '控制温度': tmp,
-                '当前温度': now_tmp,
-                '预计剩余时间': remaining_time
+                '控制温度': str(tmp) + ' ℃',
+                '当前温度': str(now_tmp) + ' ℃',
+                '预计剩余时间': int(remaining_time) + ' s'
             }
             Flowdisplay.update_process_display_dict(Process=None, Action='水浴锅控温', Info=Info)
             
