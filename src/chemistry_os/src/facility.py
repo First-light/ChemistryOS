@@ -213,8 +213,8 @@ class Facility(ABC,IFacility):
         """
 
         extracted_logs = Facility.extract_log_cache()
-        Facility.log_cache_dict["data"] = extracted_logs
-        Facility.log_cache_dict["server_mod"] = int(ServerMod.ADJUST.value)# 设置 server_mod 为 ADJUST（临时修改）
+        # Facility.log_cache_dict["data"] = extracted_logs
+        # Facility.log_cache_dict["server_mod"] = int(ServerMod.ADJUST.value)# 设置 server_mod 为 ADJUST（临时修改）
         if extracted_logs:# 如果没有日志数据，则设置 server_mod 为 SKIP
             Facility.log_cache_dict["data"] = extracted_logs
             Facility.log_cache_dict["server_mod"] = int(ServerMod.ADJUST.value)

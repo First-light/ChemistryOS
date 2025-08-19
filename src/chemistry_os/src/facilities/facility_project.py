@@ -24,7 +24,7 @@ class Project(Facility):
         self.project_state = ProjectState.INIT
         self.data_type = ""
         self.cmd_load(file)
-        self.sub_parser = CommandParser(skip_append=True)
+        self.sub_parser = CommandParser(parse_only=True)
         self.executor_thread = threading.Thread(target=self.executor)
         self.executor_thread.daemon = True
         self.executor_thread.start()
@@ -60,7 +60,7 @@ class Project(Facility):
 
             elif self.project_state == ProjectState.QUIT:
                 self.log.info("流程结束")
-                self.project_state = ProjectState.INIT
+                # self.project_state = ProjectState.INIT
                 self.top_step_name = ""
                 self.step = self.project_dict['configs']['startStep']
 

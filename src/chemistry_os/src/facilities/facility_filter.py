@@ -1,6 +1,6 @@
 import sys
 
-from chemistry_os.src.facilities.facility_parser import CommandParser
+
 
 
 sys.path.append('src/chemistry_os/src')
@@ -11,6 +11,7 @@ import serial
 from facility import Facility
 from utilities.utility_param import ParamUtils
 from utilities.utility_emergency import EmergencyUtils
+from facilities.facility_parser import CommandParser
 import time
 
 
@@ -272,6 +273,11 @@ class Filter(Facility):
         time.sleep(sec)
         self.pump_control_name(name,state=0)
     
+    def liquid_convert(self,volume:float, speed:float,param:float,extra_volume:float) -> float:
+        result = 10.0
+        return result
+
+
     def liquid_convert_name(self,name:str)->float:
         result = None
         if name not in self.liquid_convert_dict:
@@ -281,8 +287,9 @@ class Filter(Facility):
             param = self.liquid_convert_dict[name]["param"]
             volume = self.liquid_convert_dict[name]["volume"]
             extra_volume = self.liquid_convert_dict[name]["extra_volume"]
-            sec = min(self.liquid_convert_dict(volume, speed,param,extra_volume),240.0)
-            result = sec
+            convert_sec  = self.liquid_convert(volume, speed,param,extra_volume)
+            result_sec = min(convert_sec,240.0)
+            result = result_sec
         return result
 
     def liquid_set_volume_name(self,name:str,volume:float):

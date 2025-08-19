@@ -230,6 +230,7 @@ class PumpGroup(Facility):
         Info = {
             '进料液体': name,
             '进料转速': '',
+            '进料速度': '',
             '目标体积': ''
         }
         Flowdisplay.update_process_display_dict(Process=None, Action='液料滴加', Info=Info)
@@ -247,8 +248,9 @@ class PumpGroup(Facility):
         self.log.info(f"滴加液体为{name},体积为{volume}ml,转速为{rpm}rpm，预期需要{tim}s")
         Info = {
             '进料液体': name,
-            '进料转速': rpm,
-            '目标体积': volume,
+            '进料转速': str(rpm) + ' 转/min',
+            '进料速度': str(speed) + ' ml/min',
+            '目标体积': str(volume) + ' ml',
         }
         Flowdisplay.update_process_display_dict(Process=None, Action='液料滴加', Info=Info)
         self.writespeed(addr, rpm*10)
