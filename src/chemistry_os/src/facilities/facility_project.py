@@ -15,10 +15,10 @@ class Project(Facility):
     
     type = "project"
 
-    def __init__(self, name: str, file: str):
+    def __init__(self, name: str, file: str=None):
         super().__init__(name, Project.type)    
-        self.step = 1
-        self.file = None
+        self.step:int = 1
+        self.file = file
         self.top_step_name = ""
         self.project_dict = {}
         self.project_state = ProjectState.INIT
@@ -58,7 +58,7 @@ class Project(Facility):
             elif self.project_state == ProjectState.PAUSE:
                 time.sleep(0.1)
 
-            elif self.project_state == ProjectState.QUIT:
+            elif self.project_state == ProjectState.END:
                 self.log.info("流程结束")
                 # self.project_state = ProjectState.INIT
                 self.top_step_name = ""
@@ -135,12 +135,15 @@ class Project(Facility):
         start_step = self.step
         total_steps = self.count_total_steps(self.project_dict['configs']['sequence'])
         
-        if start_step < 1 or start_step > total_steps:
-            self.log.warning(f"错误: 开始步骤 {start_step} 超出范围。有效范围是 1 到 {total_steps}。")
-            return False
+        result = False
+        if total_steps < 1:
+            self.log.warning(f"无流程储存")
+        elif start_step < 1 or start_step > total_steps:
+            self.log.warning(f"开始步骤 {start_step} 超出范围。有效范围是 1 到 {total_steps}。")
         else:
             self.log.info(f"开始步骤 {start_step} 检查通过。")
-            return True
+            result = True
+        return result
 
     def executor_step_up(self,ret:bool):
         if ret is not True:
@@ -150,7 +153,11 @@ class Project(Facility):
             self.log.info(f"步骤 {self.step} 执行成功.")
             self.step += 1
         if self.step > self.max_step:
-            self.project_state = ProjectState.QUIT
+            self.project_state = ProjectState.END
+            self.log.info("流程结束")
+            # self.project_state = ProjectState.INIT
+            self.top_step_name = ""
+            self.step = self.project_dict['configs']['startStep']
 
     def executor_running(self):
         # 执行任务
@@ -224,7 +231,7 @@ class Project(Facility):
 
 
     def cmd_init(self):
-        self.parser.register("load", self.cmd_load, {"file": ''}, "load file")
+        self.parser.register("load", self.cmd_load, {"file": None}, "load file")
         self.parser.register("check", self.check, {}, "show project data")
         self.parser.register("supple", self.cmd_objects_supple, {}, "check objects and supple missing objects")
         self.parser.register("run", self.cmd_project_run, {}, "run project")
@@ -341,15 +348,14 @@ class Project(Facility):
             self.log.info("状态错误，流程无法继续")
 
     def cmd_project_exit(self):
-        self.log.info(f"流程 {self.name} 结束")
-        self.project_state = ProjectState.QUIT
+        
+        self.project_state = ProjectState.END
 
-    def cmd_load(self, file: str):
+    def cmd_load(self, file: str=None):
         if file is None:
             if self.file:
                 self.cmd_load_json(self.file)#使用备份
         else:
-
             # 构建文件路径
             file_path = os.path.join('src/chemistry_os/src/facilities/projects', file)
             # self.log.info("路径: ", file_path)

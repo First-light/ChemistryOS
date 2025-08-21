@@ -1,6 +1,6 @@
 import sys
 from typing import TypedDict, Dict, Any, Callable
-
+import json
 
 
 sys.path.append('src/chemistry_os/src')
@@ -44,11 +44,11 @@ class PkgCmdParser:
             "description": description
         }
 
-    def cmd(self, command_line) -> bool:
+    def cmd(self, command_line:str) -> bool:
         
         result = True
         self.obj_state = self.facility.state # 更新状态
-        tokens = shlex.split(command_line)
+        tokens = command_line.split()
         
         if len(tokens) < 1:
             self.obj_log.warning("指令不能为空")
@@ -92,15 +92,23 @@ class PkgCmdParser:
             for arg in args:
                 if '=' in arg:
                     key, value = arg.split('=', 1)
-                    try:
-                        value = float(value)
-                    except ValueError:
-                        pass
+                    print(value)
                 else:
                     self.obj_log.warning("错误的指令格式，请按要求输入:'param=value'")
                     result = False
                     break
                 if key in params:
+                    default_value = params[key]
+                    try:
+                        if isinstance(default_value, int):
+                            value = int(value)
+                        elif isinstance(default_value, float):
+                            value = float(value)
+                        # 否则保持字符串类型
+                    except ValueError:
+                        self.obj_log.warning(f"参数{key}的值'{value}'类型转换失败")
+                        result = False
+                        break
                     params[key] = value
                 else:
                     self.obj_log.warning(f"未知键值: {key}")

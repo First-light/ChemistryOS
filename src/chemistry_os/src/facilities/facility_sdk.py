@@ -63,49 +63,49 @@ class HN_SDK(Facility):
     compound_c = 0.50
     default_speed = 20.0
     default_put_speed = 10.0
-    should_safe = True
+    should_safe = False
     liquid_config = {
         'HCl': {
             'temp': 0,
             'rpm': 100,
             'volume': lambda c: 26.8 * c,
-            'reaction_time':0,
-            'wash': False
+            'wash': False,
+            'pipe_volume': 3.14 * 0.08 * 0.08 * 180
         },
         'HCl_wash': {
             'temp': 0,
             'rpm': 100,
             'volume': lambda c: 2.68 * 2 * c,
-            'reaction_time':0,
-            'wash': True
+            'wash': True,
+            'pipe_volume': 3.14 * 0.08 * 0.08 * 180
         },
         'KMnO4': {
             'temp': 25,
             'rpm': 15,
             'volume': lambda c: 53.52 * c,
-            'reaction_time':7200,
-            'wash': False
+            'wash': False,
+            'pipe_volume': 3.14 * 0.08 * 0.08 * 180
         },
         'H2O2': {
             'temp': 0,
             'rpm': 30,
             'volume': lambda c: 20.0 * c,
-            'reaction_time':1200,
-            'wash': False
+            'wash': False,
+            'pipe_volume': 3.14 * 0.08 * 0.08 * 180
         },
         'CH3CN': {
             'temp': 25,
             'rpm': 30,
             'volume': lambda c: 20.0 * c,
-            'reaction_time':0,
-            'wash': False
+            'wash': False,
+            'pipe_volume': 3.14 * 0.08 * 0.08 * 180
         },
         'N2H4': {
             'temp': 25,
             'rpm': 30,
             'volume': lambda c: 20.0 * c,
-            'reaction_time':14400,
-            'wash': False
+            'wash': False,
+            'pipe_volume': 3.14 * 0.08 * 0.08 * 180
         },
     }
     
@@ -123,7 +123,7 @@ class HN_SDK(Facility):
             self.filter: Filter = Facility.get_facility_by_name("filter", Filter.type,True,True)
             self.init_dict = ParamUtils.get_init_params(self)
         except ValueError as e:
-            print(e)
+            self.log.info(e)
 
     def cmd_init(self):
         self.parser.register("name_catch", self.name_catch, {"name":''}, "fr5 catch named place")
@@ -146,6 +146,7 @@ class HN_SDK(Facility):
         self.parser.register("fr5A_init", self.fr5A_init, {}, "initialize fr5A")
         self.parser.register("fr5C_init", self.fr5C_init, {}, "initialize fr5C")
         self.parser.register("HN_init", self.HN_init, {}, "initialize HN")
+        self.parser.register("add_solid_init", self.add_solid_init, {}, "initialize add_solid")
         self.parser.register("move_shaoping_A2C", self.move_shaoping_support2C, {}, "move_shaoping_A2C")
         self.parser.register("move_shaoping_C2A", self.move_shaoping_C2support, {}, "move_shaoping_C2A")
         self.parser.register("confirm_safety", self.confirm_safety, {"text":'ok?'}, "confirm_safety")
@@ -166,6 +167,7 @@ class HN_SDK(Facility):
 
 
     def pot_wash(self):
+        Flowdisplay.update_process_display_dict(Process='冲洗抽滤', Action='', Info={})
         self.name_catch("sanjinshaoping_support")
         self.move_wash('sanjinshaoping_wash_1', 0)
         self.move_wash('sanjinshaoping_wash_2', 1)
@@ -173,6 +175,7 @@ class HN_SDK(Facility):
         self.name_put("sanjinshaoping_support")
 
     def bath_wash(self):
+        Flowdisplay.update_process_display_dict(Process='冲洗抽滤', Action='', Info={})
         self.bath_catch('bath_fr5_catch')
         self.move_wash('sanjinshaoping_wash_1', 0)
         self.move_wash('sanjinshaoping_wash_2', 1)
@@ -250,7 +253,7 @@ class HN_SDK(Facility):
         添加液体并设置水浴温度
         :param liquid_name: 液体名称
         """
-        Flowdisplay.update_process_display_dict(Process='添加液体并反应', Action='', Info={})
+        Flowdisplay.update_process_display_dict(Process=liquid_name + '液体进料', Action='', Info={})
 
         self.fr5_C.move_to_safe_catch(1)
 
@@ -272,10 +275,6 @@ class HN_SDK(Facility):
             self.add_liquid(liquid_name, config['rpm'], volume, wash=True)
         else:
             self.add_liquid(liquid_name, config['rpm'], volume)
-        reaction_time = config['reaction_time']
-
-        # 反应时间
-        self.interactable_countdown(reaction_time)
 
     def name_catch(self, name:str, test_tube_add:bool = False):
         obj_statu = self.fr5_A.obj_status[name]
@@ -522,7 +521,7 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=self.default_speed)
         time.sleep(1)
     def add_liquid(self, name:str, rpm = 150, volume = 0.0, wash = False, name_space='add_liquid_mode_place', volume_batch = 0.1):
-
+        Flowdisplay.update_process_display_dict(Process=name + '液体进料', Action='', Info={})
         self.fr5_C.move_to_safe_catch(1)
 
         obj_statu = self.fr5_A.obj_status[name]
@@ -570,8 +569,12 @@ class HN_SDK(Facility):
         #下降，完成放置
         self.fr5_A.move_by(0, 0, -obj_statu['put_height'], vel=self.default_speed)
         time.sleep(1)
+
+        config = self.liquid_config.get(name)
+        pipe_volume = config['pipe_volume']
+
         if wash==False:
-            self.add_Liquid.add_liquid(name, rpm, volume)
+            self.add_Liquid.add_liquid(name, rpm, volume, pipe_volume)
             time.sleep(1)
         else:
             stop_event = threading.Event()
@@ -580,7 +583,7 @@ class HN_SDK(Facility):
             dy = [1, 1, -1, -1]
 
             def add_liquid_thread():
-                self.add_Liquid.add_liquid(name, rpm, volume)
+                self.add_Liquid.add_liquid(name, rpm, volume, pipe_volume)
                 stop_event.set()  # 通知主线程停止移动
 
             thread_add_liquid = threading.Thread(target=add_liquid_thread, daemon=True)
@@ -630,35 +633,42 @@ class HN_SDK(Facility):
 
     def add_solid(self, gram:float, tube_from:str, beaker_from:str, test_tube_add_place:str='test_tube_add_place', beaker_add_place:str='beaker_add_place', pour_place:str='bath_pour_place', batch_gram:float = 0.5):
         Flowdisplay.update_process_display_dict(Process='固体进料', Action='', Info={})
+        realnum = num = gram // batch_gram
+        now_gram = gram - num * batch_gram
+        if now_gram > 0:
+            realnum += 1
+        Info_Process = {
+            '总加料重量': str(gram) + ' g',
+            '当前总计加料重量': '0 g',
+            '预计加料次数': realnum
+        }
+        Flowdisplay.update_process_display_dict(Process='固体进料', Action='', Info={}, Info_Process=Info_Process)
         self.name_catch(tube_from)
         self.name_put(test_tube_add_place, test_tube_add=True)
         self.name_catch_and_put(beaker_from, beaker_add_place)
 
-        now_gram = gram
-        while now_gram > batch_gram:
+        while num:
             with self.add_Solid:
                 self.add_Solid.add_solid_series(batch_gram)
                 self.add_Solid.tube_ver()
             self.name_catch(beaker_add_place)
             self.name_pour(pour_place)
             self.name_put(beaker_add_place)
-            now_gram -= batch_gram
+            num-=1
 
         if now_gram > 0:
             with self.add_Solid:
                 self.add_Solid.add_solid_series(batch_gram)
                 self.add_Solid.tube_ver()
-            self.name_catch(test_tube_add_place, test_tube_add=True)
-            self.name_put(tube_from)
             self.name_catch(beaker_add_place)
             self.name_pour(pour_place)
             self.name_put(beaker_from)
-
         else:
-            self.name_catch(test_tube_add_place, test_tube_add=True)
-            self.name_put(tube_from)
             self.name_catch(beaker_add_place)
             self.name_put(beaker_from)
+
+        self.name_catch(test_tube_add_place, test_tube_add=True)
+        self.name_put(tube_from)
 
     
     def name_catch_and_put(self, name1:str, name2:str):
@@ -702,7 +712,7 @@ class HN_SDK(Facility):
         Info = {
             '剩余时间': '',
         }
-        Flowdisplay.update_process_display_dict(Process=None, Action='化学反应', Info=Info)
+        Flowdisplay.update_process_display_dict(Process='持续反应过程', Action='等待化学反应', Info=Info)
         
         start_time = time.time()
         end_time = start_time + seconds
@@ -761,11 +771,11 @@ class HN_SDK(Facility):
         self.log.info(f"倒计时结束，总耗时: {int(total_time)} 秒")
 
     def fr5A_init(self):
-        Flowdisplay.update_process_display_dict(Process=None, Action='fr5_A初始化', Info={})
+        Flowdisplay.update_process_display_dict(Process='HN机械臂初始化', Action='fr5_A初始化', Info={})
         self.fr5_A.fr5_init()
 
     def fr5C_init(self):
-        Flowdisplay.update_process_display_dict(Process=None, Action='fr5_C初始化', Info={})
+        Flowdisplay.update_process_display_dict(Process='HN机械臂初始化', Action='fr5_C初始化', Info={})
         self.fr5_C.fr5_init()
 
     def fr5_check_place(self):
@@ -775,6 +785,12 @@ class HN_SDK(Facility):
         Flowdisplay.update_process_display_dict(Process='HN机械臂初始化', Action='', Info={})
         self.fr5A_init()
         self.fr5C_init()
+
+    def add_solid_init(self):
+        Flowdisplay.update_process_display_dict(Process='固体进料器初始化', Action='', Info={})
+        with self.add_Solid:
+            self.add_Solid.tube_ver()
+            self.add_Solid.clip_open()
 
     def move_shaoping_support2C(self):
         Flowdisplay.update_process_display_dict(Process='烧瓶转移 A to C', Action='', Info={})   

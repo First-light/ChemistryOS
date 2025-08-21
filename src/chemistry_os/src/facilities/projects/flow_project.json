@@ -1,0 +1,234 @@
+{
+    "objects": {
+        "filter": {
+            "type": "filter",
+            "name": "filter",
+            "com": "/dev/ttyUSB0",
+            "baudrate": 9600,
+            "address": 80,
+            "sub_addresses": {
+                "empty": 0,
+                "solvent": 4,
+                "water": 2,
+                "acid": 3,
+                "pump": 1
+            }
+        },
+        "add_Liquid": {
+            "type": "add_Liquid",
+            "name": "add_Liquid"
+        },
+        "add_Solid": {
+            "type": "Add_Solid"
+        },
+        "fr5C": {
+            "type": "fr5arm",
+            "name": "fr5C",
+            "ip": "192.168.58.3",
+            "emergency_detect": true
+        },
+        "fr5A": {
+            "type": "fr5arm",
+            "name": "fr5A",
+            "ip": "192.168.58.2",
+            "emergency_detect": true
+        },
+        "bath": {
+            "type": "bath",
+            "name": "bath"
+        },
+        "sdk": {
+            "type": "Chemistry OS SDK"
+        }
+    },
+    "configs": {
+        "sequence": [
+            "实验开始",
+            "浓盐酸滴加1",
+            "化合物C称量和混合",
+            "浓盐酸滴加2",
+            "高锰酸钾的滴加",
+            "持续反应过程1",
+            "双氧水滴加",
+            "持续反应过程2",
+            "中间产物抽滤和乙腈滴加",
+            "水合肼滴加",
+            "持续反应过程3",
+            "实验结束"
+        ],
+        "startStep": 1,
+        "endCondition": "completion"
+    },
+    "process": {
+        "step1": {
+            "object": "sdk",
+            "command": "HN_init",
+            "parameters": {}
+        },
+        "step2": {
+            "object": "sdk",
+            "command": "move_shaoping_A2C",
+            "parameters": {}
+        },
+        "step3": {
+            "object": "sdk",
+            "command": "bath_open",
+            "parameters": {}
+        },
+        "实验开始": {
+            "sequence": [
+                "step1",
+                "step2",
+                "step3"
+            ]
+        },
+        "step4": {
+            "object": "sdk",
+            "command": "add_liquid_bath",
+            "parameters": {
+                "liquid_name": "HCl"
+            }
+        },
+        "浓盐酸滴加1": {
+            "sequence": [
+                "step4"
+            ]
+        },
+        "step5": {
+            "object": "sdk",
+            "command": "add_solid",
+            "parameters": {
+                "gram": 1,
+                "tube_from": "test_tube_support",
+                "beaker_from": "beaker_support"
+            }
+        },
+        "化合物C称量和混合": {
+            "sequence": [
+                "step5"
+            ]
+        },
+        "step6": {
+            "object": "sdk",
+            "command": "add_liquid_bath",
+            "parameters": {
+                "liquid_name": "HCl_wash"
+            }
+        },
+        "浓盐酸滴加2": {
+            "sequence": [
+                "step6"
+            ]
+        },
+        "step7": {
+            "object": "sdk",
+            "command": "add_liquid_bath",
+            "parameters": {
+                "liquid_name": "KMnO4"
+            }
+        },
+        "高锰酸钾的滴加": {
+            "sequence": [
+                "step7"
+            ]
+        },
+        "step8": {
+            "object": "sdk",
+            "command": "interactable_countdown",
+            "parameters": {
+                "seconds": 7200
+            }
+        },
+        "持续反应过程1": {
+            "sequence": [
+                "step8"
+            ]
+        },
+        "step9": {
+            "object": "sdk",
+            "command": "add_liquid_bath",
+            "parameters": {
+                "liquid_name": "H2O2"
+            }
+        },
+        "双氧水滴加": {
+            "sequence": [
+                "step9"
+            ]
+        },
+        "step10": {
+            "object": "sdk",
+            "command": "interactable_countdown",
+            "parameters": {
+                "seconds": 1200
+            }
+        },
+        "持续反应过程2": {
+            "sequence": [
+                "step10"
+            ]
+        },
+        "step11": {
+            "object": "sdk",
+            "command": "bath_over",
+            "parameters": {}
+        },
+        "step12": {
+            "object": "sdk",
+            "command": "bath_wash",
+            "parameters": {}
+        },
+        "中间产物抽滤和乙腈滴加": {
+            "sequence": [
+                "step11",
+                "step12"
+            ]
+        },
+        "step13": {
+            "object": "sdk",
+            "command": "bath_open",
+            "parameters": {}
+        },
+        "step14": {
+            "object": "sdk",
+            "command": "add_liquid_bath",
+            "parameters": {
+                "liquid_name": "N2H4"
+            }
+        },
+        "水合肼滴加": {
+            "sequence": [
+                "step13",
+                "step14"
+            ]
+        },
+        "step15": {
+            "object": "sdk",
+            "command": "interactable_countdown",
+            "parameters": {
+                "seconds": 14400
+            }
+        },
+        "持续反应过程3": {
+            "sequence": [
+                "step15"
+            ]
+        },
+        "step16": {
+            "object": "sdk",
+            "command": "bath_over",
+            "parameters": {}
+        },
+        "step17": {
+            "object": "sdk",
+            "command": "move_shaoping_C2A",
+            "parameters": {}
+        },
+        "实验结束": {
+            "sequence": [
+                "step16",
+                "step17"
+            ]
+        }
+    }
+}

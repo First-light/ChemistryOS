@@ -57,7 +57,8 @@ class Facility(ABC,IFacility):
                 facility_tuple = FacilityTuple(name, type, self.parser, self)
                 
                 Facility.tuple_list.append(facility_tuple)
-                self.log.info(f"成功实例化对象:{self}")
+                self.log.info(f"=== 成功实例化对象:{self.name} ===")
+                self.log.info(f"{self}")
         else:
             # 初始化日志记录器
             self.log = LogUtils.log
@@ -74,7 +75,7 @@ class Facility(ABC,IFacility):
 
     # 公共命令初始化的函数
     def cmd_public_init(self):
-        self.parser.register("delay", self.delay,{"sec": 0},"Delay for a specified time")
+        self.parser.register("delay", self.delay,{"sec": 0.0},"Delay for a specified time")
 
     # 命令初始化的函数
     @abstractmethod

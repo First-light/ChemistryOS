@@ -534,5 +534,5 @@ class Filter(Facility):
         """
         检查数据
         """
-        print(f"{self.sub_addresses} 数据检查")
-        print(f"{self.liquid_convert_dict} 数据检查")
+        self.log.info(f"{self.sub_addresses} 数据检查")
+        self.log.info(f"{self.liquid_convert_dict} 数据检查")

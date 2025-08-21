@@ -57,12 +57,12 @@ class Fr5Arm(Facility):
     def cmd_init(self):
         self.parser.register("moveto",self.move_to,
                             {
-                            "x": 0, # 世界坐标系x
-                            "y": 0, # 世界坐标系y
-                            "z": 0, # 世界坐标系z
-                            "r1": 0, # 末端姿态角度
-                            "r2": 0, # 末端姿态角度
-                            "r3": 0, # 末端姿态角度
+                            "x": 0.0, # 世界坐标系x
+                            "y": 0.0, # 世界坐标系y
+                            "z": 0.0, # 世界坐标系z
+                            "r1": 0.0, # 末端姿态角度
+                            "r2": 0.0, # 末端姿态角度
+                            "r3": 0.0, # 末端姿态角度
                             "type": "MoveL", # 运动类型
                             "vel": self.default_speed, # 速度
                             "acc": self.default_acc # 加速度
@@ -70,12 +70,12 @@ class Fr5Arm(Facility):
                             "Move to a specified position")
         self.parser.register("moveby",self.move_by,
                             {
-                            "x": 0, # 世界坐标系x
-                            "y": 0, # 世界坐标系y
-                            "z": 0, # 世界坐标系z
-                            "r1": 0, # 末端姿态角度
-                            "r2": 0, # 末端姿态角度
-                            "r3": 0, # 末端姿态角度
+                            "x": 0.0, # 世界坐标系x
+                            "y": 0.0, # 世界坐标系y
+                            "z": 0.0, # 世界坐标系z
+                            "r1": 0.0, # 末端姿态角度
+                            "r2": 0.0, # 末端姿态角度
+                            "r3": 0.0, # 末端姿态角度
                             "type": "MoveL", # 运动类型
                             "vel": self.default_speed, # 速度
                             "acc": self.default_acc # 加速度
@@ -84,18 +84,18 @@ class Fr5Arm(Facility):
         
         self.parser.register("fromby",self.from_by,
                             {
-                            "fx": 0, # 世界坐标系x
-                            "fy": 0, # 世界坐标系y
-                            "fz": 0, # 世界坐标系z
-                            "f1": 0, # 末端姿态角度
-                            "f2": 0, # 末端姿态角度
-                            "f3": 0, # 末端姿态角度
-                            "x": 0, # 世界坐标系x
-                            "y": 0, # 世界坐标系y
-                            "z": 0, # 世界坐标系z
-                            "r1": 0, # 末端姿态角度
-                            "r2": 0, # 末端姿态角度
-                            "r3": 0, # 末端姿态角度
+                            "fx": 0.0, # 世界坐标系x
+                            "fy": 0.0, # 世界坐标系y
+                            "fz": 0.0, # 世界坐标系z
+                            "f1": 0.0, # 末端姿态角度
+                            "f2": 0.0, # 末端姿态角度
+                            "f3": 0.0, # 末端姿态角度
+                            "x": 0.0, # 世界坐标系x
+                            "y": 0.0, # 世界坐标系y
+                            "z": 0.0, # 世界坐标系z
+                            "r1": 0.0, # 末端姿态角度
+                            "r2": 0.0, # 末端姿态角度
+                            "r3": 0.0, # 末端姿态角度
                             "offset": False, # 世界坐标系z
                             "type": "MoveL", # 运动类型
                             "vel": self.default_speed, # 速度
@@ -105,18 +105,18 @@ class Fr5Arm(Facility):
                             "Move from pose1 to pose2")
         self.parser.register("fromto",self.from_to,
                             {
-                            "fx": 0, # 世界坐标系x
-                            "fy": 0, # 世界坐标系y
-                            "fz": 0, # 世界坐标系z
-                            "f1": 0, # 末端姿态角度
-                            "f2": 0, # 末端姿态角度
-                            "f3": 0, # 末端姿态角度
-                            "x": 0, # 世界坐标系x
-                            "y": 0, # 世界坐标系y
-                            "z": 0, # 世界坐标系z
-                            "r1": 0, # 末端姿态角度
-                            "r2": 0, # 末端姿态角度
-                            "r3": 0, # 末端姿态角度
+                            "fx": 0.0, # 世界坐标系x
+                            "fy": 0.0, # 世界坐标系y
+                            "fz": 0.0, # 世界坐标系z
+                            "f1": 0.0, # 末端姿态角度
+                            "f2": 0.0, # 末端姿态角度
+                            "f3": 0.0, # 末端姿态角度
+                            "x": 0.0, # 世界坐标系x
+                            "y": 0.0, # 世界坐标系y
+                            "z": 0.0, # 世界坐标系z
+                            "r1": 0.0, # 末端姿态角度
+                            "r2": 0.0, # 末端姿态角度
+                            "r3": 0.0, # 末端姿态角度
                             "offset": False, # 世界坐标系z
                             "type": "MoveL", # 运动类型
                             "vel": self.default_speed, # 速度
@@ -140,12 +140,12 @@ class Fr5Arm(Facility):
         self.parser.register("open",self.open_up,{}, "Open up")
         self.parser.register("cmoveto",self.move_circle_to,
                              {  
-                                "x": 0, # 世界坐标系x
-                                "y": 0, # 世界坐标系y
-                                "z": 0, # 世界坐标系z
-                                "r1": 0, # 末端姿态角度
-                                "r2": 0, # 末端姿态角度
-                                "r3": 0, # 末端姿态角度
+                                "x": 0.0, # 世界坐标系x
+                                "y": 0.0, # 世界坐标系y
+                                "z": 0.0, # 世界坐标系z
+                                "r1": 0.0, # 末端姿态角度
+                                "r2": 0.0, # 末端姿态角度
+                                "r3": 0.0, # 末端姿态角度
                                 "offset": False, # 世界坐标系z
                                 "type": "MoveJ", # 运动类型
                                 "vel": self.default_speed, # 速度
@@ -154,7 +154,7 @@ class Fr5Arm(Facility):
                              "Move to a specified position")
         self.parser.register("delay",self.delay,
                             {
-                                "sec": 0
+                                "sec": 0.0
                             },
                             "Delay for a specified time")
         

@@ -26,8 +26,8 @@ class CommandParser(Facility):
         super().__init__(name, type = CommandParser.type, skip_append=parse_only)
         self.parser_thread = None
         self.execute_thread = None
-        self.parser_buffer = []
-        self.execute_buffer = []
+        self.parser_buffer:list[str] = []
+        self.execute_buffer:list[str] = []
         self.input_thread_shell = None
         self.input_thread_curses = None
         self.input_thread_unity = None
@@ -155,14 +155,15 @@ class CommandParser(Facility):
         return input_data
 
 
-    def parse(self, command_line) -> bool:
-        tokens = shlex.split(command_line)
-        if len(tokens) < 1:#检查是否有输入，如果没有则直接忽略
+    def parse(self, command_line:str) -> bool:
+        # 使用简单的空格分割，只分割第一个空格
+        parts = command_line.strip().split(' ', 1)
+        if len(parts) < 1:
             return True
-
-        objectname = tokens[0]
-        command = " ".join(tokens[1:])  # 将命令和参数列表转换为字符串
-
+        
+        objectname = parts[0]
+        command = parts[1] if len(parts) > 1 else ""  # 保留原始的命令字符串，包括双引号
+        
         facility_t = Facility.get_facility_by_name(objectname)
         if facility_t is None:
             self.log.warning(f"未知设备:{objectname}")

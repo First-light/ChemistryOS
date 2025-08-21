@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import sys
 import os
 from datetime import datetime
-from typing import Any, Callable, Literal, overload
+from typing import Any, Callable, Dict, Literal, overload
 import typing
 import json
 import inspect
@@ -20,7 +20,10 @@ class ProjectUtils:
     sequence_flags = [
         "PROJECT_SEQUENCE_START"
         ]
+    
     _process_counter = 1  # 用于自动分配流程名称
+    _function_registry: Dict[str, Callable[[], None]] = {}
+
     output_dir:str = "src/chemistry_os/src/facilities/projects"
     file_name: str = None
 
@@ -52,6 +55,15 @@ class ProjectUtils:
         ProjectUtils.objects_dict[name] = obj_info
         LogUtils.log.info(f"json对象: {name}, 类型: {obj_type}, 参数: {args}")
 
+    @staticmethod
+    def register_function(name: str, func: Callable[[], None]):
+        """
+        注册函数到函数注册表
+        :param name: 函数名称（字符串标识）
+        :param func: 要注册的函数
+        """
+        ProjectUtils._function_registry[name] = func
+        LogUtils.log.info(f"已注册函数: {name}")
 
     @staticmethod
     def register_process(obj_name: str, command_name: str, parameters=None, process_name: str = None):
@@ -191,7 +203,7 @@ class ProjectUtils:
         ProjectUtils.process_dict[name] = sub_process_info
         # 将子流程名添加到 config_sequence
         ProjectUtils.config_sequence.append(name)
-        LogUtils.log.info(f"已创建子流程 {name}，包含步骤: {collected_steps}")
+        # LogUtils.log.info(f"已创建子流程 {name}，包含步骤: {collected_steps}")
         return True
 
         
@@ -200,8 +212,9 @@ class ProjectUtils:
         pass
 
     @staticmethod
-    def redefine_make_func(new_func: Callable[[], None]):
+    def redefine_make_func(new_func: Callable[[], None]) -> None:
         ProjectUtils.make_func = staticmethod(new_func)
+
 
     @staticmethod
     def _build_json_data():
@@ -209,7 +222,6 @@ class ProjectUtils:
         构建 JSON 数据结构
         :return: 完整的 JSON 数据字典
         """
-
         ProjectUtils.make_func()
 
         # 创建临时配置序列，过滤掉 ProjectSequenceFlags 中的标志
@@ -227,6 +239,7 @@ class ProjectUtils:
             },
             "process": ProjectUtils.process_dict.copy()
         }
+
     
     @staticmethod
     def make(json_name: str = None):
@@ -235,29 +248,54 @@ class ProjectUtils:
         :param json_name: JSON 文件名（不包含扩展名）
         """
         if json_name is None:
-            json_name = ProjectUtils.get_program_name()
-
-        
+            json_name = f"{ProjectUtils.get_program_name()}.json"
 
         # 确保目录存在
         output_dir = ProjectUtils.output_dir
         os.makedirs(output_dir, exist_ok=True)
         
-        file_path = os.path.join(output_dir, f"{json_name}.json")
+        file_path = os.path.join(output_dir, f"{json_name}")
         
         # 构建和写入 JSON 数据
         json_data = ProjectUtils._build_json_data()
-        ProjectUtils.file_name = f"{json_name}.json"
+
+        ProjectUtils.file_name = f"{json_name}"
         
         try:
             with open(file_path, 'w', encoding='utf-8') as f:
                 json.dump(json_data, f, ensure_ascii=False, indent=4)
             LogUtils.log.info(f"JSON 文件已生成: {file_path}")
+            ProjectUtils.clear_all()
             return file_path
         except Exception as e:
             LogUtils.log.error(f"生成 JSON 文件时出错: {e}")
             return None
         
+    # 修改：redefine_and_make 方法
+    @staticmethod
+    def redefine_and_make(func_name: str, json_name: str = None):
+        """
+        通过函数名称查找并执行注册的函数，然后生成JSON文件
+        :param func_name: 已注册的函数名称
+        :param json_name: JSON文件名（可选）
+        """
+        file_path = None
+        LogUtils.log.info(f"=== 使用函数 '{func_name}' 生成项目文件 ===")
+        if func_name not in ProjectUtils._function_registry:
+            LogUtils.log.error(f"函数 '{func_name}' 未在注册表中找到")
+            LogUtils.log.info(f"可用函数: {list(ProjectUtils._function_registry.keys())}")
+        else:
+            # 获取注册的函数
+            target_func: Callable[[], None] = ProjectUtils._function_registry[func_name]
+            
+            # 执行原有逻辑
+            ProjectUtils.redefine_make_func(target_func)
+            file_path = ProjectUtils.make(json_name)
+            
+            LogUtils.log.info(f"已生成项目文件")
+        return file_path
+
+
     @staticmethod
     def get_program_name():
         # 获取调用者的文件名
@@ -305,6 +343,8 @@ class ProjectUtils:
         """清空所有注册的数据"""
         ProjectUtils.objects_dict.clear()
         ProjectUtils.process_dict.clear()
+        ProjectUtils.configs_dict.clear()
+        ProjectUtils.config_sequence.clear()
         ProjectUtils._process_counter = 1
         LogUtils.log.info("已清空所有注册数据")
 

@@ -1,0 +1,58 @@
+{
+    "objects": {
+        "filter": {
+            "type": "filter",
+            "name": "filter",
+            "com": "/dev/ttyUSB0",
+            "baudrate": 9600,
+            "address": 80,
+            "sub_addresses": {
+                "empty": 0,
+                "solvent": 4,
+                "water": 2,
+                "acid": 3,
+                "pump": 1
+            }
+        },
+        "add_Liquid": {
+            "type": "add_Liquid",
+            "name": "add_Liquid"
+        },
+        "add_Solid": {
+            "type": "Add_Solid"
+        },
+        "fr5C": {
+            "type": "fr5arm",
+            "name": "fr5C",
+            "ip": "192.168.58.3",
+            "emergency_detect": true
+        },
+        "fr5A": {
+            "type": "fr5arm",
+            "name": "fr5A",
+            "ip": "192.168.58.2",
+            "emergency_detect": true
+        },
+        "bath": {
+            "type": "bath",
+            "name": "bath"
+        },
+        "sdk": {
+            "type": "Chemistry OS SDK"
+        }
+    },
+    "configs": {
+        "sequence": [
+            "step1"
+        ],
+        "startStep": 1,
+        "endCondition": "completion"
+    },
+    "process": {
+        "step1": {
+            "object": "sdk",
+            "command": "HN_init",
+            "parameters": {}
+        }
+    }
+}

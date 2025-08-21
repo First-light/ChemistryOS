@@ -401,7 +401,7 @@ class Add_Solid(Facility):
                 time.sleep(cmd.waiting_time)
 
             if self._mode == Add_Solid.ThreadMode.MCU_MODE:
-                print('等待直到 MCU 状态空闲')
+                self.log.info('等待直到 MCU 状态空闲')
                 status = self._thread.wait_until_idle(cmd)
 
         return status

@@ -53,8 +53,10 @@ class Fr5Arm(Facility):
         self.start_emergency_detect()
         self.data_dict = {
             "joint_angles": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            "gripper_position":0.0,
-            "gripper_contain":""
+            "gripper_position":100.0,
+            "gripper_contain":"",
+            "ip":None,
+            "version":None
         }
         # 自动读取 __init__ 形参并保存到 init_dict
         self.init_dict = ParamUtils.get_init_params(self)
@@ -88,9 +90,13 @@ class Fr5Arm(Facility):
         更新机械臂数据
         """
         joint_angles = [round(self.robot.robot_state_pkg.jt_cur_pos[i], 2) for i in range(6)]
-        self.data_dict["joint_angles"] = joint_angles
-        self.data_dict["gripper_position"] = self.robot.robot_state_pkg.gripper_position
-
+        data_dict_t = {
+            "joint_angles": joint_angles,
+            "gripper_position":self.robot.robot_state_pkg.gripper_position,
+            "ip":self.ip,
+            "version":self.version
+        }
+        self.data_dict.update(data_dict_t)
 
     def arm_init(self):
         ret, self.version = self.robot.GetSDKVersion()  # 查询SDK版本号
@@ -139,12 +145,12 @@ class Fr5Arm(Facility):
     def cmd_init(self):
         self.parser.register("moveto",self.move_to,
                             {
-                            "x": 0, # 世界坐标系x
-                            "y": 0, # 世界坐标系y
-                            "z": 0, # 世界坐标系z
-                            "r1": 0, # 末端姿态角度
-                            "r2": 0, # 末端姿态角度
-                            "r3": 0, # 末端姿态角度
+                            "x": 0.0, # 世界坐标系x
+                            "y": 0.0, # 世界坐标系y
+                            "z": 0.0, # 世界坐标系z
+                            "r1": 0.0, # 末端姿态角度
+                            "r2": 0.0, # 末端姿态角度
+                            "r3": 0.0, # 末端姿态角度
                             "type": "MoveL", # 运动类型
                             "vel": self.default_speed, # 速度
                             "acc": self.default_acc # 加速度
@@ -152,12 +158,12 @@ class Fr5Arm(Facility):
                             "Move to a specified position")
         self.parser.register("moveby",self.move_by,
                             {
-                            "x": 0, # 世界坐标系x
-                            "y": 0, # 世界坐标系y
-                            "z": 0, # 世界坐标系z
-                            "r1": 0, # 末端姿态角度
-                            "r2": 0, # 末端姿态角度
-                            "r3": 0, # 末端姿态角度
+                            "x": 0.0, # 世界坐标系x
+                            "y": 0.0, # 世界坐标系y
+                            "z": 0.0, # 世界坐标系z
+                            "r1": 0.0, # 末端姿态角度
+                            "r2": 0.0, # 末端姿态角度
+                            "r3": 0.0, # 末端姿态角度
                             "type": "MoveL", # 运动类型
                             "vel": self.default_speed, # 速度
                             "acc": self.default_acc # 加速度
@@ -166,18 +172,18 @@ class Fr5Arm(Facility):
         
         self.parser.register("fromby",self.from_by,
                             {
-                            "fx": 0, # 世界坐标系x
-                            "fy": 0, # 世界坐标系y
-                            "fz": 0, # 世界坐标系z
-                            "f1": 0, # 末端姿态角度
-                            "f2": 0, # 末端姿态角度
-                            "f3": 0, # 末端姿态角度
-                            "x": 0, # 世界坐标系x
-                            "y": 0, # 世界坐标系y
-                            "z": 0, # 世界坐标系z
-                            "r1": 0, # 末端姿态角度
-                            "r2": 0, # 末端姿态角度
-                            "r3": 0, # 末端姿态角度
+                            "fx": 0.0, # 世界坐标系x
+                            "fy": 0.0, # 世界坐标系y
+                            "fz": 0.0, # 世界坐标系z
+                            "f1": 0.0, # 末端姿态角度
+                            "f2": 0.0, # 末端姿态角度
+                            "f3": 0.0, # 末端姿态角度
+                            "x": 0.0, # 世界坐标系x
+                            "y": 0.0, # 世界坐标系y
+                            "z": 0.0, # 世界坐标系z
+                            "r1": 0.0, # 末端姿态角度
+                            "r2": 0.0, # 末端姿态角度
+                            "r3": 0.0, # 末端姿态角度
                             "offset": False, # 世界坐标系z
                             "type": "MoveL", # 运动类型
                             "vel": self.default_speed, # 速度
@@ -187,18 +193,18 @@ class Fr5Arm(Facility):
                             "Move from pose1 to pose2")
         self.parser.register("fromto",self.from_to,
                             {
-                            "fx": 0, # 世界坐标系x
-                            "fy": 0, # 世界坐标系y
-                            "fz": 0, # 世界坐标系z
-                            "f1": 0, # 末端姿态角度
-                            "f2": 0, # 末端姿态角度
-                            "f3": 0, # 末端姿态角度
-                            "x": 0, # 世界坐标系x
-                            "y": 0, # 世界坐标系y
-                            "z": 0, # 世界坐标系z
-                            "r1": 0, # 末端姿态角度
-                            "r2": 0, # 末端姿态角度
-                            "r3": 0, # 末端姿态角度
+                            "fx": 0.0, # 世界坐标系x
+                            "fy": 0.0, # 世界坐标系y
+                            "fz": 0.0, # 世界坐标系z
+                            "f1": 0.0, # 末端姿态角度
+                            "f2": 0.0, # 末端姿态角度
+                            "f3": 0.0, # 末端姿态角度
+                            "x": 0.0, # 世界坐标系x
+                            "y": 0.0, # 世界坐标系y
+                            "z": 0.0, # 世界坐标系z
+                            "r1": 0.0, # 末端姿态角度
+                            "r2": 0.0, # 末端姿态角度
+                            "r3": 0.0, # 末端姿态角度
                             "offset": False, # 世界坐标系z
                             "type": "MoveL", # 运动类型
                             "vel": self.default_speed, # 速度
@@ -222,12 +228,12 @@ class Fr5Arm(Facility):
         self.parser.register("open",self.open_up,{}, "Open up")
         self.parser.register("cmoveto",self.move_circle_to,
                              {  
-                                "x": 0, # 世界坐标系x
-                                "y": 0, # 世界坐标系y
-                                "z": 0, # 世界坐标系z
-                                "r1": 0, # 末端姿态角度
-                                "r2": 0, # 末端姿态角度
-                                "r3": 0, # 末端姿态角度
+                                "x": 0.0, # 世界坐标系x
+                                "y": 0.0, # 世界坐标系y
+                                "z": 0.0, # 世界坐标系z
+                                "r1": 0.0, # 末端姿态角度
+                                "r2": 0.0, # 末端姿态角度
+                                "r3": 0.0, # 末端姿态角度
                                 "offset": False, # 世界坐标系z
                                 "type": "MoveJ", # 运动类型
                                 "vel": self.default_speed, # 速度
@@ -265,7 +271,7 @@ class Fr5Arm(Facility):
                                 "radius": 0.0,  # 容器半径
                                 "height": 0.0,  # 容器高度
                                 "direction": 2,  # 倾倒方向
-                                "max_angle": 90,  # 最大倾倒角度
+                                "max_angle": 90.0,  # 最大倾倒角度
                                 "rate_percentage": 100.0,  # 倾倒速率百分比
                                 "shake": 1  # 是否抖动
                             },
@@ -603,8 +609,10 @@ class Fr5Arm(Facility):
         self.robot.SetGripperConfig(4, 0, 0, 1)
         time.sleep(0.5)
         self.robot.ActGripper(1, 1)
-        time.sleep(4.0)
+        time.sleep(3.0)
         # self.robot.MoveGripper(1, 100, 50, 10, 10000, 0, 0, 0, 0, 0)
+        self.catch()
+        self.put()
         # time.sleep(0.5)
         self.log.info("夹爪初始化完成")
 
