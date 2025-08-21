@@ -43,7 +43,8 @@
     },
     "configs": {
         "sequence": [
-            "step1"
+            "step1",
+            "step2"
         ],
         "startStep": 1,
         "endCondition": "completion"
@@ -51,7 +52,12 @@
     "process": {
         "step1": {
             "object": "sdk",
-            "command": "HN_init",
+            "command": "add_liquid_init",
+            "parameters": {}
+        },
+        "step2": {
+            "object": "sdk",
+            "command": "add_solid_init",
             "parameters": {}
         }
     }

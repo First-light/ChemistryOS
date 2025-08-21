@@ -65,6 +65,8 @@ class Bath(Facility):
 
     def cmd_init(self):
         self.parser.register("output", self.output, {"param1": 0, "param2": 1}, "output test")
+        # interactable_writetmp
+        self.parser.register("write_tmp", self.interactable_writetmp, {"tmp": 25}, "水浴锅控温")
 
     def cmd_error_handing(self):
         self.power_ctr(on=0)
@@ -226,7 +228,7 @@ class Bath(Facility):
 
             if result.isError():
                 return ERROR
-            self.update_data_dict(temp_set=temp)
+            self.update_data_dict(temp_set=temp/10)
         finally:
             if close_serial:
                 self.modbus_client.close()
@@ -348,7 +350,7 @@ class Bath(Facility):
             finish_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time() + remaining_time))
             
             # 使用 \r 回到行首覆盖输出，end='' 避免换行
-            print(f"\r当前温度为:{now_tmp},未达到指定温度{tmp}附近，继续控温，预计剩余时间: {int(remaining_time)} 秒 | 预计结束时间: {finish_time}", end='', flush=True)
+            print(f"\r当前温度为:{now_tmp},指定温度{tmp}，继续控温，预计剩余时间: {int(remaining_time)} 秒 | 预计结束时间: {finish_time}", end='', flush=True)
             
             Info = {
                 '控制温度': str(tmp) + ' ℃',

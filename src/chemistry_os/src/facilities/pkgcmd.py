@@ -92,7 +92,7 @@ class PkgCmdParser:
             for arg in args:
                 if '=' in arg:
                     key, value = arg.split('=', 1)
-                    print(value)
+                    # print(value)
                 else:
                     self.obj_log.warning("错误的指令格式，请按要求输入:'param=value'")
                     result = False

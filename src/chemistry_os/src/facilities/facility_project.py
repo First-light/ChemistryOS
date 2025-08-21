@@ -59,9 +59,9 @@ class Project(Facility):
                 time.sleep(0.1)
 
             elif self.project_state == ProjectState.END:
-                self.log.info("流程结束")
+                # self.log.info("流程结束")
                 # self.project_state = ProjectState.INIT
-                self.top_step_name = ""
+                
                 self.step = self.project_dict['configs']['startStep']
 
             elif self.project_state == ProjectState.INIT:
@@ -388,6 +388,7 @@ class Project(Facility):
         self.project_dict = data
         # 创建并启动线程
         self.data_type = "json"
+        self.top_step_name = ""
         self.step = self.project_dict['configs']['startStep']
         self.max_step = self.count_total_steps(self.project_dict['configs']['sequence'])
         # 调用新的函数来设置对象参数

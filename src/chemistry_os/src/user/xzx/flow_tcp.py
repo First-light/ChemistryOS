@@ -2,7 +2,7 @@ import sys
 
 
 sys.path.append('src/chemistry_os/src')
-from utilities.utility_param import ParamTuple
+from utilities.utility_param import ParamTuple, ParamUtils
 from facilities.flowdisplay import Flowdisplay
 from facilities.facility_pumps import PumpGroup
 from facilities.facility_addSolid import Add_Solid
@@ -52,7 +52,7 @@ fr5_A = Fr5Arm("fr5A","192.168.58.2")
 bath = Bath('bath')
 hn_sdk=HN_SDK()
 
-def init_make_func():
+def reset_make_func():
     # 仅用于故障重启
     ProjectUtils.register_object("filter")
     ProjectUtils.register_object("add_Liquid")
@@ -111,13 +111,13 @@ def project_make_func():
 
 
 def main_thread_func():
-    # ProjectUtils.register_function(ParamTuple.init_name, init_make_func)
+    ProjectUtils.register_function(ParamTuple.init_name, reset_make_func)
     ProjectUtils.register_function(ParamTuple.project_name, project_make_func)
-    # System.redefine_and_make(ParamTuple.init_name)
+    System.redefine_and_make(ParamTuple.init_name)
     System.redefine_and_make(ParamTuple.project_name)
 
     pro = Project(name="pro",file=ParamTuple.project_name + ".json") 
-    pro_init = Project(name="init",file=ParamTuple.init_name + ".json") 
+    pro_reset = Project(name="pro_reset",file=ParamTuple.init_name + ".json") 
     
     main_parser = CommandParser()
     main_parser.parse("os check")
@@ -129,7 +129,7 @@ def main_thread_func():
     main_server.register("log", 10, Facility.log_cache_dict, Facility.log_cache_dict_update)
     main_server.register("project_json", 200, pro.project_dict,enable=False)
     main_server.register("project_data_dict", 20, pro.data_dict,pro.data_dict_update)
-    main_server.register("init_data_dict", 20, pro_init.data_dict,pro_init.data_dict_update)
+    main_server.register("reset_data_dict", 20, pro_reset.data_dict,pro_reset.data_dict_update)
     main_server.register("facility_location",200, System.facility_location_dict,enable=False)
     main_server.register("facility_state",10, System.facility_state_dict,System.facility_state_dict_update)
     main_server.register("fr5A_data", 5, fr5_A.data_dict, fr5_A.data_dict_update)
@@ -138,6 +138,7 @@ def main_thread_func():
     main_server.register("filter_data", 20, filter.data_dict, filter.data_dict_update)
     main_server.register("add_Liquid_data", 20, add_Liquid.data_dict)
     main_server.register("add_Solid_data", 20, add_Solid.data_dict)
+    main_server.register("params", 50, ParamUtils.param_dict,ParamUtils.param_dict_update)
     # main_server.register("hn_sdk_data", 5, hn_sdk.data_dict, hn_sdk.data_dict_update)
     main_server.start()
 

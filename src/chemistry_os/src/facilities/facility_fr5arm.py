@@ -434,7 +434,8 @@ class Fr5Arm(Facility):
         old_pose = self.robot.GetActualToolFlangePose(flag=0)#阻塞
         new_list = [old_pose[1][i] + val for i , val in enumerate([x, y, z, r1, r2, r3])]
         new_pose = tuple(new_list)
-        self.log.info(f"新位姿: {new_pose}")
+        formatted_pose = tuple(round(x, 2) for x in new_pose)
+        self.log.info(f"新位姿: {formatted_pose}")
         self.move(new_pose,type,vel,acc)
         self.log.info("到达")
 
@@ -442,14 +443,16 @@ class Fr5Arm(Facility):
     def move_to(self,x=0, y=0, z=0, r1=0, r2=0, r3=0,offset = False,type = "MoveL",vel=default_speed,acc=default_acc):
         new_list = [val + (self.initial_offset[i] if offset else 0) for i, val in enumerate([x, y, z, r1, r2, r3])]
         new_pose = tuple(new_list)
-        self.log.info(f"新位姿: {new_pose}")
+        formatted_pose = tuple(round(x, 2) for x in new_pose)
+        self.log.info(f"新位姿: {formatted_pose}")
         self.move(new_pose,type,vel,acc)
         self.log.info("到达")
 
     def move_to_desc(self, desc:list, offset = False,type = "MoveL",vel=default_speed,acc=default_acc):
         new_list = [val + (self.initial_offset[i] if offset else 0) for i, val in enumerate(desc)]
         new_pose = tuple(new_list)
-        self.log.info(f"新位姿: {new_pose}")
+        formatted_pose = tuple(round(x, 2) for x in new_pose)
+        self.log.info(f"新位姿: {formatted_pose}")
         self.move(new_pose,type,vel,acc)
         self.log.info("到达")
 
@@ -470,7 +473,8 @@ class Fr5Arm(Facility):
 
         new_list = [val + (self.initial_offset[i] if offset else 0) for i, val in enumerate([x, y, z, r1, r2, r3])]
         new_pose = tuple(new_list)
-        self.log.info("新位姿",new_pose)
+        formatted_pose = tuple(round(x, 2) for x in new_pose)
+        self.log.info(f"新位姿: {formatted_pose}")
         self.move(new_pose,type,vel,acc)
         self.log.info("到达")
         
@@ -488,7 +492,7 @@ class Fr5Arm(Facility):
             
             
             new_x,new_y = self.analyse_xy(self.analyse_radians(new_pose[0],new_pose[1]),old_j1)
-            self.log.info("新位置",new_x,new_y)
+            self.log.info("新位置",round(new_x, 2),round(new_y, 2))
             new_pose[0] = new_x
             new_pose[1] = new_y
             new_pose[3] = old_pose[3]
@@ -618,26 +622,32 @@ class Fr5Arm(Facility):
 
     def catch(self):
         self.robot.MoveGripper(1, 0, 50, 5, 10000, 0, 0, 0, 0, 0)
+        self.log.info("夹爪抓取")
         time.sleep(1.0)
 
     def put(self):
         self.robot.MoveGripper(1, 100, 50, 10, 10000, 0, 0, 0, 0, 0)
+        self.log.info("夹爪放置")
         time.sleep(1.0)
 
     def gripper_half(self):
         self.robot.MoveGripper(1, 50, 50, 10, 10000, 0, 0, 0, 0, 0)
+        self.log.info("夹爪半开")
         time.sleep(1.0)
 
     def gripper_15(self):
         self.robot.MoveGripper(1, 15, 50, 10, 10000, 0, 0, 0, 0, 0)
+        self.log.info("夹爪开15")
         time.sleep(1.0)
 
     def gripper_20(self):
         self.robot.MoveGripper(1, 20, 50, 10, 10000, 0, 0, 0, 0, 0)
+        self.log.info("夹爪开20")
         time.sleep(1.0)
 
     def gripper_30(self):
         self.robot.MoveGripper(1, 30, 50, 10, 10000, 0, 0, 0, 0, 0)
+        self.log.info("夹爪开30")
         time.sleep(1.0)
         
     def shut_down(self):

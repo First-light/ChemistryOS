@@ -32,13 +32,15 @@ class ParamTuple:
     reaction_time_2 = 1200
     reaction_time_3 = 14400
     project_name  = "flow_project"
-    init_name = "flow_init"
+    init_name = "flow_reset"
     
 
 
 
 class ParamUtils:
-    
+
+    param_dict:Dict[str, Any] = {}
+
     @staticmethod
     def get_init_params(instance) -> Dict[str, Any]:
         """
@@ -85,6 +87,28 @@ class ParamUtils:
             LogUtils.log.info(f"{param_name} : {value}")
         else:
             LogUtils.log.info(f"ParamTuple没有参数: {param_name}")
+
+    @staticmethod
+    def param_dict_update():
+        ParamUtils.param_dict.update(ParamUtils.get_param_dict())
+
+    @staticmethod
+    def get_param_dict() -> Dict[str, Any]:
+        """
+        获取ParamTuple类中所有参数的字典
+        :return: 包含所有参数名和值的字典
+        """
+        param_dict = {}
+        
+        # 获取ParamTuple类的所有属性
+        for attr_name in dir(ParamTuple):
+            if not attr_name.startswith('_'):  # 过滤以下划线开头的内部属性
+                attr_value = getattr(ParamTuple, attr_name)
+                # 只包含非方法的属性（即数据属性）
+                if not callable(attr_value):
+                    param_dict[attr_name] = attr_value
+        # print(param_dict)
+        return param_dict
 
     @staticmethod 
     def set_facility_state(old_state:FacilityState,state:FacilityState) -> FacilityState:
