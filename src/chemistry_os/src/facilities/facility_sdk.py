@@ -37,7 +37,6 @@
 日期:
     2025年5月7日
 """
-import select
 import threading
 import time
 import sys
@@ -618,41 +617,74 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=self.default_speed)
         time.sleep(1)
 
-    def add_solid(self, gram:float, tube_from:str, beaker_from:str, test_tube_add_place:str='test_tube_add_place', beaker_add_place:str='beaker_add_place', pour_place:str='bath_pour_place', batch_gram:float = 0.5):
+    def add_solid(self, gram:float, tube_from:str, beaker_from:str, test_tube_add_place:str='test_tube_add_place', beaker_add_place:str='beaker_add_place', pour_place:str='bath_pour_place', batch_gram_max:float = 0.6, min_unit: float = 0.01):
         Flowdisplay.update_process_display_dict(Process='固体进料', Action='', Info={})
-        realnum = num = gram // batch_gram
-        now_gram = gram - num * batch_gram
-        if now_gram > 0:
-            realnum += 1
+
+        total = int(round(gram / min_unit))
+        max_b = int(round(batch_gram_max / min_unit))
+
+        num = (total + max_b - 1) // max_b
+        base = total // num
+        rem = total % num
+
+        plan_int = [base + 1] * rem + [base] * (num - rem)
+        plan = [w * min_unit for w in plan_int]
+        result_str = ', '.join(f'{w:.2f} g' for w in plan)
+
+        now_num = now_add = 0
+        
         Info_Process = {
             '总加料重量': str(gram) + ' g',
-            '当前总计加料重量': '0 g',
-            '预计加料次数': realnum
+            '之前总计加料重量': str(now_gram) + ' g',
+            '之前总计加料重量': str(now_add) + ' g',
+            '加料规划': result_str,
+            '预计加料次数': num,
+            '当前加料次数': now_num + 1
         }
-        Flowdisplay.update_process_display_dict(Process='固体进料', Action='', Info={}, Info_Process=Info_Process)
+        Flowdisplay.update_process_display_dict(Process='固体进料', Action=None, Info=None, Info_Process=Info_Process)
         self.name_catch(tube_from)
         self.name_put(test_tube_add_place, test_tube_add=True)
         self.name_catch_and_put(beaker_from, beaker_add_place)
 
-        while num:
+        while now_num < num - 1:
             with self.add_Solid:
-                self.add_Solid.add_solid_series(batch_gram)
+                self.add_Solid.add_solid_series(plan[now_num])
                 self.add_Solid.tube_ver()
-            self.name_catch(beaker_add_place)
-            self.name_pour(pour_place)
-            self.name_put(beaker_add_place)
-            num-=1
+            now_gram += plan[now_num]
+            now_num += 1
+            Info_Process = {
+                '总加料重量': str(gram) + ' g',
+                '之前总计称量重量': str(now_gram) + ' g',
+                '之前总计加料重量': str(now_add) + ' g',
+                '加料规划': result_str,
+                '预计加料次数': num,
+                '当前加料次数': now_num
+            }
+            Flowdisplay.update_process_display_dict(Process='固体进料', Action=None, Info=None, Info_Process=Info_Process)
 
-        if now_gram > 0:
-            with self.add_Solid:
-                self.add_Solid.add_solid_series(batch_gram)
-                self.add_Solid.tube_ver()
             self.name_catch(beaker_add_place)
             self.name_pour(pour_place)
-            self.name_put(beaker_from)
-        else:
-            self.name_catch(beaker_add_place)
-            self.name_put(beaker_from)
+            now_add = now_gram
+            Info_Process = {
+                '总加料重量': str(gram) + ' g',
+                '之前总计称量重量': str(now_gram) + ' g',
+                '之前总计加料重量': str(now_add) + ' g',
+                '加料规划': result_str,
+                '预计加料次数': num,
+                '当前加料次数': now_num + 1
+            }
+            Flowdisplay.update_process_display_dict(Process='固体进料', Action=None, Info=None, Info_Process=Info_Process)
+
+            self.name_put(beaker_add_place)
+            
+        with self.add_Solid:
+            self.add_Solid.add_solid_series(plan[now_num])
+            self.add_Solid.tube_ver()
+
+        
+        self.name_catch(beaker_add_place)
+        self.name_pour(pour_place)
+        self.name_put(beaker_from)
 
         self.name_catch(test_tube_add_place, test_tube_add=True)
         self.name_put(tube_from)

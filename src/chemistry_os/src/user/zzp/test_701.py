@@ -16,31 +16,31 @@ from facilities.facility_filter import Filter
 from facilities.facility_parser import CommandParser
 from facilities.facility_system import System
 
-add_Solid=Add_Solid('add_Solid')
-print(add_Solid.data_dict)
-with add_Solid:
-    pass
-print(add_Solid.data_dict)
-exit()
+# add_Solid=Add_Solid('add_Solid')
+# print(add_Solid.data_dict)
 # with add_Solid:
-#     # add_Solid.add_solid_series(0.5)
-#     # add_Solid.tube_ver()
-#     add_Solid.clip_open()
-#     # add_Solid.clip_close()
-#     # add_Solid.tube_hor()
-#     # add_Solid.set_pid(1.2,1.75,2.1)
+#     pass
+# print(add_Solid.data_dict)
+# exit()
+# # with add_Solid:
+# #     # add_Solid.add_solid_series(0.5)
+# #     # add_Solid.tube_ver()
+# #     add_Solid.clip_open()
+# #     # add_Solid.clip_close()
+# #     # add_Solid.tube_hor()
+# #     # add_Solid.set_pid(1.2,1.75,2.1)
 
 
-CompoundC_solid_add = 0.5 # 化合物C的添加量
+# CompoundC_solid_add = 0.5 # 化合物C的添加量
 
 main_sys = System("os") # 必须放最前
 main_parser = CommandParser()  
 main_parser.start(input="shell")
 
 
-add_Liquid=PumpGroup('add_Liquid')
-add_Liquid.add_liquid('HCl', 30, 180)
-exit()
+# add_Liquid=PumpGroup('add_Liquid')
+# add_Liquid.add_liquid('HCl', 30, 180)
+# exit()
 
 
 add_Liquid=PumpGroup('add_Liquid')
@@ -62,8 +62,8 @@ hn_sdk=HN_SDK()
 # event_countdown(10)
 # exit()
 hn_sdk.HN_init()
-hn_sdk.add_liquid_bath('HCl')
-# hn_sdk.add_solid(1.0, 'test_tube_support', 'beaker_support')
+# hn_sdk.add_liquid_bath('HCl')
+hn_sdk.add_solid(1.0, 'test_tube_support', 'beaker_support')
 # hn_sdk.fr5A_init()
 # fr5_C.check_place_move()
 # hn_sdk.name_catch('beaker_add_place')

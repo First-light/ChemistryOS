@@ -1,5 +1,6 @@
 import sys
 sys.path.append('src/chemistry_os/src')
+from utilities.utility_param import ParamUtils
 from facilities.facility_system import System
 from facilities.facility_parser import CommandParser 
 from facilities.facility_filter import Filter
@@ -9,12 +10,13 @@ import time
 
 @staticmethod
 def main_thread_func():
-    filter = Filter("filter")
+    # filter = Filter("filter")
 
     main_parser = CommandParser()
     main_parser.start()
         # 保持主线程运行
-
+    ParamUtils.param_dict_update()
+    print(ParamUtils.param_dict)
 
     try:
         while True:

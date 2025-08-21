@@ -46,23 +46,23 @@ class PumpGroup(Facility):
         self.add_liquid_config = {
             "HCl":{
                 'addr': 0x12,
-                'pipe_volume': 3.14 * 0.08 * 0.08 * 180
+                'pipe_volume': 3.14 * 0.04 * 0.04 * 180
             },
             "HCl_wash":{
                 'addr': 0x12,
-                'pipe_volume': 3.14 * 0.08 * 0.08 * 180
+                'pipe_volume': 3.14 * 0.04 * 0.04 * 180
             },
             "KMnO4":{
                 'addr': 0x13,
-                'pipe_volume': 3.14 * 0.08 * 0.08 * 180
+                'pipe_volume': 3.14 * 0.04 * 0.04 * 180
             },
             "H2O2":{
                 'addr': 0x14,
-                'pipe_volume': 3.14 * 0.08 * 0.08 * 180
+                'pipe_volume': 3.14 * 0.04 * 0.04 * 180
             },
             "N2H4":{
                 'addr': 0x15,
-                'pipe_volume': 3.14 * 0.08 * 0.08 * 180
+                'pipe_volume': 3.14 * 0.04 * 0.04 * 180
             }
         }
 
@@ -280,11 +280,11 @@ class PumpGroup(Facility):
         speed = self.base_speed * rpm
         pipe_time = pipe_volume / speed * 60
         self.writespeed(addr, rpm*10)
-        self.writedirection(0)
+        self.writedirection(addr, 0)
         self.startadd(addr)
         event_countdown(pipe_time, name=name, volume=pipe_volume, rpm=rpm, directon=0)
         self.stopadd(addr)
-        self.writedirection(1)
+        self.writedirection(addr, 1)
 
 
 if __name__ == "__main__":
@@ -294,5 +294,6 @@ if __name__ == "__main__":
     # add_Liquid.writespeed(0x13, 100)
     # add_Liquid.writespeed(0x14, 100)
     # add_Liquid.writespeed(0x15, 100)
+    add_Liquid.update_data_dict(0x12)
 
-    add_Liquid.add_liquid('HCl', 150, 180)
+    # add_Liquid.add_liquid('HCl', 150, 180)
