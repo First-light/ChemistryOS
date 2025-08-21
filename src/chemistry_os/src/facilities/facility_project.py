@@ -242,9 +242,13 @@ class Project(Facility):
         self.parser.register("exit", self.cmd_project_exit, {}, "exit project")
 
     def cmd_error_handing(self):
+        self.log.info("流程暂停")
+        self.project_state = ProjectState.PAUSE
         pass
 
     def cmd_stop_handing(self):
+        self.log.info("流程暂停")
+        self.project_state = ProjectState.PAUSE
         pass
 
     def cmd_reset(self):#从error/stop恢复idle的状态

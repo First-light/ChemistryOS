@@ -39,6 +39,7 @@ class TCPServer(Facility):
         self.client_address = None
         self.is_running = False
         self.is_connected = False
+        self.is_logging = True
         self.watch_dog_max = 2.0
         self.watch_dog_start = time.time()
         self.watch_dog_flag = False
@@ -271,8 +272,10 @@ class TCPServer(Facility):
             if self.tx_buffer and (self.is_connected or self.test):
                 try:
                     data = self.tx_buffer.pop(0)
-                    self.data_log_save(data,"send")
-                    self.data_normal_save(data, end_str="\n")  # 保存数据到文件
+                    if self.is_logging:
+                        self.data_log_save(data,"send")
+                        self.data_normal_save(data, end_str="\n")  # 保存数据到文件
+
                     if self.is_connected:
                         self.client_socket.sendall(data.encode('utf-8'))
                 except Exception as e:
