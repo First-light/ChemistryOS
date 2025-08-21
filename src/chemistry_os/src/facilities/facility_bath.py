@@ -61,13 +61,10 @@ class Bath(Facility):
         self.data_dict['temp_set'] = self.read_temp_set()
 
     def output(self,param1,param2):
-        print("output:",param1,param2)
+        self.log.info("output:",param1,param2)
 
     def cmd_init(self):
         self.parser.register("output", self.output, {"param1": 0, "param2": 1}, "output test")
-        self.parser.register("message", self.message,{}, "output message")
-        self.parser.register("wait", self.wait, {"time": 0}, "wait for time")
-        self.parser.register("control", self.control, {}, "control")
 
     def cmd_error_handing(self):
         self.power_ctr(on=0)
@@ -85,20 +82,6 @@ class Bath(Facility):
             if self.state == FacilityState.STOP:
                 break
             sleep(0.005)
-
-
-    def message(self):
-        print("This is a temp facility")
-        print("name:",self.name)
-    
-    def wait(self,time):
-        print("wait ",time)
-        sleep(time)
-
-    def control(self):
-        print("control")
-        user_input = input("Please enter any character: ")
-        print("You entered:", user_input)
 
     class ControlBit(Enum):
         """
@@ -152,13 +135,13 @@ class Bath(Facility):
 
             status_wanted = bool(status & control_bit.value)
             if status_wanted == on:
-                print(debug_str + '状态不变')
+                self.log.info(debug_str + '状态不变')
                 return
             elif status and not on:
-                print(debug_str + '允许关闭')
+                self.log.info(debug_str + '允许关闭')
             # elif not status and on:
             else:
-                print(debug_str + '允许开启')
+                self.log.info(debug_str + '允许开启')
 
             result = self.modbus_client.write_register(7, control_bit.value, slave=self.bath_addr)
             if result.isError():
@@ -229,10 +212,10 @@ class Bath(Facility):
         temp*=10
         temp = int(temp)
         if temp>3000:
-            print("温度过高！")
+            self.log.info("温度过高！")
             return OVERRANGE
         if temp<-900:
-            print("温度过低！")
+            self.log.info("温度过低！")
             return OVERRANGE
 
         try:
@@ -265,8 +248,8 @@ class Bath(Facility):
             status = result.registers[0]
             status_cold = bool(status & 0x0080)
             status_heat = bool(status & 0x0001)
-            print('是否正在加热：', status_heat)
-            print('是否正在制冷:', status_cold)
+            self.log.info('是否正在加热：', status_heat)
+            self.log.info('是否正在制冷:', status_cold)
         finally:
             if close_serial:
                 self.modbus_client.close()

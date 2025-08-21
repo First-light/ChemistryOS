@@ -79,15 +79,15 @@ class PumpGroup(Facility):
         """
         self.parser.register("init", self.cmd_init, {}, "初始化泵组")
         self.parser.register("writespeed", self.writespeed, {
-            "addr": 0, "speed": 0}, "设置泵的转速")
+            "addr": 0, "speed": 0.0}, "设置泵的转速")
         self.parser.register("startadd", self.startadd, {
             "addr": 0}, "启动泵")
         self.parser.register("stopadd", self.stopadd, {
             "addr": 0}, "停止泵")
         self.parser.register("liquid_wash", self.liquid_wash, {
-            "name": "", "rpm": 0, "tim": 0}, "清洗液体")
+            "name": "", "rpm": 0.0, "tim": 0.0}, "清洗液体")
         self.parser.register("add_liquid", self.add_liquid, {
-            "name": "", "rpm": 0, "volume": 0}, "添加液体")
+            "name": "", "rpm": 0.0, "volume": 0.0, "pipe_volume": 0.0}, "添加液体")
 
     def cmd_error_handing(self):
         self.stopadd(0x12)
@@ -226,12 +226,16 @@ class PumpGroup(Facility):
         self.stopadd(addr)
     # 新版函数通过体积和转速计算需求的时间（根据9.13测试的数据），接受以下参数：
     # rpm转速round per minute,volume体积(ml)
-    def add_liquid(self, name, rpm, volume):
+    def add_liquid(self, name, rpm, volume, pipe_volume):
+        speed = 0.0675 * rpm# 滴加速率：ml/min，测试日期9.13 0.0525
+        tim = (volume + pipe_volume) / speed * 60 # 滴加时间
+        pipe_time = pipe_volume / speed * 60
         Info = {
             '进料液体': name,
-            '进料转速': '',
-            '进料速度': '',
-            '目标体积': ''
+            '进料转速': str(rpm) + ' 转/min',
+            '进料速度': str(speed) + ' ml/min',
+            '目标体积': str(volume) + ' ml',
+            '预期时间': str(tim) + ' s'
         }
         Flowdisplay.update_process_display_dict(Process=None, Action='液料滴加', Info=Info)
 
@@ -243,16 +247,9 @@ class PumpGroup(Facility):
             addr=0x14
         elif name=='N2H4':
             addr=0x15
-        speed = 0.0675 * rpm# 滴加速率：ml/min，测试日期9.13 0.0525
-        tim = volume / speed * 60 # 滴加时间
+
         self.log.info(f"滴加液体为{name},体积为{volume}ml,转速为{rpm}rpm，预期需要{tim}s")
-        Info = {
-            '进料液体': name,
-            '进料转速': str(rpm) + ' 转/min',
-            '进料速度': str(speed) + ' ml/min',
-            '目标体积': str(volume) + ' ml',
-        }
-        Flowdisplay.update_process_display_dict(Process=None, Action='液料滴加', Info=Info)
+
         self.writespeed(addr, rpm*10)
         time.sleep(1)
         self.startadd(addr)
@@ -261,7 +258,7 @@ class PumpGroup(Facility):
         if self.reverse == True:
             self.writedirection(0)
             self.startadd(addr)
-            event_countdown(5, name=name, rpm=rpm, directon=0)
+            event_countdown(pipe_time, name=name, volume=pipe_volume, rpm=rpm, directon=0)
             self.stopadd(addr)
             self.writedirection(1)
 

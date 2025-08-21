@@ -3,6 +3,7 @@ from inspect import ismethod
 import json
 from logging import Logger
 import os
+from queue import Full
 import sys
 import threading
 import time
@@ -16,7 +17,6 @@ from facilities.facility_fr5arm import Fr5Arm
 from facilities.facility_project import Project
 from prettytable import PrettyTable
 from facilities.flowdisplay import Flowdisplay
-from facilities.facility_temp import FacilityTemp
 from structs import FacilityState
 from utilities.utility_param import ParamUtils
 
@@ -58,6 +58,7 @@ class System(Facility):
         self.parser.register("check_dict",self.check_all_init_dict,{},"检查所有对象初始化参数")
         self.parser.register("reset", self.facility_reset, {"name": ''}, "重置对象状态")
         self.parser.register("json_make", self.json_make, {}, "生成项目json文件")
+        self.parser.register("func_make", self.redefine_and_make, {"func":None,"name":None}, "生成项目json文件")
         self.parser.register("!", self.stop_all, {}, "停止所有对象")
         self.parser.register("thread_pause", self.pause_main_thread, {}, "暂停主线程")
         self.parser.register("thread_resume", self.resume_main_thread, {}, "恢复主线程")
@@ -79,18 +80,28 @@ class System(Facility):
                 while True:
                     time.sleep(0.1)
             except KeyboardInterrupt:
-                print("程序退出")
+                self.log.info("程序退出")
 
             return True
         
-    def set_params(self,params: dict):
-        self.log.info(f"新的参数表 {params} ")
-        for param_name, value in params.items():
-            ParamUtils.set_param_value(param_name, value)
+    def set_params(self,params:str):
+        try:
+            params_json:dict = json.loads(params)
+            self.log.info(f"新的参数表 {params_json} ")
+            for param_name, value in params_json.items():
+                ParamUtils.set_param_value(param_name, value)
+        except Exception:
+            LogUtils.log.info(f"数据解析错误：{params_json}")
 
     @staticmethod
     def json_make():
         ProjectUtils.make()
+
+    @staticmethod
+    def redefine_and_make(func: str, name: str = None):
+        if name is None:
+            name = func + ".json"
+        ProjectUtils.redefine_and_make(func, name)
 
     @staticmethod
     def facility_state_dict_update():

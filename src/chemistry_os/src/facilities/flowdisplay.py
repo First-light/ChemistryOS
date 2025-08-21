@@ -9,10 +9,11 @@ class Flowdisplay():
     process_display_dict = {
         'Process' : None,
         'Action' : None,
-        'Info' : {}
+        'Info' : {},
+        'Info_Process' : {}
     }
 
-    def update_process_display_dict(Process=None, Action=None, Info=None):
+    def update_process_display_dict(Process=None, Action=None, Info=None, Info_Process=None):
         """
         更新流程显示字典
         :param Process: 流程名称
@@ -25,6 +26,8 @@ class Flowdisplay():
             Flowdisplay.process_display_dict['Action'] = Action
         if Info is not None:
             Flowdisplay.process_display_dict['Info'] = Info
+        if Info_Process is not None:
+            Flowdisplay.process_display_dict['Info_Process'] = Info_Process
 
     def data_update():
         pass

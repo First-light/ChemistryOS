@@ -1,0 +1,9 @@
+{
+    "objects": {},
+    "configs": {
+        "sequence": [],
+        "startStep": 1,
+        "endCondition": "completion"
+    },
+    "process": {}
+}

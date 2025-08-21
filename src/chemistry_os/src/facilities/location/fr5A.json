@@ -97,7 +97,7 @@
         "add_liquid_mode_place": {
             "destination": [95, 525.0, 190.0],
             "catch_pre_offset": 155.0,
-            "put_height": 80,
+            "put_height": 100,
             "catch_direction": [90.0, 0.0, 180.0],
             "safe_place_id": 3,
             "wash_r": 5.0,

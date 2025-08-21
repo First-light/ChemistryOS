@@ -20,7 +20,7 @@ class ProjectState(Enum):
     READY = 1    # 准备
     RUNNING = 2  # 运行中
     PAUSE = 3    # 暂停
-    QUIT = 4     # 退出
+    END = 4     # 退出
     ERROR = 5    # 错误
 
 class ServerMod(Enum):

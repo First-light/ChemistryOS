@@ -58,7 +58,7 @@ class Point(Facility):
 
     def cmd_init(self):
         self.parser.register("data", self.show_data, {}, "output test")
-        self.parser.register("enable", self.enable, {"x": 0, "y": 0, "z": 0}, "set destination")
+        self.parser.register("enable", self.enable, {"x": 0.0, "y": 0.0, "z": 0.0}, "set destination")
         self.parser.register("disable", self.disable, {"offset": 0.0}, "set catch pre offset")
 
     def enable(self):

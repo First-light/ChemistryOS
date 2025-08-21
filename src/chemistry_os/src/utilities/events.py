@@ -49,12 +49,12 @@ def event_countdown(seconds, name:str = '', rpm:float = 0, volume:float = 0, dir
         
         if directon==0:
             Info = {
-                '进料液体': name,
-                '进料转速': str(rpm) + ' 转/min',
+                '回收液体': name,
+                '回收转速': str(rpm) + ' 转/min',
                 '剩余时间' : str(int(remaining_time)) + ' s',
                 '预计结束时间' : finish_time
             }
-            Flowdisplay.update_process_display_dict(Process=None, Action='蠕动泵反转', Info=Info)
+            Flowdisplay.update_process_display_dict(Process=None, Action='回收管内液体', Info=Info)
         elif name != '':
             elapsed_time = now - start_time
             current_volume = volume * elapsed_time / seconds

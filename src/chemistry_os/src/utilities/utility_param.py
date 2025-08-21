@@ -26,6 +26,9 @@ class ParamTuple:
     reaction_time_1 = 7200
     reaction_time_2 = 1200
     reaction_time_3 = 14400
+    project_name  = "flow_project"
+    init_name = "flow_init"
+    
 
 
 
@@ -74,6 +77,7 @@ class ParamUtils:
         """
         if hasattr(ParamTuple, param_name):
             setattr(ParamTuple, param_name, value)
+            LogUtils.log.info(f"{param_name} : {value}")
         else:
             LogUtils.log.info(f"ParamTuple没有参数: {param_name}")
 

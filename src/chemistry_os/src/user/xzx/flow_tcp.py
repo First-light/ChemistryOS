@@ -36,6 +36,8 @@ ParamTuple.tmp_25 = 25
 ParamTuple.reaction_time_1 = 7200
 ParamTuple.reaction_time_2 = 1200
 ParamTuple.reaction_time_3 = 14400
+ParamTuple.project_name  = "flow_project"
+ParamTuple.init_name = "flow_init"
 
 filter = Filter("filter")
 add_Liquid=PumpGroup('add_Liquid')
@@ -44,6 +46,21 @@ fr5_C = Fr5Arm("fr5C","192.168.58.3")
 fr5_A = Fr5Arm("fr5A","192.168.58.2")
 bath = Bath('bath')
 hn_sdk=HN_SDK()
+
+def init_make_func():
+    ProjectUtils.register_object("filter")
+    ProjectUtils.register_object("add_Liquid")
+    ProjectUtils.register_object("add_Solid")
+    ProjectUtils.register_object("fr5C")
+    ProjectUtils.register_object("fr5A")
+    ProjectUtils.register_object('bath')
+    ProjectUtils.register_object(hn_sdk.name)
+
+    ProjectUtils.register_process(hn_sdk.name,"HN_init")
+    # hn_sdk.HN_init()
+    # with add_Solid:
+    #     add_Solid.tube_ver()
+    #     add_Solid.clip_open()
 
 # json项目
 def project_make_func():
@@ -57,37 +74,46 @@ def project_make_func():
     ProjectUtils.register_object(hn_sdk.name)
 
     ProjectUtils.register_process(hn_sdk.name,"HN_init")
-    ProjectUtils.register_sub_process("用户初始化")
     ProjectUtils.register_process(hn_sdk.name,"move_shaoping_A2C")
     ProjectUtils.register_process(hn_sdk.name,"bath_open")
+    ProjectUtils.register_sub_process("实验开始")
     ProjectUtils.register_process(hn_sdk.name,"add_liquid_bath",['HCl'])
-    ProjectUtils.register_sub_process("浓HCL的滴加")
+    ProjectUtils.register_sub_process("浓盐酸滴加1")
     ProjectUtils.register_process(hn_sdk.name,"add_solid",[ParamTuple.CompoundC_solid_add, 'test_tube_support', 'beaker_support'])
-    ProjectUtils.register_sub_process("化合物C的称量和混合")
+    ProjectUtils.register_sub_process("化合物C称量和混合")
     ProjectUtils.register_process(hn_sdk.name,"add_liquid_bath",['HCl_wash'])
-    ProjectUtils.register_sub_process("固液混合，反应过程")
+    ProjectUtils.register_sub_process("浓盐酸滴加2")
     ProjectUtils.register_process(hn_sdk.name,"add_liquid_bath",['KMnO4'])
     ProjectUtils.register_sub_process("高锰酸钾的滴加")
+    ProjectUtils.register_process(hn_sdk.name,"interactable_countdown",[ParamTuple.reaction_time_1])
+    ProjectUtils.register_sub_process("持续反应过程1")
     ProjectUtils.register_process(hn_sdk.name,"add_liquid_bath",['H2O2'])
-    ProjectUtils.register_sub_process("双氧水的滴加")
+    ProjectUtils.register_sub_process("双氧水滴加")
+    ProjectUtils.register_process(hn_sdk.name,"interactable_countdown",[ParamTuple.reaction_time_2])
+    ProjectUtils.register_sub_process("持续反应过程2")
     ProjectUtils.register_process(hn_sdk.name,"bath_over")
     ProjectUtils.register_process(hn_sdk.name,"bath_wash")
-    ProjectUtils.register_sub_process("抽滤")
+    ProjectUtils.register_sub_process("中间产物抽滤和乙腈滴加")
     ProjectUtils.register_process(hn_sdk.name,"bath_open")
     ProjectUtils.register_process(hn_sdk.name,"add_liquid_bath",['N2H4'])
-    ProjectUtils.register_sub_process("滴加水合肼")
+    ProjectUtils.register_sub_process("水合肼滴加")
+    ProjectUtils.register_process(hn_sdk.name,"interactable_countdown",[ParamTuple.reaction_time_3])
+    ProjectUtils.register_sub_process("持续反应过程3")
     ProjectUtils.register_process(hn_sdk.name,"bath_over")
     ProjectUtils.register_process(hn_sdk.name,"move_shaoping_C2A")
-    ProjectUtils.register_sub_process("E产物转移")
+    ProjectUtils.register_sub_process("实验结束")
     # 添加您需要的功能
     pass
 
 
 def main_thread_func():
-    ProjectUtils.redefine_make_func(project_make_func)
-    ProjectUtils.make()
+    ProjectUtils.register_function(ParamTuple.init_name, init_make_func)
+    ProjectUtils.register_function(ParamTuple.project_name, project_make_func)
+    System.redefine_and_make(ParamTuple.init_name)
+    System.redefine_and_make(ParamTuple.project_name)
 
-    pro = Project(name="pro",file=ProjectUtils.file_name) 
+    pro = Project(name="pro",file=ParamTuple.project_name + ".json") 
+    pro_init = Project(name="init",file=ParamTuple.init_name + ".json") 
     
     main_parser = CommandParser()
     main_parser.parse("os check")
@@ -99,6 +125,7 @@ def main_thread_func():
     main_server.register("log", 10, Facility.log_cache_dict, Facility.log_cache_dict_update)
     main_server.register("project_json", 200, pro.project_dict,enable=False)
     main_server.register("project_data_dict", 20, pro.data_dict,pro.data_dict_update)
+    main_server.register("init_data_dict", 20, pro_init.data_dict,pro_init.data_dict_update)
     main_server.register("facility_location",200, System.facility_location_dict,enable=False)
     main_server.register("facility_state",10, System.facility_state_dict,System.facility_state_dict_update)
     main_server.register("fr5A_data", 5, fr5_A.data_dict, fr5_A.data_dict_update)
@@ -122,3 +149,4 @@ if __name__ == '__main__':
     main_sys = System("os")
     main_sys.main_thread_target = main_thread_func
     main_sys.start()
+
