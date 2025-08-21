@@ -33,6 +33,7 @@ class System(Facility):
         "bath":3,
         "filter":4,
         "PumpGroup":5,
+        "project": 6,  # 项目
     }
     
 
