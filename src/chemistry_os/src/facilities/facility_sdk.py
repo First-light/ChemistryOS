@@ -53,7 +53,7 @@ from facilities.facility_pumps import PumpGroup
 from facilities.facility_bath import Bath
 from facilities.facility_filter import Filter
 from exceptions import *
-from utilities.utility_param import ParamUtils
+from utilities.utility_param import ParamTuple, ParamUtils
 
 class HN_SDK(Facility):
     type = "Chemistry OS SDK"
@@ -70,42 +70,30 @@ class HN_SDK(Facility):
             'rpm': 100,
             'volume': lambda c: 26.8 * c,
             'wash': False,
-            'pipe_volume': 3.14 * 0.08 * 0.08 * 180
         },
         'HCl_wash': {
             'temp': 0,
             'rpm': 100,
             'volume': lambda c: 2.68 * 2 * c,
             'wash': True,
-            'pipe_volume': 3.14 * 0.08 * 0.08 * 180
         },
         'KMnO4': {
             'temp': 25,
             'rpm': 15,
             'volume': lambda c: 53.52 * c,
             'wash': False,
-            'pipe_volume': 3.14 * 0.08 * 0.08 * 180
         },
         'H2O2': {
             'temp': 0,
             'rpm': 30,
             'volume': lambda c: 20.0 * c,
             'wash': False,
-            'pipe_volume': 3.14 * 0.08 * 0.08 * 180
-        },
-        'CH3CN': {
-            'temp': 25,
-            'rpm': 30,
-            'volume': lambda c: 20.0 * c,
-            'wash': False,
-            'pipe_volume': 3.14 * 0.08 * 0.08 * 180
         },
         'N2H4': {
             'temp': 25,
             'rpm': 30,
             'volume': lambda c: 20.0 * c,
             'wash': False,
-            'pipe_volume': 3.14 * 0.08 * 0.08 * 180
         },
     }
     
@@ -147,6 +135,8 @@ class HN_SDK(Facility):
         self.parser.register("fr5C_init", self.fr5C_init, {}, "initialize fr5C")
         self.parser.register("HN_init", self.HN_init, {}, "initialize HN")
         self.parser.register("add_solid_init", self.add_solid_init, {}, "initialize add_solid")
+        self.parser.register("add_liquid_init", self.add_liquid_init, {}, "initialize add_liquid")
+        self.parser.register("add_liquid_config_init", self.add_liquid_config_init, {}, "initialize add_liquid_config")
         self.parser.register("move_shaoping_A2C", self.move_shaoping_support2C, {}, "move_shaoping_A2C")
         self.parser.register("move_shaoping_C2A", self.move_shaoping_C2support, {}, "move_shaoping_C2A")
         self.parser.register("confirm_safety", self.confirm_safety, {"text":'ok?'}, "confirm_safety")
@@ -570,11 +560,8 @@ class HN_SDK(Facility):
         self.fr5_A.move_by(0, 0, -obj_statu['put_height'], vel=self.default_speed)
         time.sleep(1)
 
-        config = self.liquid_config.get(name)
-        pipe_volume = config['pipe_volume']
-
         if wash==False:
-            self.add_Liquid.add_liquid(name, rpm, volume, pipe_volume)
+            self.add_Liquid.add_liquid(name, rpm, volume)
             time.sleep(1)
         else:
             stop_event = threading.Event()
@@ -583,7 +570,7 @@ class HN_SDK(Facility):
             dy = [1, 1, -1, -1]
 
             def add_liquid_thread():
-                self.add_Liquid.add_liquid(name, rpm, volume, pipe_volume)
+                self.add_Liquid.add_liquid(name, rpm, volume)
                 stop_event.set()  # 通知主线程停止移动
 
             thread_add_liquid = threading.Thread(target=add_liquid_thread, daemon=True)
@@ -791,6 +778,31 @@ class HN_SDK(Facility):
         with self.add_Solid:
             self.add_Solid.tube_ver()
             self.add_Solid.clip_open()
+
+    def add_liquid_init(self):
+        self.add_liquid_config_init()
+        Flowdisplay.update_process_display_dict(Process='液体进料器初始化', Action='', Info={})
+        self.add_Liquid.liquid_back('HCl')
+        self.add_Liquid.liquid_back('KMnO4')
+        self.add_Liquid.liquid_back('H2O2')
+        self.add_Liquid.liquid_back('N2H4')
+
+    def add_liquid_config_init(self):
+        Flowdisplay.update_process_display_dict(Process='配置应用中', Action='', Info={})
+        self.liquid_config['HCl']['volume'] = ParamTuple.HCl_volume_add * 0.8
+        self.liquid_config['HCl_wash']['volume'] = ParamTuple.HCl_volume_add * 0.2
+        self.liquid_config['KMnO4']['volume'] = ParamTuple.KMnO4_volume_add
+        self.liquid_config['H2O2']['volume'] = ParamTuple.H2O2_volume_add
+        self.liquid_config['N2H4']['volume'] = ParamTuple.N2H4_volume_add
+        self.liquid_config['HCl']['rpm'] = ParamTuple.HCl_rpm
+        self.liquid_config['HCl_wash']['rpm'] = ParamTuple.HCl_rpm
+        self.liquid_config['KMnO4']['rpm'] = ParamTuple.KMnO4_rpm
+        self.liquid_config['H2O2']['rpm'] = ParamTuple.H2O2_rpm
+        self.liquid_config['N2H4']['rpm'] = ParamTuple.N2H4_rpm
+        self.liquid_config['HCl_wash']['temp'] = ParamTuple.HCl_temp
+        self.liquid_config['KMnO4']['temp'] = ParamTuple.KMnO4_temp
+        self.liquid_config['H2O2']['temp'] = ParamTuple.H2O2_temp
+        self.liquid_config['N2H4']['temp'] = ParamTuple.N2H4_temp
 
     def move_shaoping_support2C(self):
         Flowdisplay.update_process_display_dict(Process='烧瓶转移 A to C', Action='', Info={})   

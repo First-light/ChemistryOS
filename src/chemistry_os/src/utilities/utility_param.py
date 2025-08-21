@@ -9,20 +9,25 @@ from utilities.utility_log import LogUtils
 
 @dataclass
 class ParamTuple:
-    CompoundC_solid_add = 0.5 # 化合物C的添加量
-    HCL_volume_add = 26.8*CompoundC_solid_add # 浓盐酸
+    CompoundC_solid_add = 1.0 # 化合物C的添加量
+    HCl_volume_add = 26.8*CompoundC_solid_add # 浓盐酸
     KMnO4_volume_add = 53.52*CompoundC_solid_add # 高锰酸钾添加量 
     H2O2_volume_add = 20.0*CompoundC_solid_add # 双氧水添加量
-    HCL_L_volume_add = 80.0*CompoundC_solid_add
-    CH3CN_volume_add = 20.0 # 乙腈添加量
     N2H4_volume_add = 0.4854 # 肼添加量
+
+    CH3CN_volume_add = 20.0 # 乙腈添加量
+    HCl_volume_wash = 80.0*CompoundC_solid_add
+
     HCl_rpm = 100
     KMnO4_rpm = 15
     H2O2_rpm = 30
-    CH3CN_rpm = 30
     N2H4_rpm = 30
-    tmp_0 = 0
-    tmp_25 = 25
+
+    HCl_temp = 0
+    KMnO4_temp = 25
+    H2O2_temp = 0
+    N2H4_temp = 25
+
     reaction_time_1 = 7200
     reaction_time_2 = 1200
     reaction_time_3 = 14400

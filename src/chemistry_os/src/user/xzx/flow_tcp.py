@@ -19,20 +19,25 @@ from utilities.utility_project import ProjectUtils
 import time
 
 # 宏定义
-ParamTuple.CompoundC_solid_add = 0.5 # 化合物C的添加量
-ParamTuple.HCL_volume_add = 26.8*ParamTuple.CompoundC_solid_add # 浓盐酸
+ParamTuple.CompoundC_solid_add = 1 # 化合物C的添加量
+ParamTuple.HCl_volume_add = 26.8*ParamTuple.CompoundC_solid_add # 浓盐酸
 ParamTuple.KMnO4_volume_add = 53.52*ParamTuple.CompoundC_solid_add # 高锰酸钾添加量 
 ParamTuple.H2O2_volume_add = 20.0*ParamTuple.CompoundC_solid_add # 双氧水添加量
-ParamTuple.HCL_L_volume_add = 80.0*ParamTuple.CompoundC_solid_add
-ParamTuple.CH3CN_volume_add = 20.0 # 乙腈添加量
 ParamTuple.N2H4_volume_add = 0.4854 # 肼添加量
+
+ParamTuple.CH3CN_volume_add = 20.0 # 乙腈添加量
+ParamTuple.HCl_volume_wash = 80.0*ParamTuple.CompoundC_solid_add
+
 ParamTuple.HCl_rpm = 100
 ParamTuple.KMnO4_rpm = 15
 ParamTuple.H2O2_rpm = 30
-ParamTuple.CH3CN_rpm = 30
 ParamTuple.N2H4_rpm = 30
-ParamTuple.tmp_0 = 0
-ParamTuple.tmp_25 = 25
+
+ParamTuple.HCl_temp = 0
+ParamTuple.KMnO4_temp = 25
+ParamTuple.H2O2_temp = 0
+ParamTuple.N2H4_temp = 25
+
 ParamTuple.reaction_time_1 = 7200
 ParamTuple.reaction_time_2 = 1200
 ParamTuple.reaction_time_3 = 14400
@@ -48,6 +53,7 @@ bath = Bath('bath')
 hn_sdk=HN_SDK()
 
 def init_make_func():
+    # 仅用于故障重启
     ProjectUtils.register_object("filter")
     ProjectUtils.register_object("add_Liquid")
     ProjectUtils.register_object("add_Solid")
@@ -56,11 +62,8 @@ def init_make_func():
     ProjectUtils.register_object('bath')
     ProjectUtils.register_object(hn_sdk.name)
 
-    ProjectUtils.register_process(hn_sdk.name,"HN_init")
-    # hn_sdk.HN_init()
-    # with add_Solid:
-    #     add_Solid.tube_ver()
-    #     add_Solid.clip_open()
+    ProjectUtils.register_process(hn_sdk.name,"add_liquid_init")
+    ProjectUtils.register_process(hn_sdk.name,"add_solid_init")
 
 # json项目
 def project_make_func():
@@ -73,6 +76,7 @@ def project_make_func():
     ProjectUtils.register_object('bath')
     ProjectUtils.register_object(hn_sdk.name)
 
+    ProjectUtils.register_process(hn_sdk.name,"add_liquid_config_init")
     ProjectUtils.register_process(hn_sdk.name,"HN_init")
     ProjectUtils.register_process(hn_sdk.name,"move_shaoping_A2C")
     ProjectUtils.register_process(hn_sdk.name,"bath_open")
@@ -107,9 +111,9 @@ def project_make_func():
 
 
 def main_thread_func():
-    ProjectUtils.register_function(ParamTuple.init_name, init_make_func)
+    # ProjectUtils.register_function(ParamTuple.init_name, init_make_func)
     ProjectUtils.register_function(ParamTuple.project_name, project_make_func)
-    System.redefine_and_make(ParamTuple.init_name)
+    # System.redefine_and_make(ParamTuple.init_name)
     System.redefine_and_make(ParamTuple.project_name)
 
     pro = Project(name="pro",file=ParamTuple.project_name + ".json") 
