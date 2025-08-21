@@ -62,15 +62,20 @@
     "process": {
         "step1": {
             "object": "sdk",
-            "command": "HN_init",
+            "command": "add_liquid_config_init",
             "parameters": {}
         },
         "step2": {
             "object": "sdk",
-            "command": "move_shaoping_A2C",
+            "command": "HN_init",
             "parameters": {}
         },
         "step3": {
+            "object": "sdk",
+            "command": "move_shaoping_A2C",
+            "parameters": {}
+        },
+        "step4": {
             "object": "sdk",
             "command": "bath_open",
             "parameters": {}
@@ -79,10 +84,11 @@
             "sequence": [
                 "step1",
                 "step2",
-                "step3"
+                "step3",
+                "step4"
             ]
         },
-        "step4": {
+        "step5": {
             "object": "sdk",
             "command": "add_liquid_bath",
             "parameters": {
@@ -91,10 +97,10 @@
         },
         "浓盐酸滴加1": {
             "sequence": [
-                "step4"
+                "step5"
             ]
         },
-        "step5": {
+        "step6": {
             "object": "sdk",
             "command": "add_solid",
             "parameters": {
@@ -105,10 +111,10 @@
         },
         "化合物C称量和混合": {
             "sequence": [
-                "step5"
+                "step6"
             ]
         },
-        "step6": {
+        "step7": {
             "object": "sdk",
             "command": "add_liquid_bath",
             "parameters": {
@@ -117,10 +123,10 @@
         },
         "浓盐酸滴加2": {
             "sequence": [
-                "step6"
+                "step7"
             ]
         },
-        "step7": {
+        "step8": {
             "object": "sdk",
             "command": "add_liquid_bath",
             "parameters": {
@@ -129,10 +135,10 @@
         },
         "高锰酸钾的滴加": {
             "sequence": [
-                "step7"
+                "step8"
             ]
         },
-        "step8": {
+        "step9": {
             "object": "sdk",
             "command": "interactable_countdown",
             "parameters": {
@@ -141,10 +147,10 @@
         },
         "持续反应过程1": {
             "sequence": [
-                "step8"
+                "step9"
             ]
         },
-        "step9": {
+        "step10": {
             "object": "sdk",
             "command": "add_liquid_bath",
             "parameters": {
@@ -153,10 +159,10 @@
         },
         "双氧水滴加": {
             "sequence": [
-                "step9"
+                "step10"
             ]
         },
-        "step10": {
+        "step11": {
             "object": "sdk",
             "command": "interactable_countdown",
             "parameters": {
@@ -165,31 +171,31 @@
         },
         "持续反应过程2": {
             "sequence": [
-                "step10"
+                "step11"
             ]
         },
-        "step11": {
+        "step12": {
             "object": "sdk",
             "command": "bath_over",
             "parameters": {}
         },
-        "step12": {
+        "step13": {
             "object": "sdk",
             "command": "bath_wash",
             "parameters": {}
         },
         "中间产物抽滤和乙腈滴加": {
             "sequence": [
-                "step11",
-                "step12"
+                "step12",
+                "step13"
             ]
         },
-        "step13": {
+        "step14": {
             "object": "sdk",
             "command": "bath_open",
             "parameters": {}
         },
-        "step14": {
+        "step15": {
             "object": "sdk",
             "command": "add_liquid_bath",
             "parameters": {
@@ -198,11 +204,11 @@
         },
         "水合肼滴加": {
             "sequence": [
-                "step13",
-                "step14"
+                "step14",
+                "step15"
             ]
         },
-        "step15": {
+        "step16": {
             "object": "sdk",
             "command": "interactable_countdown",
             "parameters": {
@@ -211,23 +217,23 @@
         },
         "持续反应过程3": {
             "sequence": [
-                "step15"
+                "step16"
             ]
         },
-        "step16": {
+        "step17": {
             "object": "sdk",
             "command": "bath_over",
             "parameters": {}
         },
-        "step17": {
+        "step18": {
             "object": "sdk",
             "command": "move_shaoping_C2A",
             "parameters": {}
         },
         "实验结束": {
             "sequence": [
-                "step16",
-                "step17"
+                "step17",
+                "step18"
             ]
         }
     }

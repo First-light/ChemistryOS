@@ -11,35 +11,58 @@ class PumpGroup(Facility):
 
     usb_name='/dev/ttyUSB0'
     type='add_Liquid'
-    reverse=False
+    reverse=True
+    base_speed=0.0675 # ml/min
 
     def __init__(self, name: str):
         super().__init__(name, PumpGroup.type)
         self.init_dict = ParamUtils.get_init_params(self)
         self.data_dict = {
             "HCl":{
-                'address': 0x12,
+                'addr': 0x12,
                 'direction': 1,
                 'speed': 0,
                 'on_off': 0
             },
             "KMnO4":{
-                'address': 0x13,
+                'addr': 0x13,
                 'direction': 1,
                 'speed': 0,
                 'on_off': 0
             },
             "H2O2":{
-                'address': 0x14,
+                'addr': 0x14,
                 'direction': 1,
                 'speed': 0,
                 'on_off': 0
             },
             "N2H4":{
-                'address': 0x15,
+                'addr': 0x15,
                 'direction': 1,
                 'speed': 0,
                 'on_off': 0
+            }
+        }
+        self.add_liquid_config = {
+            "HCl":{
+                'addr': 0x12,
+                'pipe_volume': 3.14 * 0.08 * 0.08 * 180
+            },
+            "HCl_wash":{
+                'addr': 0x12,
+                'pipe_volume': 3.14 * 0.08 * 0.08 * 180
+            },
+            "KMnO4":{
+                'addr': 0x13,
+                'pipe_volume': 3.14 * 0.08 * 0.08 * 180
+            },
+            "H2O2":{
+                'addr': 0x14,
+                'pipe_volume': 3.14 * 0.08 * 0.08 * 180
+            },
+            "N2H4":{
+                'addr': 0x15,
+                'pipe_volume': 3.14 * 0.08 * 0.08 * 180
             }
         }
 
@@ -58,7 +81,7 @@ class PumpGroup(Facility):
         elif isinstance(addr, int):
             # 通过地址查找名称
             for pump_name, data in self.data_dict.items():
-                if data['address'] == addr:
+                if data['addr'] == addr:
                     name = pump_name
                     break
         
@@ -87,7 +110,7 @@ class PumpGroup(Facility):
         self.parser.register("liquid_wash", self.liquid_wash, {
             "name": "", "rpm": 0.0, "tim": 0.0}, "清洗液体")
         self.parser.register("add_liquid", self.add_liquid, {
-            "name": "", "rpm": 0.0, "volume": 0.0, "pipe_volume": 0.0}, "添加液体")
+            "name": "", "rpm": 0.0, "volume": 0.0}, "添加液体")
 
     def cmd_error_handing(self):
         self.stopadd(0x12)
@@ -226,10 +249,10 @@ class PumpGroup(Facility):
         self.stopadd(addr)
     # 新版函数通过体积和转速计算需求的时间（根据9.13测试的数据），接受以下参数：
     # rpm转速round per minute,volume体积(ml)
-    def add_liquid(self, name, rpm, volume, pipe_volume):
-        speed = 0.0675 * rpm# 滴加速率：ml/min，测试日期9.13 0.0525
+    def add_liquid(self, name, rpm, volume):
+        pipe_volume = self.add_liquid_config[name]['pipe_volume']
+        speed = self.base_speed * rpm
         tim = (volume + pipe_volume) / speed * 60 # 滴加时间
-        pipe_time = pipe_volume / speed * 60
         Info = {
             '进料液体': name,
             '进料转速': str(rpm) + ' 转/min',
@@ -239,14 +262,7 @@ class PumpGroup(Facility):
         }
         Flowdisplay.update_process_display_dict(Process=None, Action='液料滴加', Info=Info)
 
-        if name=='HCl' or name == 'HCl_wash':
-            addr=0x12
-        elif name=='KMnO4':
-            addr=0x13
-        elif name=='H2O2':
-            addr=0x14
-        elif name=='N2H4':
-            addr=0x15
+        addr = self.add_liquid_config[name]['addr']
 
         self.log.info(f"滴加液体为{name},体积为{volume}ml,转速为{rpm}rpm，预期需要{tim}s")
 
@@ -256,11 +272,19 @@ class PumpGroup(Facility):
         event_countdown(tim, name=name, volume=volume, rpm=rpm)
         self.stopadd(addr)
         if self.reverse == True:
-            self.writedirection(0)
-            self.startadd(addr)
-            event_countdown(pipe_time, name=name, volume=pipe_volume, rpm=rpm, directon=0)
-            self.stopadd(addr)
-            self.writedirection(1)
+            self.liquid_back(name)
+
+    def liquid_back(self, name, rpm=150):
+        addr = self.add_liquid_config[name]['addr']
+        pipe_volume = self.add_liquid_config[name]['pipe_volume']
+        speed = self.base_speed * rpm
+        pipe_time = pipe_volume / speed * 60
+        self.writespeed(addr, rpm*10)
+        self.writedirection(0)
+        self.startadd(addr)
+        event_countdown(pipe_time, name=name, volume=pipe_volume, rpm=rpm, directon=0)
+        self.stopadd(addr)
+        self.writedirection(1)
 
 
 if __name__ == "__main__":
