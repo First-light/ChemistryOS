@@ -60,6 +60,7 @@ class Fr5Arm(Facility):
         }
         # 自动读取 __init__ 形参并保存到 init_dict
         self.init_dict = ParamUtils.get_init_params(self)
+        
 
     def start_emergency_detect(self):
         if self.emergency_detect and self.emergency_detect_thread is None:
@@ -737,20 +738,44 @@ class Fr5Arm(Facility):
         self.now_place = nowplace
 
     def check_place(self):
+        """检查机械臂当前位置是否处于预定义的安全位置
+    
+        通过比较机械臂当前的工具法兰位姿与预设的安全位置坐标，
+        判断机械臂是否处于某个已知的安全位置点。
+    
+        Returns:
+            int: 如果当前位置匹配某个安全位置，返回该位置的索引，如果当前位置不匹配任何预设的安全位置返回None
+            
+        """
+        # 获取机械臂当前的工具法兰位姿 [x, y, z, rx, ry, rz]
         _, now_place = self.robot.GetActualToolFlangePose(0)
+        
+        # 遍历所有预设的安全位置
         for i, x in enumerate(self.safe_place):
-            pd = True
+            pd = True  # 位置匹配标志，True表示当前位置与安全位置匹配
+            
+            # 逐个比较位姿的6个分量：x, y, z, rx, ry, rz
             for idx, (a, b) in enumerate(zip(x, now_place)):
+                # 区分位置坐标和角度坐标的处理方式
                 if idx >= 3:
+                    # 对于角度坐标（rx, ry, rz），考虑角度的周期性
+                    # 例如：1度和359度的实际差值应该是2度，而不是358度
                     diff = min(abs(a - b), 360 - abs(a - b))
                 else:
+                    # 对于位置坐标（x, y, z），直接计算绝对差值
                     diff = abs(a - b)
+                
+                # 判断差值是否超过容差阈值（20个单位）
                 if diff > 20:
-                    pd = False
-                    break
+                    pd = False  # 如果任何一个分量超出容差，则判定为不匹配
+                    break       # 提前退出内层循环，提高效率
+            
+            # 如果所有6个分量都在容差范围内，则认为找到匹配的安全位置
             if pd:
-                self.now_place = i
-                return i
+                self.now_place = i  # 更新当前位置索引
+                return i           # 返回匹配的安全位置索引
+        
+        # 如果遍历完所有安全位置都没有找到匹配的，返回None
         return None
     
     def fr5_init(self):
@@ -758,134 +783,160 @@ class Fr5Arm(Facility):
         self.check_place_move()
 
     def check_place_move(self):
+        """检查当前位置并移动到安全位置
+    
+        检查机械臂是否在安全区域，如果不在则移动到零点位置。
+        用于机械臂初始化和复位操作。
+        """
+        self.log.info("初始化自动寻路")
         Info={
             '机械臂对象': self.name
         }
         Flowdisplay.update_process_display_dict(Process=None, Action='机械臂复位', Info=Info)
         now_place = self.check_place()
         if now_place==None:
+            self.log.info("回到寻路零点")
             self.Go_to_start_zone_0()
         else:
             self.move_to_desc(self.safe_place[now_place], type='MoveJ', vel=self.default_speed)
 
 
-    # radius=参数为容器半径mm，height=容器上平面离夹爪中心高度mm，direction=角度方向与增量，max_angle=倾倒最大角度，rate_percentage=运动速率的百分比
+
     def pour(self, radius, height, direction=-2, max_angle=90, rate_percentage=50.0, shake=1):
-        # 将速率百分比转换为小数形式
-        rate_decimal = rate_percentage / 100
-        
-        # 伺服运动参数预置
-        servo_cycle_time = 0.006
-        gain = [1.0, 1.0, 0.0, 0.0, 0.0, 0.0]  # 位姿增量比例系数
-        
-        # 获取初始工具坐标系位姿和关节位置
-        tcp_pose = self.robot.GetActualTCPPose(0)
-        joint_pos = self.robot.GetActualJointPosDegree(0)
-        
-        # 确保获取到有效的 TCP 位姿数据
+        """
+        机械臂倾倒动作控制
+    
+        通过协调末端关节旋转和笛卡尔空间补偿运动，实现液体或固体的精确倾倒。
+        该方法在倾倒过程中保持出料口位置稳定，可选择性地进行抖动以确保完全倾倒。
+    
+        Args:
+            radius (float): 容器半径 (mm) - 用于计算补偿运动轨迹
+            height (float): 容器上平面到夹爪中心的高度 (mm) - 影响倾倒角度计算
+            direction (int, optional): 倾倒方向和增量步长. 默认为-2
+                - 负值: 逆时针倾倒
+                - 正值: 顺时针倾倒
+                - 数值大小: 每次伺服步进的角度增量
+            max_angle (float, optional): 最大倾倒角度 (度). 默认为90度
+            rate_percentage (float, optional): 运动速率百分比 (0-100). 默认为50%
+            shake (int, optional): 是否启用抖动功能. 默认为1
+                - 1: 启用抖动，用于固体物料的完全倾倒
+                - 0: 禁用抖动
+    
+        Returns:
+            None
+        """
+        # 速率参数转换
+        rate_decimal = rate_percentage / 100  # 将百分比转换为小数系数
+    
+        # 伺服控制参数配置
+        servo_cycle_time = 0.006  # 伺服循环时间 (秒)
+        gain = [1.0, 1.0, 0.0, 0.0, 0.0, 0.0]  # 笛卡尔位姿增量比例系数 [X,Y,Z,RX,RY,RZ]
+    
+        # 获取机械臂初始状态
+        tcp_pose = self.robot.GetActualTCPPose(0)  # 工具中心点位姿
+        joint_pos = self.robot.GetActualJointPosDegree(0)  # 关节角度位置
+    
+        # 数据有效性检查与重试机制 - TCP位姿
         while type(tcp_pose) != tuple:
-            tcp_pose = self.robot.GetActualToolFlangePose(0)
-            self.log.info('Failed to get initial TCP pose from SDK during pouring')
+            tcp_pose = self.robot.GetActualToolFlangePose(0)  # 备用获取方法
+            self.log.info('倾倒过程中TCP位姿数据获取失败，重试中...')
             time.sleep(0.5)
-        tcp_pose = tcp_pose[1]
-        
-        # 确保获取到有效的关节位置数据
+        tcp_pose = tcp_pose[1]  # 提取位姿数据 [x,y,z,rx,ry,rz]
+    
+        # 数据有效性检查与重试机制 - 关节位置
         while type(joint_pos) != tuple:
             joint_pos = self.robot.GetActualJointPosDegree(0)
-            self.log.info('Failed to get initial joint position from SDK during pouring')
+            self.log.info('倾倒过程中关节位置数据获取失败，重试中...')
             time.sleep(0.5)
-        initial_joint_pos = joint_pos[1]
+        initial_joint_pos = joint_pos[1]  # 记录初始关节位置作为倾倒角度基准
 
-        # 计算旋转参数
-        slope = np.sqrt(radius**2 + height**2)
-        angle_phi = np.arctan(height / radius)
-        arc_length = np.pi * slope / 180  # 弧长增量
-        
-        # 计算工具坐标系下的笛卡尔增量
+        # 几何参数计算 - 基于容器尺寸计算补偿轨迹
+        slope = np.sqrt(radius**2 + height**2)  # 容器几何斜边长度
+        angle_phi = np.arctan(height / radius)  # 容器几何角度
+        arc_length = np.pi * slope / 180  # 单位角度对应的弧长增量
+    
+        # 笛卡尔空间补偿增量计算
+        # 目的：在末端关节旋转时，保持出料口在空间中的位置稳定
         cartesian_increment = [
-            float(2.2 * arc_length * np.sin(angle_phi) * np.sign(direction)) * rate_decimal,
-            float(2.2 * arc_length * np.cos(angle_phi)) * rate_decimal,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
+            float(2.2 * arc_length * np.sin(angle_phi) * np.sign(direction)) * rate_decimal,  # X轴补偿
+            float(2.2 * arc_length * np.cos(angle_phi)) * rate_decimal,  # Y轴补偿
+            0.0,  # Z轴无补偿
+            0.0,  # 绕X轴旋转无补偿
+            0.0,  # 绕Y轴旋转无补偿
+            0.0,  # 绕Z轴旋转无补偿
         ]
 
-        joint_angle_difference = 0  # 确保进入倾倒循环
-        tot=0
-        # 倾倒循环:在末端关节伺服旋转时，执行空间伺服运动以确保出料口位置稳定
+        # 倾倒控制变量初始化
+        joint_angle_difference = 0  # 当前倾倒角度差值
+        tot = 0  # 调试计数器（未使用）
+    
+        # 主倾倒循环：协调关节旋转与笛卡尔补偿
         while np.abs(joint_angle_difference) < max_angle:
-            self.robot.ServoCart(2, cartesian_increment, gain, 0.0, 0.0, servo_cycle_time, 0.0, 0.0)  # 工具笛卡尔坐标增量移动
-            time.sleep(servo_cycle_time*2)
+            # 步骤1：执行笛卡尔空间补偿运动，保持出料口位置稳定
+            self.robot.ServoCart(2, cartesian_increment, gain, 0.0, 0.0, servo_cycle_time, 0.0, 0.0)
+            time.sleep(servo_cycle_time * 2)  # 等待运动执行完成
 
+            # 步骤2：获取当前关节位置并计算下一步旋转角度
             current_joint_pos = self.robot.GetActualJointPosDegree(0)
-            # 确保获取到有效的关节位置数据
+            # 数据有效性检查
             while type(current_joint_pos) != tuple:
                 current_joint_pos = self.robot.GetActualJointPosDegree(0)
-                self.log.info('Failed to get current joint position from SDK during pouring')
+                self.log.info('倾倒循环中关节位置获取失败，重试中...')
                 time.sleep(0.5)
             current_joint_pos = current_joint_pos[1]
+        
+            # 步骤3：更新末端关节角度（第6轴）
             current_joint_pos[5] = current_joint_pos[5] + direction * rate_decimal
+        
+            # 步骤4：执行关节空间运动
+            self.robot.ServoJ(current_joint_pos, [0,0,0,0,0,0], 0.0, 0.0, servo_cycle_time, 0.0, 0.0)
+            time.sleep(servo_cycle_time * 2)
 
-            self.robot.ServoJ(current_joint_pos, [0,0,0,0,0,0], 0.0, 0.0, servo_cycle_time, 0.0, 0.0)  # 关节角增量移动
-
-            time.sleep(servo_cycle_time*2)
-
-            # 更新关节角度差值
+            # 步骤5：更新倾倒角度差值，用于循环控制
             joint_angle_difference = current_joint_pos[5] - initial_joint_pos[5]
 
-        # 获取最终关节位置
+        # 获取倾倒完成后的最终状态
         final_joint_pos = self.robot.GetActualJointPosDegree(0)
         while type(final_joint_pos) != tuple:
             final_joint_pos = self.robot.GetActualJointPosDegree(0)
-            self.log.info('Failed to get final joint position from SDK after pouring')
+            self.log.info('倾倒完成后关节位置获取失败，重试中...')
             time.sleep(0.5)
         final_joint_pos = final_joint_pos[1]
 
-        # 记录最终位置
+        # 记录最终TCP位姿（用于日志记录）
         final_tcp_pose = self.robot.GetActualTCPPose(0)
         while type(final_tcp_pose) != tuple:
             final_tcp_pose = self.robot.GetActualTCPPose(0)
-            self.log.info('Failed to get final TCP pose record')
+            self.log.info('最终TCP位姿记录失败，重试中...')
             time.sleep(0.5)
         final_tcp_pose = final_tcp_pose[1]
-        
-        # 设置最大和最小角度以进行固体抖动
-        max_shake_angle = final_joint_pos[5] + 6.0
-        min_shake_angle = final_joint_pos[5] - 6.0
-        
-        shake_count = 0
+    
+        # 抖动功能：用于固体物料的完全倾倒
         if shake == 1:
-            time.sleep(3)
+            # 抖动范围设置：围绕最终角度±6度
+            max_shake_angle = final_joint_pos[5] + 6.0
+            min_shake_angle = final_joint_pos[5] - 6.0
+            
+            shake_count = 0  # 抖动计数器
+            direction = 1  # 抖动方向初始化
+            
+            time.sleep(3)  # 倾倒完成后等待3秒再开始抖动
+            
+            # 抖动循环：执行300次小幅度往复运动
             while shake_count < 300:
-                self.robot.ServoJ(final_joint_pos, [0,0,0,0,0,0], 0.0, 0.0, servo_cycle_time, 0.0, 0.0)
+                # 边界检查：到达最大角度时改变方向
                 if final_joint_pos[5] > max_shake_angle:
                     direction = -1
                 if final_joint_pos[5] < min_shake_angle:
                     direction = 1
+            
+                # 更新抖动角度
                 final_joint_pos[5] += direction
-
+            
+                # 执行抖动运动
+                self.robot.ServoJ(final_joint_pos, [0,0,0,0,0,0], 0.0, 0.0, servo_cycle_time, 0.0, 0.0)
                 time.sleep(servo_cycle_time)
                 shake_count += 1
 
-        self.log.info(tcp_pose)
-
-        # # 回归初始位置
-        # self.move_to_desc(tcp_pose, vel=10)
-        # time.sleep(1)
-
-    def move_to_catch(self):
-        Flowdisplay.update_process_display_dict(Process=None, Action='fr5_C移动到抓取位置', Info={})
-        self.move_to_desc(self.safe_place[0], type='MoveL', vel=self.default_fr5C_speed)
-
-    def move_to_shuiyu(self):
-        Flowdisplay.update_process_display_dict(Process=None, Action='fr5_C移动到水浴位置', Info={})
-        self.move_to_desc(self.safe_place[1], type='MoveL', vel=self.default_fr5C_speed)
-
-    def move_to_pour(self):
-        Flowdisplay.update_process_display_dict(Process=None, Action='fr5_C移动到倾倒位置', Info={})
-        self.move_to_desc(self.safe_place[2], type='MoveJ', vel=self.default_fr5C_speed)
-            
-
-if __name__ == '__main__':
-    exit()
+        # 记录初始TCP位姿到日志
+        self.log.info(f"倾倒动作完成，初始TCP位姿: {tcp_pose}")
