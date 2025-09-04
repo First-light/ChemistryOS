@@ -19,7 +19,7 @@
             "name": "烧杯架"
         },
         "test_tube_add_place": {
-            "destination": [599.0, -250.0, 297.0],
+            "destination": [601.5, -250.0, 297.0],
             "put_offset": 0.0,
             "catch_pre_offset": 150.0,
             "put_height": 110.0,
@@ -87,15 +87,33 @@
             "name": "液体进料器-双氧水"
         },
         "N2H4": {
-            "destination": [-24.0, 380.0, 130.0],
+            "destination": [-26.0, 380.0, 130.0],
             "catch_pre_offset": 60.0,
             "put_height": 160.0,
             "catch_direction": [90.0, 0.0, 180.0],
             "safe_place_id": 3,
             "name": "液体进料器-水合肼"
         },
+        "temp_support": {
+            "destination": [-86.0, 380.0, 130.0],
+            "put_offset": 1.0,
+            "catch_pre_offset": 60.0,
+            "put_height": 180.0,
+            "catch_direction": [90.0, 0.0, 180.0],
+            "safe_place_id": 3,
+            "name": "温度计架"
+        },
+        "temp_place": {
+            "destination": [150, 500.0, 250.0],
+            "put_offset": 1.0,
+            "catch_pre_offset": 155.0,
+            "put_height": 60,
+            "catch_direction": [90.0, 0.0, 180.0],
+            "safe_place_id": 3,
+            "name": "温度计放置"
+        },
         "add_liquid_mode_place": {
-            "destination": [95, 525.0, 190.0],
+            "destination": [95, 535.0, 190.0],
             "catch_pre_offset": 155.0,
             "put_height": 100,
             "catch_direction": [90.0, 0.0, 180.0],
@@ -122,7 +140,7 @@
             "name": "三颈烧瓶架"
         },
         "sanjinshaoping_wash_1": {
-            "destination": [468.0, 195.0, 330.0],
+            "destination": [468.0, 197.0, 330.0],
             "catch_pre_offset": 60.0,
             "put_height": -60.0,
             "second_height": 110.0,
@@ -131,7 +149,7 @@
             "name": "浓盐酸冲洗处"
         },
         "sanjinshaoping_wash_2": {
-            "destination": [604.0, 194.0, 330.0],
+            "destination": [605.0, 194.0, 330.0],
             "catch_pre_offset": 60.0,
             "put_height": -60.0,
             "second_height": 110.0,
@@ -149,7 +167,7 @@
             "name": "固体进料-倾倒三颈烧瓶位"
         },
         "bath_pour_place": {
-            "destination": [-86.0, 665.0, 288.0],
+            "destination": [-81.0, 665.0, 293.0],
             "catch_pre_offset": 0,
             "pour_pre_xyz_offset":[0.0, -70.0, 0.0],
             "put_height": 80.0,

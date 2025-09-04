@@ -17,18 +17,14 @@ from facilities.facility_parser import CommandParser
 from facilities.facility_system import System
 
 # add_Solid=Add_Solid('add_Solid')
-# print(add_Solid.data_dict)
 # with add_Solid:
-#     pass
-# print(add_Solid.data_dict)
+#     # add_Solid.add_solid_series(0.5)
+#     # add_Solid.tube_ver()
+#     add_Solid.clip_open()
+#     # add_Solid.clip_close()
+#     # add_Solid.tube_hor()
+#     # add_Solid.set_pid(1.2,1.75,2.1)
 # exit()
-# # with add_Solid:
-# #     # add_Solid.add_solid_series(0.5)
-# #     # add_Solid.tube_ver()
-# #     add_Solid.clip_open()
-# #     # add_Solid.clip_close()
-# #     # add_Solid.tube_hor()
-# #     # add_Solid.set_pid(1.2,1.75,2.1)
 
 
 # CompoundC_solid_add = 0.5 # 化合物C的添加量
@@ -62,8 +58,22 @@ hn_sdk=HN_SDK()
 # event_countdown(10)
 # exit()
 hn_sdk.HN_init()
+
+hn_sdk.temp_on()
+hn_sdk.temp_off()
+
+# hn_sdk.name_catch('beaker_add_place')
+# hn_sdk.name_pour('bath_pour_place')
+# hn_sdk.name_put('beaker_support')
+
+# hn_sdk.move_shaoping_C2support()
+
+# hn_sdk.name_catch('test_tube_support')
+# hn_sdk.name_put('test_tube_add_place', test_tube_add=True)
+# hn_sdk.name_catch('test_tube_add_place', test_tube_add=True)
+# hn_sdk.name_put('test_tube_support')
 # hn_sdk.add_liquid_bath('HCl')
-hn_sdk.add_solid(1.0, 'test_tube_support', 'beaker_support')
+# hn_sdk.add_solid(1.0, 'test_tube_support', 'beaker_support')
 # hn_sdk.fr5A_init()
 # fr5_C.check_place_move()
 # hn_sdk.name_catch('beaker_add_place')

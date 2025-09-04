@@ -617,6 +617,131 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=self.default_speed)
         time.sleep(1)
 
+
+    def temp_catch(self, name):
+        obj_statu = self.fr5_A.obj_status[name]
+        Info = {
+            '抓取位置' : obj_statu['name']
+        }
+        Flowdisplay.update_process_display_dict(Process=None, Action='机械臂抓取', Info=Info)
+
+        
+        #根据id确定安全位置, 移动到安全位置
+        self.fr5_A.move_to_safe_catch(obj_statu['safe_place_id'])
+
+        #移动到准备位置
+        desc_pos_aim = list(map(lambda x, y: x + y, obj_statu['destination'], obj_statu['catch_pre_xyz_offset'])) + obj_statu['catch_direction']
+        self.fr5_A.move_to_desc(desc_pos_aim, vel=self.default_speed)
+        time.sleep(1)
+
+        self.fr5_A.gripper_half()
+        time.sleep(1)
+
+        #靠近，完成抓取
+        desc_pos_aim = obj_statu['destination'] + obj_statu['catch_direction']
+        self.fr5_A.move_to_desc(desc_pos_aim, vel=self.default_speed)
+        time.sleep(1)
+
+        self.confirm_safety()
+
+        self.fr5_A.catch()
+        self.fr5_A.data_dict["gripper_contain"] = name #用于输出夹持的物品信息
+        time.sleep(1)
+
+        #抬起
+        self.fr5_A.move_by(0, 0, obj_statu['put_height'], vel=self.default_put_speed)
+        time.sleep(1)
+
+    def temp_put(self, name):
+        obj_statu = self.fr5_A.obj_status[name]
+        Info = {
+            '放置位置' : obj_statu['name']
+        }
+        Flowdisplay.update_process_display_dict(Process=None, Action='机械臂放置', Info=Info)
+
+        obj_statu['destination'][2] += obj_statu['put_offset']
+
+        #计算物体位置
+        dest = [obj_statu['destination'][0], obj_statu['destination'][1], obj_statu['destination'][2] + obj_statu['put_height']]
+
+        #移动到准备位置
+        desc_pos_aim = list(map(lambda x, y: x + y, dest, obj_statu['catch_pre_xyz_offset'])) + obj_statu['catch_direction']
+        self.fr5_A.move_to_desc(desc_pos_aim, vel=self.default_speed)
+        time.sleep(1)
+
+        #移动到放置位置上方
+        desc_pos_aim = dest + obj_statu['catch_direction']
+        self.fr5_A.move_to_desc(desc_pos_aim, vel=self.default_speed)
+        time.sleep(1)
+        self.confirm_safety()
+
+        #下降，完成放置
+        self.fr5_A.move_by(0, 0, -obj_statu['put_height'], vel=self.default_put_speed)
+        time.sleep(1)
+
+        self.fr5_A.gripper_half()
+        time.sleep(1)
+        self.fr5_A.data_dict["gripper_contain"] =""#用于输出夹持的物品信息
+
+        #移动出去
+        self.fr5_A.move_by(obj_statu['catch_pre_xyz_offset'][0], obj_statu['catch_pre_xyz_offset'][1], obj_statu['catch_pre_xyz_offset'][2], vel=self.default_speed)
+        time.sleep(1)
+
+        self.fr5_A.put()
+
+        #移动到安全位置
+        self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=self.default_speed)
+        time.sleep(1)
+
+    def shaoping_catch(self,name):
+        obj_statu = self.fr5_A.obj_status[name]
+        Info = {
+            '抓取位置' : obj_statu['name']
+        }
+        Flowdisplay.update_process_display_dict(Process=None, Action='机械臂抓取', Info=Info)
+
+        
+        #根据id确定安全位置, 移动到安全位置
+        self.fr5_A.move_to_safe_catch(obj_statu['safe_place_id'])
+
+        #移动到准备位置
+        desc_pos_aim_pre = list(map(lambda x, y: x + y, obj_statu['destination'], obj_statu['catch_pre_xyz_offset'])) + obj_statu['catch_direction']
+        self.fr5_A.move_to_desc(desc_pos_aim_pre, vel=self.default_speed)
+        time.sleep(1)
+
+        self.fr5_A.gripper_half()
+        time.sleep(1)
+
+        #靠近，完成抓取
+        desc_pos_aim = obj_statu['destination'] + obj_statu['catch_direction']
+        self.fr5_A.move_to_desc(desc_pos_aim, vel=self.default_speed)
+        time.sleep(1)
+
+        self.confirm_safety()
+
+        self.fr5_A.catch()
+        self.fr5_A.data_dict["gripper_contain"] = name #用于输出夹持的物品信息
+        time.sleep(1)
+
+        #抬起
+        self.fr5_A.move_by(0, 0, obj_statu['put_height'], vel=self.default_put_speed)
+        time.sleep(1)
+
+        #移动到准备位置
+        desc_pos_aim_pre_hei = list(map(lambda x, y: x + y, desc_pos_aim_pre, [0,0, obj_statu['put_height'],0,0,0]))
+        self.fr5_A.move_to_desc(desc_pos_aim_pre_hei, vel=self.default_speed)
+        time.sleep(1)
+
+    def temp_on(self):
+        self.fr5_C.move_to_safe_catch(0)
+        self.temp_catch('temp_support')
+        self.temp_put('temp_place')
+
+    def temp_off(self):
+        self.fr5_C.move_to_safe_catch(0)
+        self.shaoping_catch('temp_place')
+        self.temp_put('temp_support')
+
     def add_solid(self, gram:float, tube_from:str, beaker_from:str, test_tube_add_place:str='test_tube_add_place', beaker_add_place:str='beaker_add_place', pour_place:str='bath_pour_place', batch_gram_max:float = 0.6, min_unit: float = 0.01):
         
         def update_info(current_num, weighed, added):
@@ -666,12 +791,12 @@ class HN_SDK(Facility):
             now_gram += plan[now_num]
             now_num += 1
 
-            Flowdisplay.update_process_display_dict(Process='固体进料', Action=None, Info=None, Info_Process=update_info(now_num + 1, now_gram, now_add))
+            Flowdisplay.update_process_display_dict(Process='固体进料', Action=None, Info=None, Process_Info=update_info(now_num + 1, now_gram, now_add))
             
             self.name_catch(beaker_add_place)
             self.name_pour(pour_place)
             now_add = now_gram
-            Flowdisplay.update_process_display_dict(Process='固体进料', Action=None, Info=None, Info_Process=update_info(now_num + 1, now_gram, now_add))
+            Flowdisplay.update_process_display_dict(Process='固体进料', Action=None, Info=None, Process_Info=update_info(now_num + 1, now_gram, now_add))
             self.name_put(beaker_add_place)
             
         with self.add_Solid:
@@ -679,17 +804,17 @@ class HN_SDK(Facility):
             self.add_Solid.tube_ver()
 
         now_gram += plan[now_num]
-        Flowdisplay.update_process_display_dict(Process='固体进料', Action=None, Info=None, Info_Process=update_info(now_num + 1, now_gram, now_add))
+        Flowdisplay.update_process_display_dict(Process='固体进料', Action=None, Info=None, Process_Info=update_info(now_num + 1, now_gram, now_add))
 
         self.name_catch(beaker_add_place)
         self.name_pour(pour_place)
         now_add = now_gram
-        Flowdisplay.update_process_display_dict(Process='固体进料', Action=None, Info=None, Info_Process=update_info(now_num + 1, now_gram, now_add))
+        Flowdisplay.update_process_display_dict(Process='固体进料', Action=None, Info=None, Process_Info=update_info(now_num + 1, now_gram, now_add))
         self.name_put(beaker_from)
 
         self.name_catch(test_tube_add_place, test_tube_add=True)
         self.name_put(tube_from)
-        Flowdisplay.update_process_display_dict(Process='固体进料', Action=None, Info=None, Info_Process={})
+        Flowdisplay.update_process_display_dict(Process='固体进料', Action=None, Info=None, Process_Info={})
 
     
     def name_catch_and_put(self, name1:str, name2:str):
