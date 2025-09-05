@@ -46,23 +46,23 @@ class PumpGroup(Facility):
         self.add_liquid_config = {
             "HCl":{
                 'addr': 0x12,
-                'pipe_volume': 3.14 * 0.04 * 0.04 * 180
+                'pipe_volume': 3.14 * 0.04 * 0.04 * 220
             },
             "HCl_wash":{
                 'addr': 0x12,
-                'pipe_volume': 3.14 * 0.04 * 0.04 * 180
+                'pipe_volume': 3.14 * 0.04 * 0.04 * 220
             },
             "KMnO4":{
                 'addr': 0x13,
-                'pipe_volume': 3.14 * 0.04 * 0.04 * 180
+                'pipe_volume': 3.14 * 0.04 * 0.04 * 220
             },
             "H2O2":{
                 'addr': 0x14,
-                'pipe_volume': 3.14 * 0.04 * 0.04 * 180
+                'pipe_volume': 3.14 * 0.04 * 0.04 * 220
             },
             "N2H4":{
                 'addr': 0x15,
-                'pipe_volume': 3.14 * 0.04 * 0.04 * 180
+                'pipe_volume': 3.14 * 0.04 * 0.04 * 220
             }
         }
 

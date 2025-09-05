@@ -60,6 +60,7 @@ def reset_make_func():
     ProjectUtils.register_object("fr5C")
     ProjectUtils.register_object("fr5A")
     ProjectUtils.register_object('bath')
+    ProjectUtils.register_object('thermometer')
     ProjectUtils.register_object(hn_sdk.name)
 
     ProjectUtils.register_process(hn_sdk.name,"add_liquid_init")
@@ -74,6 +75,7 @@ def project_make_func():
     ProjectUtils.register_object("fr5C")
     ProjectUtils.register_object("fr5A")
     ProjectUtils.register_object('bath')
+    ProjectUtils.register_object('thermometer')
     ProjectUtils.register_object(hn_sdk.name)
 
     ProjectUtils.register_process(hn_sdk.name,"add_liquid_config_init")

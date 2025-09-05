@@ -41,6 +41,7 @@ import threading
 import time
 import sys
 sys.path.append('src/chemistry_os/src')
+from facilities.facility_thermometer import Thermometer
 from facilities.facility_parser import CommandParser
 from facilities.flowdisplay import Flowdisplay
 from structs import FacilityState
@@ -108,7 +109,13 @@ class HN_SDK(Facility):
             self.add_Solid: Add_Solid = Facility.get_facility_by_name("add_Solid", Add_Solid.type,True,True)
             self.bath: Bath = Facility.get_facility_by_name("bath", Bath.type,True,True)
             self.filter: Filter = Facility.get_facility_by_name("filter", Filter.type,True,True)
+            self.thermometer: Thermometer = Facility.get_facility_by_name("thermometer", Thermometer.type,True,True)
             self.init_dict = ParamUtils.get_init_params(self)
+
+            # 添加温度计线程控制变量
+            self.thermometer_stop_event = threading.Event()
+            self.thermometer_thread = None
+
         except ValueError as e:
             self.log.info(e)
 
@@ -140,6 +147,8 @@ class HN_SDK(Facility):
         self.parser.register("move_shaoping_C2A", self.move_shaoping_C2support, {}, "move_shaoping_C2A")
         self.parser.register("confirm_safety", self.confirm_safety, {"text":'ok?'}, "confirm_safety")
         self.parser.register("bath_wash",self.bath_wash,{},"bath_wash")
+        self.parser.register("temp_on",self.temp_on,{},"temp_on")
+        self.parser.register("temp_off",self.temp_off,{},"temp_off")
 
     def cmd_error_handing(self):
         pass
@@ -165,11 +174,14 @@ class HN_SDK(Facility):
 
     def bath_wash(self):
         Flowdisplay.update_process_display_dict(Process='冲洗抽滤', Action='', Info={})
+        # self.temp_off()
         self.bath_catch('bath_fr5_catch')
         self.move_wash('sanjinshaoping_wash_1', 0)
         self.move_wash('sanjinshaoping_wash_2', 1)
-        self.move_wash('sanjinshaoping_wash_1', 2)
+        self.move_wash('sanjinshaoping_wash_3', 2)
+        self.move_wash('sanjinshaoping_wash_1', 3)
         self.bath_put('bath_fr5_put')
+        # self.temp_on()
 
     def move_wash(self, wash_place, index):
         obj_statu = self.fr5_A.obj_status[wash_place]
@@ -209,11 +221,13 @@ class HN_SDK(Facility):
         elif index == 1:
             self.filter.filter_process_B()
         elif index == 2:
+            self.filter.filter_process_C()
+        elif index == 3:
             self.filter.filter_process_A()
             self.fr5_A.move_to_desc(dest_safe, vel=self.default_put_speed)
             self.confirm_safety('filter ok?')
             self.fr5_A.move_to_desc(dest, vel=self.default_put_speed)
-            self.filter.filter_process_C()
+            self.filter.filter_process_D()
             self.fr5_A.move_to_desc(dest_safe, vel=self.default_put_speed)
             self.filter.filter_process_A()
             
@@ -509,6 +523,7 @@ class HN_SDK(Facility):
         #移动到安全位置
         self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=self.default_speed)
         time.sleep(1)
+
     def add_liquid(self, name:str, rpm = 150, volume = 0.0, wash = False, name_space='add_liquid_mode_place', volume_batch = 0.1):
         Flowdisplay.update_process_display_dict(Process=name + '液体进料', Action='', Info={})
         self.fr5_C.move_to_safe_catch(1)
@@ -618,7 +633,7 @@ class HN_SDK(Facility):
         time.sleep(1)
 
 
-    def temp_catch(self, name):
+    def temp_catch(self, name, shaoping=False):
         obj_statu = self.fr5_A.obj_status[name]
         Info = {
             '抓取位置' : obj_statu['name']
@@ -630,8 +645,8 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_safe_catch(obj_statu['safe_place_id'])
 
         #移动到准备位置
-        desc_pos_aim = list(map(lambda x, y: x + y, obj_statu['destination'], obj_statu['catch_pre_xyz_offset'])) + obj_statu['catch_direction']
-        self.fr5_A.move_to_desc(desc_pos_aim, vel=self.default_speed)
+        desc_pos_aim_pre = list(map(lambda x, y: x + y, obj_statu['destination'], obj_statu['catch_pre_xyz_offset'])) + obj_statu['catch_direction']
+        self.fr5_A.move_to_desc(desc_pos_aim_pre, vel=self.default_speed)
         time.sleep(1)
 
         self.fr5_A.gripper_half()
@@ -651,6 +666,12 @@ class HN_SDK(Facility):
         #抬起
         self.fr5_A.move_by(0, 0, obj_statu['put_height'], vel=self.default_put_speed)
         time.sleep(1)
+
+        if shaoping==True:
+            #移动到准备位置
+            desc_pos_aim_pre_hei = list(map(lambda x, y: x + y, desc_pos_aim_pre, [0,0, obj_statu['put_height'],0,0,0]))
+            self.fr5_A.move_to_desc(desc_pos_aim_pre_hei, vel=self.default_speed)
+            time.sleep(1)
 
     def temp_put(self, name):
         obj_statu = self.fr5_A.obj_status[name]
@@ -693,55 +714,57 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=self.default_speed)
         time.sleep(1)
 
-    def shaoping_catch(self,name):
-        obj_statu = self.fr5_A.obj_status[name]
-        Info = {
-            '抓取位置' : obj_statu['name']
-        }
-        Flowdisplay.update_process_display_dict(Process=None, Action='机械臂抓取', Info=Info)
-
-        
-        #根据id确定安全位置, 移动到安全位置
-        self.fr5_A.move_to_safe_catch(obj_statu['safe_place_id'])
-
-        #移动到准备位置
-        desc_pos_aim_pre = list(map(lambda x, y: x + y, obj_statu['destination'], obj_statu['catch_pre_xyz_offset'])) + obj_statu['catch_direction']
-        self.fr5_A.move_to_desc(desc_pos_aim_pre, vel=self.default_speed)
-        time.sleep(1)
-
-        self.fr5_A.gripper_half()
-        time.sleep(1)
-
-        #靠近，完成抓取
-        desc_pos_aim = obj_statu['destination'] + obj_statu['catch_direction']
-        self.fr5_A.move_to_desc(desc_pos_aim, vel=self.default_speed)
-        time.sleep(1)
-
-        self.confirm_safety()
-
-        self.fr5_A.catch()
-        self.fr5_A.data_dict["gripper_contain"] = name #用于输出夹持的物品信息
-        time.sleep(1)
-
-        #抬起
-        self.fr5_A.move_by(0, 0, obj_statu['put_height'], vel=self.default_put_speed)
-        time.sleep(1)
-
-        #移动到准备位置
-        desc_pos_aim_pre_hei = list(map(lambda x, y: x + y, desc_pos_aim_pre, [0,0, obj_statu['put_height'],0,0,0]))
-        self.fr5_A.move_to_desc(desc_pos_aim_pre_hei, vel=self.default_speed)
-        time.sleep(1)
-
     def temp_on(self):
         self.fr5_C.move_to_safe_catch(0)
         self.temp_catch('temp_support')
         self.temp_put('temp_place')
+        self.temp_start()
 
     def temp_off(self):
         self.fr5_C.move_to_safe_catch(0)
-        self.shaoping_catch('temp_place')
+        self.temp_catch('temp_place',shaoping=True)
         self.temp_put('temp_support')
+        self.temp_over()
 
+    def temp_start(self):
+        # 如果已有线程在运行，先停止它
+        if self.thermometer_thread and self.thermometer_thread.is_alive():
+            self.temp_over()
+        
+        # 重置停止事件
+        self.thermometer_stop_event.clear()
+        
+        def thermometer_thread():
+            while not self.thermometer_stop_event.is_set():
+                try:
+                    self.thermometer.read_temp()
+                    # 添加短暂等待，避免过于频繁的读取
+                    if not self.thermometer_stop_event.wait(0.1):  # 等待0.1秒或直到停止事件被设置
+                        continue
+                    else:
+                        break
+                except Exception as e:
+                    self.log.error(f"温度计读取出错: {e}")
+                    break
+
+        self.thermometer_thread = threading.Thread(target=thermometer_thread, daemon=True)
+        self.thermometer_thread.start()
+
+    def temp_over(self):
+        # 设置停止事件，通知线程退出
+        if hasattr(self, 'thermometer_stop_event'):
+            self.thermometer_stop_event.set()
+        
+        # 等待线程结束
+        if hasattr(self, 'thermometer_thread') and self.thermometer_thread and self.thermometer_thread.is_alive():
+            self.thermometer_thread.join(timeout=4.0)  # 最多等待4秒
+            if self.thermometer_thread.is_alive():
+                self.log.warning("温度计线程未能在4秒内正常退出")
+            else:
+                self.log.info("温度计线程已成功停止")
+        
+        self.thermometer_thread = None
+    
     def add_solid(self, gram:float, tube_from:str, beaker_from:str, test_tube_add_place:str='test_tube_add_place', beaker_add_place:str='beaker_add_place', pour_place:str='bath_pour_place', batch_gram_max:float = 0.6, min_unit: float = 0.01):
         
         def update_info(current_num, weighed, added):
@@ -967,10 +990,12 @@ class HN_SDK(Facility):
         Flowdisplay.update_process_display_dict(Process='烧瓶转移 A to C', Action='', Info={})   
         self.name_catch('sanjinshaoping_support')
         self.bath_put('bath_fr5_put')
+        # self.temp_on()
 
 
     def move_shaoping_C2support(self):
         Flowdisplay.update_process_display_dict(Process='烧瓶转移 C to A', Action='', Info={})
+        # self.temp_off()
         self.bath_catch('bath_fr5_catch')
         self.name_put('sanjinshaoping_support_put')
 

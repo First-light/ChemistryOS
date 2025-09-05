@@ -140,16 +140,25 @@
             "name": "三颈烧瓶架"
         },
         "sanjinshaoping_wash_1": {
-            "destination": [468.0, 197.0, 330.0],
+            "destination": [455.0, 197.0, 330.0],
             "catch_pre_offset": 60.0,
             "put_height": -60.0,
             "second_height": 110.0,
             "catch_direction": [90.0, 0.0, 180.0],
             "safe_place_id": 4,
-            "name": "浓盐酸冲洗处"
+            "name": "乙腈冲洗处"
         },
         "sanjinshaoping_wash_2": {
-            "destination": [605.0, 194.0, 330.0],
+            "destination": [545.0, 194.0, 330.0],
+            "catch_pre_offset": 60.0,
+            "put_height": -60.0,
+            "second_height": 110.0,
+            "catch_direction": [90.0, 0.0, 180.0],
+            "safe_place_id": 4,
+            "name": "盐酸冲洗处"
+        },
+        "sanjinshaoping_wash_3": {
+            "destination": [635.0, 192.0, 330.0],
             "catch_pre_offset": 60.0,
             "put_height": -60.0,
             "second_height": 110.0,
