@@ -101,6 +101,7 @@ class Filter(Facility):
         self.parser.register("A", self.filter_process_A, {}, "start filter process A")
         self.parser.register("B", self.filter_process_B, {}, "start filter process B")
         self.parser.register("C", self.filter_process_C, {}, "start filter process C")
+        self.parser.register("D", self.filter_process_D, {}, "start filter process D")
         self.parser.register("data", self.print_data, {}, "check data")
         self.parser.register("load", self.liquid_load, {
                              "name": "empty"}, "load liquid into pump by name")
@@ -160,14 +161,6 @@ class Filter(Facility):
         抽滤过程B
         """
         self.log.info("开始过程B")
-        self.valve_B_control(0)  # 打开三通阀门
-        # self.pump_control_name("acid", 1)
-        # time.sleep(20)  # 泵启动
-        # self.pump_control_name("acid", 0)
-        # self.valve_B_control(1)  # 打开三通阀门
-        # self.pump_control_name("water", 1)
-        # time.sleep(20)  # 泵启动
-        # self.pump_control_name("water", 0)
         out = True
         while out == True:
             sec = self.liquid_convert_name("acid")
@@ -177,7 +170,13 @@ class Filter(Facility):
             self.pump_control_name("acid", 0)
             if CommandParser.wait_input("parser","是否继续酸洗？(y/n): ").strip().lower() != 'y':
                 out = False
-        self.valve_B_control(1)
+        self.log.info("抽滤过程B完成")
+
+    def filter_process_C(self):
+        """
+        抽滤过程C
+        """
+        self.log.info("开始过程C")
         out = True
         while out == True:
             sec = self.liquid_convert_name("water")
@@ -187,15 +186,13 @@ class Filter(Facility):
             self.pump_control_name("water", 0)
             if CommandParser.wait_input("parser","是否继续清水清洗？(y/n): ").strip().lower() != 'y':
                 out = False
-        self.valve_A_control(0)  # 打开三通阀门
-        self.valve_B_control(0)  # 
-        self.log.info("抽滤过程B完成")
+        self.log.info("抽滤过程C完成")
 
-    def filter_process_C(self):
+    def filter_process_D(self):
         """
-        抽滤过程C
+        抽滤过程D
         """
-        self.log.info("开始过程C")
+        self.log.info("开始过程D")
         self.valve_A_control(1)  # 
         # self.pump_control_name("solvent", 1)
         # time.sleep(20)  # 泵启动
