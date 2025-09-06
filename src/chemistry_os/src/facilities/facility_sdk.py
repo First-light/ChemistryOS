@@ -419,6 +419,47 @@ class HN_SDK(Facility):
 
         self.fr5_C.move_to_safe_catch(1)
 
+    def fr5_C_pour(self, name):
+        obj_statu = self.fr5_C.obj_status[name]
+        Info = {
+            '倾倒位置' : obj_statu['name']
+        }
+        Flowdisplay.update_process_display_dict(Process=None, Action='产物倾倒', Info=Info)
+
+        self.fr5_C.move_to_safe_catch(4)
+
+        #移动到准备位置
+        dest = [obj_statu['destination'][0], obj_statu['destination'][1], obj_statu['destination'][2] + obj_statu['put_height']]
+        desc_pos_aim = dest + obj_statu['catch_direction']
+        self.fr5_C.move_to_desc(desc_pos_aim, vel=self.default_speed)
+        time.sleep(1)
+
+        #旋转
+        self.fr5_C.move_by(0,0,0,0,45.0,0)
+        time.sleep(1)
+
+        #下降
+        self.fr5_C.move_by(0, 0, -obj_statu['put_height'], vel=self.default_put_speed)
+        time.sleep(1)
+
+        self.fr5_C.pour(22.0, 75.0, shake=0)
+
+        self.fr5_C.move_by(0, 0, obj_statu['put_height'], vel=self.default_put_speed)
+        time.sleep(1)
+
+        #移动到准备位置
+        dest = [obj_statu['destination'][0], obj_statu['destination'][1], obj_statu['destination'][2] + obj_statu['put_height']]
+        desc_pos_aim = dest + obj_statu['catch_direction']
+        self.fr5_C.move_to_desc(desc_pos_aim, vel=self.default_speed)
+        time.sleep(1)
+
+        #移动到安全位置
+        self.fr5_C.move_to_desc(self.fr5_C.safe_place[obj_statu['safe_place_id']], vel=self.default_speed)
+        time.sleep(1)
+
+        self.fr5_C.move_to_safe_catch(0)
+
+
     def bath_catch(self, name:str):
         obj_statu = self.fr5_A.obj_status[name]
         Info = {
@@ -715,13 +756,13 @@ class HN_SDK(Facility):
         time.sleep(1)
 
     def temp_on(self):
-        self.fr5_C.move_to_safe_catch(0)
+        self.fr5_C.move_to_safe_catch(3)
         self.temp_catch('temp_support')
         self.temp_put('temp_place')
         self.temp_start()
 
     def temp_off(self):
-        self.fr5_C.move_to_safe_catch(0)
+        self.fr5_C.move_to_safe_catch(3)
         self.temp_catch('temp_place',shaoping=True)
         self.temp_put('temp_support')
         self.temp_over()
