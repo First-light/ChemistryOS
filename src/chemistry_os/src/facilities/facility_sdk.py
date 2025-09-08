@@ -442,7 +442,8 @@ class HN_SDK(Facility):
         self.fr5_C.move_by(0, 0, -obj_statu['put_height'], vel=self.default_put_speed)
         time.sleep(1)
 
-        self.fr5_C.pour(22.0, 75.0, shake=0)
+        self.fr5_C.pour(120.0, -100.0, shake=0)
+        time.sleep(3)
 
         self.fr5_C.move_by(0, 0, obj_statu['put_height'], vel=self.default_put_speed)
         time.sleep(1)
