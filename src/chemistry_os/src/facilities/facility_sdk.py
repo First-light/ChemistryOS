@@ -109,7 +109,7 @@ class HN_SDK(Facility):
             self.add_Solid: Add_Solid = Facility.get_facility_by_name("add_Solid", Add_Solid.type,True,True)
             self.bath: Bath = Facility.get_facility_by_name("bath", Bath.type,True,True)
             self.filter: Filter = Facility.get_facility_by_name("filter", Filter.type,True,True)
-            self.thermometer: Thermometer = Facility.get_facility_by_name("thermometer", Thermometer.type,True,True)
+            # self.thermometer: Thermometer = Facility.get_facility_by_name("thermometer", Thermometer.type,True,True)
             self.init_dict = ParamUtils.get_init_params(self)
 
             # 添加温度计线程控制变量
@@ -149,6 +149,7 @@ class HN_SDK(Facility):
         self.parser.register("bath_wash",self.bath_wash,{},"bath_wash")
         self.parser.register("temp_on",self.temp_on,{},"temp_on")
         self.parser.register("temp_off",self.temp_off,{},"temp_off")
+        self.parser.register("fr5_C_pour",self.fr5_C_pour,{},"fr5_C_pour")
 
     def cmd_error_handing(self):
         pass
@@ -419,7 +420,7 @@ class HN_SDK(Facility):
 
         self.fr5_C.move_to_safe_catch(1)
 
-    def fr5_C_pour(self, name):
+    def fr5_C_pour(self, name='beaker_pour'):
         obj_statu = self.fr5_C.obj_status[name]
         Info = {
             '倾倒位置' : obj_statu['name']

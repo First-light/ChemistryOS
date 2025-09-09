@@ -98,7 +98,7 @@
             "destination": [-207.0, 387.0, 130.0],
             "put_offset": 10.0,
             "catch_pre_offset": 60.0,
-            "put_height": 180.0,
+            "put_height": 210.0,
             "catch_direction": [90.0, 0.0, 180.0],
             "safe_place_id": 7,
             "name": "温度计架"
