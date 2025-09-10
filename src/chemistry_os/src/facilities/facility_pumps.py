@@ -12,7 +12,7 @@ class PumpGroup(Facility):
     usb_name='/dev/ttyUSB0'
     type='add_Liquid'
     reverse=True
-    base_speed=0.0675 # ml/min
+    base_speed=0.06008 # ml/min
 
     def __init__(self, name: str):
         super().__init__(name, PumpGroup.type)
@@ -46,23 +46,23 @@ class PumpGroup(Facility):
         self.add_liquid_config = {
             "HCl":{
                 'addr': 0x12,
-                'pipe_volume': 3.14 * 0.04 * 0.04 * 220
+                'pipe_volume': 3.14 * 0.04 * 0.04 * 190
             },
             "HCl_wash":{
                 'addr': 0x12,
-                'pipe_volume': 3.14 * 0.04 * 0.04 * 220
+                'pipe_volume': 3.14 * 0.04 * 0.04 * 190
             },
             "KMnO4":{
                 'addr': 0x13,
-                'pipe_volume': 3.14 * 0.04 * 0.04 * 220
+                'pipe_volume': 3.14 * 0.04 * 0.04 * 190
             },
             "H2O2":{
                 'addr': 0x14,
-                'pipe_volume': 3.14 * 0.04 * 0.04 * 220
+                'pipe_volume': 3.14 * 0.04 * 0.04 * 190
             },
             "N2H4":{
                 'addr': 0x15,
-                'pipe_volume': 3.14 * 0.04 * 0.04 * 220
+                'pipe_volume': 3.14 * 0.04 * 0.04 * 190
             }
         }
 
@@ -294,6 +294,6 @@ if __name__ == "__main__":
     # add_Liquid.writespeed(0x13, 100)
     # add_Liquid.writespeed(0x14, 100)
     # add_Liquid.writespeed(0x15, 100)
-    add_Liquid.update_data_dict(0x12)
+    # add_Liquid.update_data_dict(0x12)
 
-    # add_Liquid.add_liquid('HCl', 150, 180)
+    add_Liquid.add_liquid('HCl', 150, 100)
