@@ -43,6 +43,7 @@
     },
     "configs": {
         "sequence": [
+            "中间产物抽滤和乙腈滴加",
             "实验结束"
         ],
         "startStep": 1,
@@ -61,20 +62,30 @@
         },
         "step3": {
             "object": "sdk",
-            "command": "fr5_C_pour",
+            "command": "move_shaoping_A2C",
             "parameters": {}
         },
         "step4": {
+            "object": "sdk",
+            "command": "bath_wash",
+            "parameters": {}
+        },
+        "中间产物抽滤和乙腈滴加": {
+            "sequence": [
+                "step1",
+                "step2",
+                "step3",
+                "step4"
+            ]
+        },
+        "step5": {
             "object": "sdk",
             "command": "move_shaoping_C2A",
             "parameters": {}
         },
         "实验结束": {
             "sequence": [
-                "step1",
-                "step2",
-                "step3",
-                "step4"
+                "step5"
             ]
         }
     }

@@ -26,12 +26,11 @@ ParamTuple.H2O2_volume_add = 20.0*ParamTuple.CompoundC_solid_add # 双氧水添�
 ParamTuple.N2H4_volume_add = 0.4854 # 肼添加量
 
 ParamTuple.CH3CN_volume_add = 20.0 # 乙腈添加量
-ParamTuple.HCl_volume_wash = 80.0*ParamTuple.CompoundC_solid_add
+ParamTuple.HCl_volume_wash = 20.0*ParamTuple.CompoundC_solid_add
+ParamTuple.water_volume_wash = 20.0*ParamTuple.CompoundC_solid_add
 
-ParamTuple.HCl_rpm = 100
-ParamTuple.KMnO4_rpm = 15
-ParamTuple.H2O2_rpm = 30
-ParamTuple.N2H4_rpm = 30
+ParamTuple.liquid_volume_pump = 200 # ml
+ParamTuple.liquid_2_volume_pump = ParamTuple.HCl_volume_wash + ParamTuple.water_volume_wash 
 
 ParamTuple.HCl_temp = 0
 ParamTuple.KMnO4_temp = 25
@@ -81,32 +80,32 @@ def project_make_func():
     ProjectUtils.register_process(hn_sdk.name,"add_liquid_config_init")
     ProjectUtils.register_process(hn_sdk.name,"HN_init")
     ProjectUtils.register_process(hn_sdk.name,"move_shaoping_A2C")
-    ProjectUtils.register_process(hn_sdk.name,"bath_open")
-    ProjectUtils.register_sub_process("实验开始")
-    ProjectUtils.register_process(hn_sdk.name,"add_liquid_bath",['HCl'])
-    ProjectUtils.register_sub_process("浓盐酸滴加1")
-    ProjectUtils.register_process(hn_sdk.name,"add_solid",[ParamTuple.CompoundC_solid_add, 'test_tube_support', 'beaker_support'])
-    ProjectUtils.register_sub_process("化合物C称量和混合")
-    ProjectUtils.register_process(hn_sdk.name,"add_liquid_bath",['HCl_wash'])
-    ProjectUtils.register_sub_process("浓盐酸滴加2")
-    ProjectUtils.register_process(hn_sdk.name,"add_liquid_bath",['KMnO4'])
-    ProjectUtils.register_sub_process("高锰酸钾的滴加")
-    ProjectUtils.register_process(hn_sdk.name,"interactable_countdown",[ParamTuple.reaction_time_1])
-    ProjectUtils.register_sub_process("持续反应过程1")
-    ProjectUtils.register_process(hn_sdk.name,"add_liquid_bath",['H2O2'])
-    ProjectUtils.register_sub_process("双氧水滴加")
-    ProjectUtils.register_process(hn_sdk.name,"interactable_countdown",[ParamTuple.reaction_time_2])
-    ProjectUtils.register_sub_process("持续反应过程2")
+    # ProjectUtils.register_process(hn_sdk.name,"bath_open")
+    # ProjectUtils.register_sub_process("实验开始")
+    # ProjectUtils.register_process(hn_sdk.name,"add_liquid_bath",['HCl'])
+    # ProjectUtils.register_sub_process("浓盐酸滴加1")
+    # ProjectUtils.register_process(hn_sdk.name,"add_solid",[ParamTuple.CompoundC_solid_add, 'test_tube_support', 'beaker_support'])
+    # ProjectUtils.register_sub_process("化合物C称量和混合")
+    # ProjectUtils.register_process(hn_sdk.name,"add_liquid_bath",['HCl_wash'])
+    # ProjectUtils.register_sub_process("浓盐酸滴加2")
+    # ProjectUtils.register_process(hn_sdk.name,"add_liquid_bath",['KMnO4'])
+    # ProjectUtils.register_sub_process("高锰酸钾的滴加")
+    # ProjectUtils.register_process(hn_sdk.name,"interactable_countdown",[ParamTuple.reaction_time_1])
+    # ProjectUtils.register_sub_process("持续反应过程1")
+    # ProjectUtils.register_process(hn_sdk.name,"add_liquid_bath",['H2O2'])
+    # ProjectUtils.register_sub_process("双氧水滴加")
+    # ProjectUtils.register_process(hn_sdk.name,"interactable_countdown",[ParamTuple.reaction_time_2])
+    # ProjectUtils.register_sub_process("持续反应过程2")
     # ProjectUtils.register_process(hn_sdk.name,"bath_over")
-    # ProjectUtils.register_process(hn_sdk.name,"bath_wash")
-    # ProjectUtils.register_sub_process("中间产物抽滤和乙腈滴加")
-    ProjectUtils.register_process(hn_sdk.name,"bath_open")
-    ProjectUtils.register_process(hn_sdk.name,"add_liquid_bath",['N2H4'])
-    ProjectUtils.register_sub_process("水合肼滴加")
-    ProjectUtils.register_process(hn_sdk.name,"interactable_countdown",[ParamTuple.reaction_time_3])
-    ProjectUtils.register_sub_process("持续反应过程3")
-    ProjectUtils.register_process(hn_sdk.name,"bath_over")
-    ProjectUtils.register_process(hn_sdk.name,"fr5_C_pour")
+    ProjectUtils.register_process(hn_sdk.name,"bath_wash")
+    ProjectUtils.register_sub_process("中间产物抽滤和乙腈滴加")
+    # ProjectUtils.register_process(hn_sdk.name,"bath_open")
+    # ProjectUtils.register_process(hn_sdk.name,"add_liquid_bath",['N2H4'])
+    # ProjectUtils.register_sub_process("水合肼滴加")
+    # ProjectUtils.register_process(hn_sdk.name,"interactable_countdown",[ParamTuple.reaction_time_3])
+    # ProjectUtils.register_sub_process("持续反应过程3")
+    # ProjectUtils.register_process(hn_sdk.name,"bath_over")
+    # ProjectUtils.register_process(hn_sdk.name,"fr5_C_pour")
     ProjectUtils.register_process(hn_sdk.name,"move_shaoping_C2A")
     ProjectUtils.register_sub_process("实验结束")
     # 添加您需要的功能

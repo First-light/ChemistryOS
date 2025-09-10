@@ -34,9 +34,9 @@ main_parser = CommandParser()
 main_parser.start(input="shell")
 
 
-# add_Liquid=PumpGroup('add_Liquid')
-# add_Liquid.add_liquid('HCl', 30, 180)
-# exit()
+add_Liquid=PumpGroup('add_Liquid')
+add_Liquid.add_liquid('HCl', 150, 10)
+exit()
 
 
 add_Liquid=PumpGroup('add_Liquid')

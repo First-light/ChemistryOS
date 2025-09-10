@@ -218,17 +218,14 @@ class HN_SDK(Facility):
 
         # todo
         if index == 0:
-            self.filter.filter_process_A()
+            self.filter.filter_process_A(ParamTuple.liquid_volume_pump)
         elif index == 1:
-            self.filter.filter_process_B()
+            self.filter.filter_process_B(ParamTuple.HCl_volume_wash)
         elif index == 2:
-            self.filter.filter_process_C()
+            self.filter.filter_process_C(ParamTuple.water_volume_wash)
         elif index == 3:
-            self.filter.filter_process_A()
-            self.fr5_A.move_to_desc(dest_safe, vel=self.default_put_speed)
-            self.confirm_safety('filter ok?')
-            self.fr5_A.move_to_desc(dest, vel=self.default_put_speed)
-            self.filter.filter_process_D()
+            self.filter.filter_process_A(ParamTuple.liquid_2_volume_pump)
+            self.filter.filter_process_D(ParamTuple.CH3CN_volume_add)
             self.fr5_A.move_to_desc(dest_safe, vel=self.default_put_speed)
             self.filter.filter_process_A()
             
@@ -242,6 +239,16 @@ class HN_SDK(Facility):
 
         self.fr5_A.move_to_desc(dest_horizon, vel=self.default_put_speed)
         time.sleep(1)
+
+        if index == 0:
+            pass
+        elif index == 1:
+            self.filter.filter_process_B_N()
+        elif index == 2:
+            self.filter.filter_process_C_N()
+        elif index == 3:
+            pass
+
 
         #移动到准备位置
         self.fr5_A.move_to_desc(desc_pre, vel=self.default_speed)

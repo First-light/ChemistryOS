@@ -17,11 +17,15 @@ class ParamTuple:
 
     CH3CN_volume_add = 20.0 # 乙腈添加量
     HCl_volume_wash = 80.0*CompoundC_solid_add
+    water_volume_wash = 80.0*CompoundC_solid_add
 
     HCl_rpm = 100
     KMnO4_rpm = 15
     H2O2_rpm = 30
     N2H4_rpm = 30
+
+    liquid_volume_pump = 200 # ml
+    liquid_2_volume_pump = HCl_volume_wash + water_volume_wash 
 
     HCl_temp = 0
     KMnO4_temp = 25
