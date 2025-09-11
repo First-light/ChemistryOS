@@ -12,7 +12,8 @@ class PumpGroup(Facility):
     usb_name='/dev/ttyUSB0'
     type='add_Liquid'
     reverse=True
-    base_speed=0.06008 # ml/min
+    base_speed = 0.0595 # ml/min
+    pipe_volume_max = 3.14 * 0.04 * 0.04 * 280
 
     def __init__(self, name: str):
         super().__init__(name, PumpGroup.type)
@@ -46,23 +47,28 @@ class PumpGroup(Facility):
         self.add_liquid_config = {
             "HCl":{
                 'addr': 0x12,
-                'pipe_volume': 3.14 * 0.04 * 0.04 * 190
+                'pipe_volume': 3.14 * 0.04 * 0.04 * 190,
+                'base_speed': 0.0605
             },
             "HCl_wash":{
                 'addr': 0x12,
-                'pipe_volume': 3.14 * 0.04 * 0.04 * 190
+                'pipe_volume': 3.14 * 0.04 * 0.04 * 190,
+                'base_speed': 0.0605
             },
             "KMnO4":{
                 'addr': 0x13,
-                'pipe_volume': 3.14 * 0.04 * 0.04 * 190
+                'pipe_volume': 3.14 * 0.04 * 0.04 * 185,
+                'base_speed': 0.0632
             },
             "H2O2":{
                 'addr': 0x14,
-                'pipe_volume': 3.14 * 0.04 * 0.04 * 190
+                'pipe_volume': 3.14 * 0.04 * 0.04 * 175,
+                'base_speed': 0.0634
             },
             "N2H4":{
                 'addr': 0x15,
-                'pipe_volume': 3.14 * 0.04 * 0.04 * 190
+                'pipe_volume': 3.14 * 0.04 * 0.04 * 250,
+                'base_speed': 0.0634
             }
         }
 
@@ -251,7 +257,8 @@ class PumpGroup(Facility):
     # rpm转速round per minute,volume体积(ml)
     def add_liquid(self, name, rpm, volume):
         pipe_volume = self.add_liquid_config[name]['pipe_volume']
-        speed = self.base_speed * rpm
+        base_speed_name = self.add_liquid_config[name]['base_speed']
+        speed = base_speed_name * rpm
         tim = (volume + pipe_volume) / speed * 60 # 滴加时间
         Info = {
             '进料液体': name,
@@ -276,13 +283,14 @@ class PumpGroup(Facility):
 
     def liquid_back(self, name, rpm=150):
         addr = self.add_liquid_config[name]['addr']
-        pipe_volume = self.add_liquid_config[name]['pipe_volume']
-        speed = self.base_speed * rpm
-        pipe_time = pipe_volume / speed * 60
+        # pipe_volume = self.add_liquid_config[name]['pipe_volume']
+        base_speed_name = self.add_liquid_config[name]['base_speed']
+        speed = base_speed_name * rpm
+        pipe_time = self.pipe_volume_max / speed * 60
         self.writespeed(addr, rpm*10)
         self.writedirection(addr, 0)
         self.startadd(addr)
-        event_countdown(pipe_time, name=name, volume=pipe_volume, rpm=rpm, directon=0)
+        event_countdown(pipe_time, name=name, volume=self.pipe_volume_max, rpm=rpm, directon=0)
         self.stopadd(addr)
         self.writedirection(addr, 1)
 
