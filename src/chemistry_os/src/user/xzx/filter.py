@@ -10,13 +10,18 @@ import time
 
 @staticmethod
 def main_thread_func():
-    # filter = Filter("filter")
-
+    filter = Filter("filter")
+    print(filter.liquid_convert_dict)
     main_parser = CommandParser()
     main_parser.start()
         # 保持主线程运行
     ParamUtils.param_dict_update()
     print(ParamUtils.param_dict)
+    # filter.set_pump_dir_name("water",0)
+    # filter.pump_control_name("water",1)
+    filter.pump_add_test_name("water",test= False)
+    # time.sleep(20)
+    # filter.pump_control_name("water",0)
 
     try:
         while True:

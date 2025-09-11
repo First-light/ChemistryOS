@@ -42,9 +42,6 @@ class Filter(Facility):
         "acid": AddressEnum.ACID.value,
         "pump": AddressEnum.PUMP.value
     }
-    default_HCl_pipe_volume = 3.14159 * 0.25 * 0.25 * 126.1
-    default_water_pipe_volume = 3.14159 * 0.25 * 0.25 * 146
-    default_CH3CN_pipe_volume = 3.14159 * 0.25 * 0.25 * 70
 
     def __init__(self, name: str, com: str = "/dev/ttyUSB0", baudrate: int = 9600, address = 0x50, sub_addresses: dict = default_sub_addresses):
         """
@@ -72,10 +69,10 @@ class Filter(Facility):
         }
         self.ser = None
         self.liquid_convert_dict = {
-            "solvent": {"volume":20,"speed":800,"param":0.0675,"extra_volume":3.14159 * 0.25 * 0.25*70.0*0.1},
-            "water": {"volume":20,"speed":800,"param":0.0675,"extra_volume":3.14159 * 0.25 * 0.25*146.0*0.1},
-            "acid": {"volume":20,"speed":800,"param":0.0675,"extra_volume":3.14159 * 0.25 * 0.25*126.1*0.1},
-            "pump": {"volume":20,"speed":800,"param":0.0675,"extra_volume":3.14159 * 0.25 * 0.25*70.0*0.1},
+            "solvent": {"volume":20,"speed":800,"param":0.0030564,"extra_volume":3.14159 * 0.229 * 0.229*70.0},
+            "water": {"volume":20,"speed":800,"param":0.0030564,"extra_volume":3.14159 * 0.229 * 0.229*147},
+            "acid": {"volume":20,"speed":800,"param":0.0030564,"extra_volume":3.14159 * 0.229 * 0.229*126.1},
+            "pump": {"volume":20,"speed":800,"param":0.0030564,"extra_volume":3.14159 * 0.229 * 0.229*70.0},
         }#extra_volume mL
         super().__init__(name, Filter.type)
         self.connect()
@@ -111,6 +108,9 @@ class Filter(Facility):
         self.parser.register("data", self.print_data, {}, "check data")
         self.parser.register("load", self.liquid_load, {
                              "name": "empty"}, "load liquid into pump by name")
+        self.parser.register("add_test", self.pump_add_test_name, {
+                             "name": "empty",
+                             "volume":0.0}, "")
 
     def cmd_error_handing(self):
         self.pump_control_name("solvent",0)
@@ -156,7 +156,6 @@ class Filter(Facility):
             time.sleep(volume_t)  
             self.pump_control_name("pump", 0)
             volume_t = 30.0
-            print(CommandParser.wait_input("parser","是否继续抽滤？(y/n): ").strip().lower())
             if CommandParser.wait_input("parser","是否继续抽滤？(y/n): ").strip().lower() is not 'y':
                 out = False
 
@@ -267,6 +266,32 @@ class Filter(Facility):
         self.log.info("抽滤过程D完成")
 
 
+    def pump_add_test_name(self,name:str,volume = 0.0,test = True):
+        result = None
+        if name not in self.liquid_convert_dict:
+            self.log.warning(f"无效的蠕动泵名称: {name}")
+        else:
+            self.log.info(f"开始 {name} 测试过程")
+            self.set_pump_dir_name(name,1)
+            sec = self.liquid_convert_name(name,volume) 
+            self.log.info(f"溶剂{sec:.3f}s")
+            if not test:
+                self.pump_control_name(name, 1)
+                time.sleep(sec)
+                self.pump_control_name(name, 0)
+            CommandParser.wait_input("parser","等待下一步").strip().lower()
+            
+            self.set_pump_dir_name(name,0)
+            sec = self.liquid_convert_name(name,volume) + 10.0
+            self.log.info(f"回抽{sec:.3f}s")
+            if not test:
+                self.pump_control_name(name, 1)
+                time.sleep(sec)
+                self.pump_control_name(name, 0)
+                self.set_pump_dir_name(name, 1)
+            self.log.info(f"测试结束")
+
+        return result
 
 
 
@@ -330,8 +355,10 @@ class Filter(Facility):
         self.pump_control_name(name,state=0)
     
     def liquid_convert(self,volume:float, speed:float,param:float,extra_volume:float) -> float:
-        speed_t = speed * param
-        tim = (volume + extra_volume) / speed_t * 60 # 滴加时间
+        
+        speed_t = speed * param # mL/s
+        tim = (volume + extra_volume) / speed_t # 滴加时间
+        print(speed_t,extra_volume)
         return tim
 
 

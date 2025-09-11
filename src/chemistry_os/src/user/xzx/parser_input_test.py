@@ -102,6 +102,10 @@ def main_thread_func():
     CommandParser.wait_input("parser")
     CommandParser.wait_input("parser")
 
+    while(True):
+        char = CommandParser.wait_input("parser","请输入y").strip().lower()
+        if char == 'y':
+            break
     
     # main_server = TCPServer(test=True)
     # main_server.register("flow", 50, Flowdisplay.process_display_dict, Flowdisplay.data_update)

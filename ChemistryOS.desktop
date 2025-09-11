@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=ChemistryOS
+Comment=化学操作系统 - 自动化实验平台
+Exec=/bin/bash -c 'cd "/home/dian/Projects/ChemistryOS" && python3 src/chemistry_os/src/main.py; echo "程序已结束，按任意键退出..."; read'
+Icon=utilities-terminal
+Terminal=true
+Categories=Science;Education;
+StartupWMClass=ChemistryOS
+Path=/home/dian/Projects/ChemistryOS

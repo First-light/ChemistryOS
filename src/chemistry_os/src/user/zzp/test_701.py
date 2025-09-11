@@ -35,7 +35,7 @@ main_parser.start(input="shell")
 
 
 add_Liquid=PumpGroup('add_Liquid')
-add_Liquid.add_liquid('HCl', 150, 10)
+add_Liquid.add_liquid('N2H4', 150, 15)
 exit()
 
 
