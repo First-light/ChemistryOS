@@ -11,7 +11,7 @@
         },
         "beaker_support": {
             "destination": [-515.0, -106.0, 100.0],
-            "put_offset": 1.0,
+            "put_offset": 2.0,
             "catch_pre_offset": 70.0,
             "put_height": 50,
             "catch_direction": [90.0, 0.0, -90.0],

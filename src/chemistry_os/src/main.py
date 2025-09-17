@@ -25,7 +25,7 @@ ParamTuple.KMnO4_volume_add = 53.52*ParamTuple.CompoundC_solid_add # 高锰酸�
 ParamTuple.H2O2_volume_add = 20.0*ParamTuple.CompoundC_solid_add # 双氧水添加量
 ParamTuple.N2H4_volume_add = 0.4854 # 肼添加量
 
-ParamTuple.CH3CN_volume_add = 20.0 # 乙腈添加量
+ParamTuple.CH3CN_volume_add = 22.73*ParamTuple.CompoundC_solid_add  # 乙腈添加量
 ParamTuple.HCl_volume_wash = 20.0*ParamTuple.CompoundC_solid_add
 ParamTuple.water_volume_wash = 20.0*ParamTuple.CompoundC_solid_add
 

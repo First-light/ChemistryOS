@@ -261,6 +261,35 @@ class System(Facility):
         except Exception as e:
             self.log.error(f"停止所有对象时出错: {e}")
 
+    # def reset_all(self):
+    #     try:
+    #         objects_to_reset = []
+    #         for tuple_t in Facility.tuple_list:
+    #             name = tuple_t.name
+    #             object_type = tuple_t.type
+    #             object = tuple_t.facility
+                
+    #             # 只处理在配置中的对象类型
+    #             if object_type in System.stop_priority_config:
+
+    #                 object.state = ParamUtils.set_facility_state(object.state,FacilityState.IDLE)
+    #                 self.log.info(f"对象 {name} (类型: {object_type}) 标记停止。")
+                    
+    #                 priority = System.stop_priority_config[object_type]
+    #                 objects_to_reset.append((priority, name, object, object_type))
+
+    #         # 按优先级排序并执行停止处理
+    #         objects_to_reset.sort(key=lambda x: x[0])  # 按优先级排序
+            
+    #         for priority, name, object, object_type in objects_to_reset:
+    #             try:
+    #                 object.cmd_stop_handing()
+    #                 self.log.info(f"对象 {name} (类型: {object_type}, 优先级: {priority}) 执行急停进程。")
+    #             except Exception as e:
+    #                 self.log.error(f"对象 {name} 执行急停进程时出错: {e}")
+    #     except Exception as e:
+    #         self.log.error(f"停止所有对象时出错: {e}")
+
         # self.pause_main_thread()
     
     def check_all_init_dict(self):
