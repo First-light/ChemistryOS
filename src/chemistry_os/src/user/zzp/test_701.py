@@ -34,9 +34,9 @@ main_parser = CommandParser()
 main_parser.start(input="shell")
 
 
-add_Liquid=PumpGroup('add_Liquid')
-add_Liquid.add_liquid('N2H4', 150, 15)
-exit()
+# add_Liquid=PumpGroup('add_Liquid')
+# add_Liquid.add_liquid('N2H4', 150, 5)
+# exit()
 
 
 add_Liquid=PumpGroup('add_Liquid')
@@ -45,6 +45,15 @@ fr5_C = Fr5Arm("fr5C","192.168.58.3")
 fr5_A = Fr5Arm("fr5A","192.168.58.2")
 bath = Bath('bath')
 filter = Filter("filter")
+
+# controller = Add_Solid()
+with add_Solid:
+    add_Solid.add_solid_series(0.5)
+    add_Solid.tube_ver()
+    add_Solid.clip_open()
+    # time.sleep(2)
+    # add_Solid.clip_close()
+exit()
 
 # main_server= TCPServer(test = True)
 # main_server.register("log", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
@@ -56,7 +65,8 @@ filter = Filter("filter")
 
 hn_sdk=HN_SDK()
 hn_sdk.HN_init()
-hn_sdk.move_shaoping_support2C()
+hn_sdk.add_liquid_bath('HCl')
+# hn_sdk.move_shaoping_support2C()
 # event_countdown(10)
 exit()
 # hn_sdk.HN_init()

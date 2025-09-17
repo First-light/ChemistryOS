@@ -339,24 +339,35 @@ class Fr5Arm(Facility):
         return x, y
 
     def move_listen(self):
-        res = 0
+        result = 0
         consecutive_non_zero_count = 0
         while True:
+            ret = self.robot.GetRobotMotionDone()
+            if ret[1] == 0:
+                break
+            else:
+                consecutive_non_zero_count += 1
+                if consecutive_non_zero_count >= 5:
+                    result = 2
+                    break
+            time.sleep(0.01)
+
+        while True and result == 0:
             if self.state == FacilityState.ERROR:
                 self.log.error(f"{self.name}监听到 ERROR")
                 self.shut_down()
-                res = 2
+                result = 2
                 break
             if self.state == FacilityState.STOP:
                 self.log.error(f"{self.name}监听到 STOP")
                 self.shut_down()
-                res = 2
+                result = 2
                 break
             ret = self.robot.GetRobotMotionDone()  # 查询机械臂运动完成状态
             if isinstance(ret, (list, tuple)):
                 if ret[1] != 0:
                     consecutive_non_zero_count += 1 # 连续5次非0状态 因为开始运动时受到的第一个结果是运动完成
-                    if consecutive_non_zero_count >= 3:
+                    if consecutive_non_zero_count >= 5:
                         break
                 else:
                     consecutive_non_zero_count = 0
@@ -364,17 +375,17 @@ class Fr5Arm(Facility):
                 if ret != -4:
                     self.log.error(f"{self.name}状态查询错误，错误码: {ret}")
                     self.shut_down()
-                    res = 2
+                    result = 2
                     break
-            time.sleep(0.002)  # 短暂休眠，避免过于频繁的查询
-        if res==2:
+            time.sleep(0.01)  # 短暂休眠，避免过于频繁的查询
+        if result==2:
             self.log.error(f"机械臂运动异常")
             self.facility_emergency = True
-        return res
+        return result
 
     def move(self, new_pose: list, type="MoveL", vel_t=default_speed, acc_t=default_acc):
         if type == "MoveL":
-            ret = self.robot.MoveL(new_pose, 0, 0, vel=vel_t, acc=acc_t, blendR=-1.0)  # 笛卡尔空间直线运动
+            ret = self.robot.MoveL(new_pose, 0, 0, vel=vel_t, acc=acc_t, blendR=-1)  # 笛卡尔空间直线运动
             if ret != 0:
                 self.log.info(f"笛卡尔空间直线运动失败，错误码: {ret}")
                 self.shut_down()
@@ -384,7 +395,7 @@ class Fr5Arm(Facility):
             inverse_kin_result = self.robot.GetInverseKin(0, new_pose, -1)
             if isinstance(inverse_kin_result, (list, tuple)) and len(inverse_kin_result) > 1:
                 new_joint = list(inverse_kin_result[1])
-                ret = self.robot.MoveJ(new_joint, 0, 0, new_pose, vel=vel_t, acc=acc_t, blendT=-1.0)  # 关节空间直线运动
+                ret = self.robot.MoveJ(new_joint, 0, 0, new_pose, vel=vel_t, acc=acc_t, blendT=-1)  # 关节空间直线运动
                 if ret != 0:
                     self.log.info(f"关节空间直线运动失败，错误码: {ret}")
                     self.shut_down()
@@ -399,7 +410,7 @@ class Fr5Arm(Facility):
                 self.move_listen()
 
     def move_joint(self, new_joint: list, vel_t=default_speed, acc_t=default_acc):
-        ret = self.robot.MoveJ(new_joint, 0, 0, vel=vel_t, acc=acc_t, blendT=0.0)  # 关节空间直线运动
+        ret = self.robot.MoveJ(new_joint, 0, 0, vel=vel_t, acc=acc_t, blendT=-1)  # 关节空间直线运动
         if ret != 0:
             self.log.info(f"关节空间直线运动失败，错误码: {ret}")
             self.shut_down()
@@ -652,6 +663,8 @@ class Fr5Arm(Facility):
         time.sleep(1.0)
         
     def shut_down(self):
+        ret = self.robot.StopMotion()
+        self.log.info(f"机械臂运动暂停{ret}")
         ret = self.robot.RobotEnable(0)  # 机械臂下使能
         if ret != 0:
             self.log.warning(f"机械臂下使能失败，错误码: {ret}")

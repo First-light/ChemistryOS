@@ -710,13 +710,13 @@ class Add_Solid(Facility):
 # len = 26 截获
 if __name__ == '__main__':
     # logging.basicConfig(level=logging.DEBUG)
-    controller = Add_Solid(comm='/dev/ttyUSB0', baud_rate=9600, addr=0x01)
+    controller = Add_Solid()
     with controller:
         # controller.clip_open()
         # controller.tube_hor()
         controller.add_solid_series(0.5)
         # controller.tube_ver()
-        controller.clip_close()
+        controller.clip_open()
     # controller.initialize_serial()
     # frame = controller._thread._read_frame()
     # logging.debug(frame)
@@ -760,10 +760,3 @@ if __name__ == '__main__':
     # controller.clip_open()
 
     # controller.turn_off()
-
-    with controller:
-        # controller.clip_open()
-        # controller.tube_hor()
-        controller.add_solid_series(0.5)
-        # controller.tube_ver()
-        # controller.clip_close()

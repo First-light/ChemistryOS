@@ -13,16 +13,16 @@ class ParamTuple:
     HCl_volume_add = 26.8*CompoundC_solid_add # 浓盐酸
     KMnO4_volume_add = 53.52*CompoundC_solid_add # 高锰酸钾添加量 
     H2O2_volume_add = 20.0*CompoundC_solid_add # 双氧水添加量
-    N2H4_volume_add = 0.4854 # 肼添加量
+    N2H4_volume_add = 1.14*CompoundC_solid_add # 肼添加量
 
-    CH3CN_volume_add = 20.0 # 乙腈添加量
+    CH3CN_volume_add = 18.87*CompoundC_solid_add # 乙腈添加量
     HCl_volume_wash = 80.0*CompoundC_solid_add
     water_volume_wash = 80.0*CompoundC_solid_add
 
     HCl_rpm = 100
     KMnO4_rpm = 15
     H2O2_rpm = 30
-    N2H4_rpm = 30
+    N2H4_rpm = 15
 
     liquid_volume_pump = 200 # ml
     liquid_2_volume_pump = HCl_volume_wash + water_volume_wash 

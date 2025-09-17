@@ -69,10 +69,10 @@ class Filter(Facility):
         }
         self.ser = None
         self.liquid_convert_dict = {
-            "solvent": {"volume":20,"speed":800,"param":0.0030564,"extra_volume":3.14159 * 0.229 * 0.229*70.0},
-            "water": {"volume":20,"speed":800,"param":0.0030564,"extra_volume":3.14159 * 0.229 * 0.229*147},
-            "acid": {"volume":20,"speed":800,"param":0.0030564,"extra_volume":3.14159 * 0.229 * 0.229*126.1},
-            "pump": {"volume":20,"speed":800,"param":0.0030564,"extra_volume":3.14159 * 0.229 * 0.229*70.0},
+            "solvent": {"volume":20,"speed":800,"param":0.0033364,"extra_volume":3.14159 * 0.246 * 0.246*70.0},
+            "water": {"volume":20,"speed":800,"param":0.0033364,"extra_volume":3.14159 * 0.246 * 0.246*147},
+            "acid": {"volume":20,"speed":800,"param":0.0033364,"extra_volume":3.14159 * 0.246 * 0.246*126.1},
+            "pump": {"volume":20,"speed":800,"param":0.0033364,"extra_volume":3.14159 * 0.246 * 0.246*70.0},
         }#extra_volume mL
         super().__init__(name, Filter.type)
         self.connect()
@@ -145,7 +145,7 @@ class Filter(Facility):
         """
         抽滤过程A
         """
-        volume_t = int(max(volume -50.0 , 0.0) / 50.0)*25.0 + 30.0 + min(volume,50.0)
+        volume_t = int(max(volume -50.0 , 0.0) / 50.0)*25.0 + 30.0 + min(volume,50.0) 
         self.log.info("开始过程A")
         self.valve_A_control(0)  # 打开三通阀门
         self.valve_B_control(0)
@@ -156,7 +156,7 @@ class Filter(Facility):
             time.sleep(volume_t)  
             self.pump_control_name("pump", 0)
             volume_t = 30.0
-            if CommandParser.wait_input("parser","是否继续抽滤？(y/n): ").strip().lower() is not 'y':
+            if CommandParser.wait_input("parser","是否继续抽滤？(y/n): ").strip().lower() != 'y':
                 out = False
 
         self.valve_A_control(0)  # 
@@ -259,19 +259,27 @@ class Filter(Facility):
             self.pump_control_name("solvent", 1)
             time.sleep(sec)
             self.pump_control_name("solvent", 0)
-            if CommandParser.wait_input("parser","是否继续溶剂？(y/n): ").strip().lower() is not 'y':
+            if CommandParser.wait_input("parser","是否继续溶剂？(y/n): ").strip().lower() != 'y':
                 out = False
         self.valve_A_control(0)  # 打开三通阀门
         self.valve_B_control(0)  # 
         self.log.info("抽滤过程D完成")
 
 
-    def pump_add_test_name(self,name:str,volume = 0.0,test = True):
+    def pump_add_test_name(self,name:str,volume = 0.0,test = True,back = False):
         result = None
         if name not in self.liquid_convert_dict:
             self.log.warning(f"无效的蠕动泵名称: {name}")
         else:
             self.log.info(f"开始 {name} 测试过程")
+            if back:
+                self.set_pump_dir_name(name,0)
+                sec = self.liquid_convert_name(name) + 10.0
+                self.log.info(f"回抽{sec:.3f}s")
+                self.pump_control_name(name, 1)
+                time.sleep(sec)
+                self.pump_control_name(name, 0)
+                self.set_pump_dir_name(name, 1)
             self.set_pump_dir_name(name,1)
             sec = self.liquid_convert_name(name,volume) 
             self.log.info(f"溶剂{sec:.3f}s")
@@ -282,7 +290,7 @@ class Filter(Facility):
             CommandParser.wait_input("parser","等待下一步").strip().lower()
             
             self.set_pump_dir_name(name,0)
-            sec = self.liquid_convert_name(name,volume) + 10.0
+            sec = self.liquid_convert_name(name) + 10.0
             self.log.info(f"回抽{sec:.3f}s")
             if not test:
                 self.pump_control_name(name, 1)

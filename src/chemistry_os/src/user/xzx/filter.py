@@ -19,7 +19,7 @@ def main_thread_func():
     print(ParamUtils.param_dict)
     # filter.set_pump_dir_name("water",0)
     # filter.pump_control_name("water",1)
-    filter.pump_add_test_name("water",test= False)
+    filter.pump_add_test_name("water",volume = 20.0,test= False,back=True)
     # time.sleep(20)
     # filter.pump_control_name("water",0)
 
