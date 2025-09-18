@@ -23,7 +23,7 @@ ParamTuple.CompoundC_solid_add = 1 # 化合物C的添加量
 ParamTuple.HCl_volume_add = 26.8*ParamTuple.CompoundC_solid_add # 浓盐酸
 ParamTuple.KMnO4_volume_add = 53.52*ParamTuple.CompoundC_solid_add # 高锰酸钾添加量 
 ParamTuple.H2O2_volume_add = 20.0*ParamTuple.CompoundC_solid_add # 双氧水添加量
-ParamTuple.N2H4_volume_add = 0.4854 # 肼添加量
+ParamTuple.N2H4_volume_add = 1.14*ParamTuple.CompoundC_solid_add # 肼添加量
 
 ParamTuple.CH3CN_volume_add = 22.73*ParamTuple.CompoundC_solid_add  # 乙腈添加量
 ParamTuple.HCl_volume_wash = 20.0*ParamTuple.CompoundC_solid_add
@@ -52,18 +52,19 @@ bath = Bath('bath')
 hn_sdk=HN_SDK()
 
 def reset_make_func():
-    # 仅用于故障重启
-    ProjectUtils.register_object("filter")
-    ProjectUtils.register_object("add_Liquid")
-    ProjectUtils.register_object("add_Solid")
-    ProjectUtils.register_object("fr5C")
-    ProjectUtils.register_object("fr5A")
-    ProjectUtils.register_object('bath')
-    # ProjectUtils.register_object('thermometer')
-    ProjectUtils.register_object(hn_sdk.name)
+    pass
+    # # 仅用于故障重启
+    # ProjectUtils.register_object("filter")
+    # ProjectUtils.register_object("add_Liquid")
+    # ProjectUtils.register_object("add_Solid")
+    # ProjectUtils.register_object("fr5C")
+    # ProjectUtils.register_object("fr5A")
+    # ProjectUtils.register_object('bath')
+    # # ProjectUtils.register_object('thermometer')
+    # ProjectUtils.register_object(hn_sdk.name)
 
-    ProjectUtils.register_process(hn_sdk.name,"add_liquid_init")
-    ProjectUtils.register_process(hn_sdk.name,"add_solid_init")
+    # ProjectUtils.register_process(hn_sdk.name,"add_liquid_init")
+    # ProjectUtils.register_process(hn_sdk.name,"add_solid_init")
 
 # json项目
 def project_make_func():
@@ -113,13 +114,13 @@ def project_make_func():
 
 
 def main_thread_func():
-    ProjectUtils.register_function(ParamTuple.init_name, reset_make_func)
+    # ProjectUtils.register_function(ParamTuple.init_name, reset_make_func)
     ProjectUtils.register_function(ParamTuple.project_name, project_make_func)
-    System.redefine_and_make(ParamTuple.init_name)
+    # System.redefine_and_make(ParamTuple.init_name)
     System.redefine_and_make(ParamTuple.project_name)
 
     pro = Project(name="pro",file=ParamTuple.project_name + ".json") 
-    pro_reset = Project(name="pro_reset",file=ParamTuple.init_name + ".json") 
+    # pro_reset = Project(name="pro_reset",file=ParamTuple.init_name + ".json") 
     
     main_parser = CommandParser()
     main_parser.parse("os check")
@@ -131,7 +132,7 @@ def main_thread_func():
     main_server.register("log", 10, Facility.log_cache_dict, Facility.log_cache_dict_update)
     main_server.register("project_json", 200, pro.project_dict,enable=False)
     main_server.register("project_data_dict", 20, pro.data_dict,pro.data_dict_update)
-    main_server.register("reset_data_dict", 20, pro_reset.data_dict,pro_reset.data_dict_update)
+    # main_server.register("reset_data_dict", 20, pro_reset.data_dict,pro_reset.data_dict_update)
     main_server.register("facility_location",200, System.facility_location_dict,enable=False)
     main_server.register("facility_state",10, System.facility_state_dict,System.facility_state_dict_update)
     main_server.register("fr5A_data", 5, fr5_A.data_dict, fr5_A.data_dict_update)
@@ -141,7 +142,7 @@ def main_thread_func():
     main_server.register("add_Liquid_data", 20, add_Liquid.data_dict)
     main_server.register("add_Solid_data", 20, add_Solid.data_dict)
     main_server.register("params", 50, ParamUtils.param_dict,ParamUtils.param_dict_update)
-    # main_server.register("hn_sdk_data", 5, hn_sdk.data_dict, hn_sdk.data_dict_update)
+    main_server.register("liquid_config",100, hn_sdk.liquid_config)
     main_server.start()
 
     # main_parser.parse("pro run") # 运行流程

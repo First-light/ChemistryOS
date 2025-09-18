@@ -8,7 +8,7 @@ from utilities.utility_log import LogUtils
 from facilities.flowdisplay import Flowdisplay
 from facilities.facility_parser import CommandParser
 
-def event_countdown(seconds, name:str = '', rpm:float = 0, volume:float = 0, directon:bool = 1):
+def event_countdown(seconds, name:str = '', rpm:float = 0, volume:float = 0, directon:bool = 1, speed:float = 0):
     start_time = time.time()
     end_time = start_time + seconds
     
@@ -51,6 +51,7 @@ def event_countdown(seconds, name:str = '', rpm:float = 0, volume:float = 0, dir
             Info = {
                 '回收液体': name,
                 '回收转速': str(rpm) + ' 转/min',
+                '回收速率': str(speed) + ' ml/s',
                 '剩余时间' : str(int(remaining_time)) + ' s',
                 '预计结束时间' : finish_time
             }
@@ -61,6 +62,7 @@ def event_countdown(seconds, name:str = '', rpm:float = 0, volume:float = 0, dir
             Info = {
                 '进料液体': name,
                 '进料转速': str(rpm) + ' 转/min',
+                '进料速率': str(speed) + ' ml/s',
                 '已加料体积': f"{current_volume:.2f} ml",
                 '目标体积': str(volume) + ' ml',
                 '剩余时间' : str(int(remaining_time)) + ' s',

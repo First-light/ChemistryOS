@@ -63,36 +63,36 @@ class HN_SDK(Facility):
     compound_c = 0.50
     default_speed = 20.0
     default_put_speed = 10.0
-    should_safe = False
+    should_safe = False 
     liquid_config = {
         'HCl': {
             'temp': 0,
             'rpm': 100,
-            'volume': lambda c: 26.8 * c,
+            'volume': 26.8 * 0.8,
             'wash': False,
         },
         'HCl_wash': {
             'temp': 0,
             'rpm': 100,
-            'volume': lambda c: 2.68 * 2 * c,
+            'volume': 26.8 * 0.2,
             'wash': True,
         },
         'KMnO4': {
             'temp': 25,
             'rpm': 15,
-            'volume': lambda c: 53.52 * c,
+            'volume': 53.52,
             'wash': False,
         },
         'H2O2': {
             'temp': 0,
             'rpm': 30,
-            'volume': lambda c: 20.0 * c,
+            'volume': 20.0,
             'wash': False,
         },
         'N2H4': {
             'temp': 25,
             'rpm': 30,
-            'volume': lambda c: 20.0 * c,
+            'volume': 1.14,
             'wash': False,
         },
     }
@@ -115,6 +115,7 @@ class HN_SDK(Facility):
             # 添加温度计线程控制变量
             self.thermometer_stop_event = threading.Event()
             self.thermometer_thread = None
+            self.can_reset = False
 
         except ValueError as e:
             self.log.info(e)
@@ -150,6 +151,7 @@ class HN_SDK(Facility):
         self.parser.register("temp_on",self.temp_on,{},"temp_on")
         self.parser.register("temp_off",self.temp_off,{},"temp_off")
         self.parser.register("fr5_C_pour",self.fr5_C_pour,{},"fr5_C_pour")
+        self.parser.register("reset_all",self.reset_all_facilities,{},"reset_all_facilities")
 
     def cmd_error_handing(self):
         pass
@@ -158,7 +160,15 @@ class HN_SDK(Facility):
         pass
 
     def cmd_reset(self):#从error/stop恢复idle的状态
+        
         pass
+
+    def reset_all_facilities(self):
+        self.bath_over()
+        if self.can_reset:
+            self.move_shaoping_C2support()
+        self.HN_init()
+
 
     def confirm_safety(self, text:str='ok?'):
         if self.should_safe:
@@ -276,10 +286,7 @@ class HN_SDK(Facility):
         self.bath_writetmp(config['temp'])
 
         # 计算体积（如果体积是函数，则调用函数计算）
-        if callable(config['volume']):
-            volume = config['volume'](self.compound_c)
-        else:
-            volume = config['volume']
+        volume = config['volume']
 
         # 添加液体
         if config['wash']:
@@ -699,7 +706,7 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(desc_pos_aim_pre, vel=self.default_speed)
         time.sleep(1)
 
-        self.fr5_A.gripper_half()
+        self.fr5_A.gripper_25()
         time.sleep(1)
 
         #靠近，完成抓取
@@ -750,7 +757,7 @@ class HN_SDK(Facility):
         self.fr5_A.move_by(0, 0, -obj_statu['put_height'], vel=self.default_put_speed)
         time.sleep(1)
 
-        self.fr5_A.gripper_half()
+        self.fr5_A.gripper_25()
         time.sleep(1)
         self.fr5_A.data_dict["gripper_contain"] =""#用于输出夹持的物品信息
 
@@ -768,13 +775,13 @@ class HN_SDK(Facility):
         self.fr5_C.move_to_safe_catch(3)
         self.temp_catch('temp_support')
         self.temp_put('temp_place')
-        self.temp_start()
+        # self.temp_start()
 
     def temp_off(self):
         self.fr5_C.move_to_safe_catch(3)
         self.temp_catch('temp_place',shaoping=True)
         self.temp_put('temp_support')
-        self.temp_over()
+        # self.temp_over()
 
     def temp_start(self):
         # 如果已有线程在运行，先停止它
@@ -1040,6 +1047,7 @@ class HN_SDK(Facility):
         Flowdisplay.update_process_display_dict(Process='烧瓶转移 A to C', Action='', Info={})   
         self.name_catch('sanjinshaoping_support')
         self.bath_put('bath_fr5_put')
+        self.can_reset = True 
         # self.temp_on()
 
 
