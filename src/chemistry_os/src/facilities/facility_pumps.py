@@ -276,7 +276,7 @@ class PumpGroup(Facility):
         self.writespeed(addr, rpm*10)
         time.sleep(1)
         self.startadd(addr)
-        event_countdown(tim, name=name, volume=volume, rpm=rpm)
+        event_countdown(tim, name=name, volume=volume, rpm=rpm, speed=speed)
         self.stopadd(addr)
         if self.reverse == True:
             self.liquid_back(name)
@@ -290,7 +290,7 @@ class PumpGroup(Facility):
         self.writespeed(addr, rpm*10)
         self.writedirection(addr, 0)
         self.startadd(addr)
-        event_countdown(pipe_time, name=name, volume=self.pipe_volume_max, rpm=rpm, directon=0)
+        event_countdown(pipe_time, name=name, volume=self.pipe_volume_max, rpm=rpm, directon=0, speed=speed)
         self.stopadd(addr)
         self.writedirection(addr, 1)
 

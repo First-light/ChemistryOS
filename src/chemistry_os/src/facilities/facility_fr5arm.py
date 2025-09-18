@@ -657,6 +657,11 @@ class Fr5Arm(Facility):
         self.log.info("夹爪开20")
         time.sleep(1.0)
 
+    def gripper_25(self):
+        self.robot.MoveGripper(1, 20, 50, 10, 10000, 0, 0, 0, 0, 0)
+        self.log.info("夹爪开20")
+        time.sleep(1.0)
+
     def gripper_30(self):
         self.robot.MoveGripper(1, 30, 50, 10, 10000, 0, 0, 0, 0, 0)
         self.log.info("夹爪开30")
@@ -897,13 +902,10 @@ class Fr5Arm(Facility):
                 self.log.info('倾倒循环中关节位置获取失败，重试中...')
                 time.sleep(0.5)
 
-            print('zzp: '+str(current_joint_pos))
             current_joint_pos = current_joint_pos[1]
         
             # 步骤3：更新末端关节角度（第6轴）
             current_joint_pos[5] = current_joint_pos[5] + direction * rate_decimal
-
-            print('zzp: '+str(current_joint_pos))
         
             # 步骤4：执行关节空间运动
             self.robot.ServoJ(current_joint_pos, [0,0,0,0,0,0], 0.0, 0.0, servo_cycle_time, 0.0, 0.0)

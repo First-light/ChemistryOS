@@ -2,7 +2,7 @@
     "obj_status": {
         "test_tube_support": {
             "destination": [-500.0, -360, 162.0],
-            "put_offset": 5.0,
+            "put_offset": 4.0,
             "catch_pre_offset": 70.0,
             "put_height": 90,
             "catch_direction": [90.0, 0.0, -90.0],
@@ -19,7 +19,7 @@
             "name": "烧杯架"
         },
         "test_tube_add_place": {
-            "destination": [601.5, -250.0, 297.0],
+            "destination": [601.5, -250.0, 296.0],
             "put_offset": 0.0,
             "catch_pre_offset": 150.0,
             "put_height": 110.0,
@@ -104,11 +104,12 @@
             "name": "温度计架"
         },
         "temp_place": {
-            "destination": [99, 592.0, 199.0],
-            "put_offset": 3.0,
+            "destination": [99, 592.0, 196.0],
+            "put_offset": 1.0,
             "catch_pre_offset": 80.0,
             "put_height": 141,
             "catch_direction": [90.0, 0.0, 180.0],
+            "safe_place_id": 3,
             "name": "温度计放置"
         },
         "add_liquid_mode_place": {
@@ -192,7 +193,7 @@
         [450.0, 50.0 ,270.0, 90.0, 0.0, 180.0],
         [-80.0, 350.0, 400.0, 90.0, 0.0, 180.0],
         [-80.0, 350.0, 400.0, 90.0, 0.0, 90.0],
-        [-86.0, 320.0, 130.0, 90.0, 0.0, 90.0]
+        [-207.0, 320.0, 400.0, 90.0, 0.0, 180.0]
     ],
     "graph": {
         "0": {"1": 1},
