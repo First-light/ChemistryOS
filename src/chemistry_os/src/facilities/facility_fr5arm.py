@@ -35,6 +35,7 @@ class Fr5Arm(Facility):
         self.emergency_detect_thread = None
         self.version = ""
         self.ip = ""
+        self.can_gripper = False
 
         self.robot = Robot.RPC(ip)
         if self.name=='fr5A':
@@ -621,55 +622,80 @@ class Fr5Arm(Facility):
             '机械臂对象': self.name
         }
         Flowdisplay.update_process_display_dict(Process=None, Action='夹爪初始化', Info=Info)
-        self.log.info("夹爪初始化")
-        self.robot.SetGripperConfig(4, 0, 0, 1)
-        time.sleep(0.5)
-        self.robot.ActGripper(1, 1)
-        time.sleep(3.0)
-        # self.robot.MoveGripper(1, 100, 50, 10, 10000, 0, 0, 0, 0, 0)
-        self.catch()
-        self.put()
-        # time.sleep(0.5)
-        self.log.info("夹爪初始化完成")
+        if not self.can_gripper:
+            self.log.warning("机械臂未使能，无法初始化夹爪")
+        else:
+            self.log.info("夹爪初始化")
+            self.robot.SetGripperConfig(4, 0, 0, 1)
+            time.sleep(0.5)
+            self.robot.ActGripper(1, 1)
+            time.sleep(3.0)
+            # self.robot.MoveGripper(1, 100, 50, 10, 10000, 0, 0, 0, 0, 0)
+            self.catch()
+            self.put()
+            # time.sleep(0.5)
+            self.log.info("夹爪初始化完成")
 
     def catch(self):
-        self.robot.MoveGripper(1, 0, 50, 5, 10000, 0, 0, 0, 0, 0)
-        self.log.info("夹爪抓取")
-        time.sleep(1.0)
+        if not self.can_gripper:
+            self.log.warning("机械臂未使能，无法使用夹爪")
+        else:
+            self.robot.MoveGripper(1, 0, 50, 5, 10000, 0, 0, 0, 0, 0)
+            self.log.info("夹爪抓取")
+            time.sleep(1.0)
 
     def put(self):
-        self.robot.MoveGripper(1, 100, 50, 10, 10000, 0, 0, 0, 0, 0)
-        self.log.info("夹爪放置")
-        time.sleep(1.0)
+        if not self.can_gripper:
+            self.log.warning("机械臂未使能，无法使用夹爪")
+        else:
+            self.robot.MoveGripper(1, 100, 50, 10, 10000, 0, 0, 0, 0, 0)
+            self.log.info("夹爪放置")
+            time.sleep(1.0)
 
     def gripper_half(self):
-        self.robot.MoveGripper(1, 50, 50, 10, 10000, 0, 0, 0, 0, 0)
-        self.log.info("夹爪半开")
-        time.sleep(1.0)
+        if not self.can_gripper:
+            self.log.warning("机械臂未使能，无法使用夹爪")
+        else:
+            self.robot.MoveGripper(1, 50, 50, 10, 10000, 0, 0, 0, 0, 0)
+            self.log.info("夹爪半开")
+            time.sleep(1.0)
 
     def gripper_15(self):
-        self.robot.MoveGripper(1, 15, 50, 10, 10000, 0, 0, 0, 0, 0)
-        self.log.info("夹爪开15")
-        time.sleep(1.0)
+        if not self.can_gripper:
+            self.log.warning("机械臂未使能，无法使用夹爪")
+        else:
+            self.robot.MoveGripper(1, 15, 50, 10, 10000, 0, 0, 0, 0, 0)
+            self.log.info("夹爪开15")
+            time.sleep(1.0)
 
     def gripper_20(self):
-        self.robot.MoveGripper(1, 20, 50, 10, 10000, 0, 0, 0, 0, 0)
-        self.log.info("夹爪开20")
-        time.sleep(1.0)
+        if not self.can_gripper:
+            self.log.warning("机械臂未使能，无法使用夹爪")
+        else:
+            self.robot.MoveGripper(1, 20, 50, 10, 10000, 0, 0, 0, 0, 0)
+            self.log.info("夹爪开20")
+            time.sleep(1.0)
 
     def gripper_25(self):
-        self.robot.MoveGripper(1, 20, 50, 10, 10000, 0, 0, 0, 0, 0)
-        self.log.info("夹爪开20")
-        time.sleep(1.0)
+        if not self.can_gripper:
+            self.log.warning("机械臂未使能，无法使用夹爪")
+        else:
+            self.robot.MoveGripper(1, 20, 50, 10, 10000, 0, 0, 0, 0, 0)
+            self.log.info("夹爪开20")
+            time.sleep(1.0)
 
     def gripper_30(self):
-        self.robot.MoveGripper(1, 30, 50, 10, 10000, 0, 0, 0, 0, 0)
-        self.log.info("夹爪开30")
-        time.sleep(1.0)
+        if not self.can_gripper:
+            self.log.warning("机械臂未使能，无法使用夹爪")
+        else:
+            self.robot.MoveGripper(1, 30, 50, 10, 10000, 0, 0, 0, 0, 0)
+            self.log.info("夹爪开30")
+            time.sleep(1.0)
         
     def shut_down(self):
         ret = self.robot.StopMotion()
         self.log.info(f"机械臂运动暂停{ret}")
+        self.can_gripper = False
         ret = self.robot.RobotEnable(0)  # 机械臂下使能
         if ret != 0:
             self.log.warning(f"机械臂下使能失败，错误码: {ret}")
@@ -680,6 +706,7 @@ class Fr5Arm(Facility):
     def open_up(self):
         self.clear_error_code()
         ret = self.robot.RobotEnable(1)
+        self.can_gripper = True
         if ret != 0:
             self.log.warning(f"机械臂使能失败，错误码: {ret}")
         else:

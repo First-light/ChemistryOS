@@ -58,10 +58,10 @@ class Filter(Facility):
         self.address = address
         self.sub_addresses = sub_addresses
         self.data_dict = {
-            "solvent": {"state": 0, "address": AddressEnum.SOLVENT.value,"speed":0,"dir":0},
-            "water": { "state": 0, "address": AddressEnum.WATER.value,"speed":0,"dir":0},
-            "acid": { "state": 0, "address": AddressEnum.ACID.value,"speed":0,"dir":0},
-            "pump": { "state": 0,"address": AddressEnum.PUMP.value,"speed":0,"dir":0},
+            "solvent": {"state": 0, "address": AddressEnum.SOLVENT.value,"speed":0,"mL/min":0,"dir":0},
+            "water": { "state": 0, "address": AddressEnum.WATER.value,"speed":0,"mL/min":0,"dir":0},
+            "acid": { "state": 0, "address": AddressEnum.ACID.value,"speed":0,"mL/min":0,"dir":0},
+            "pump": { "state": 0,"address": AddressEnum.PUMP.value,"speed":0,"mL/min":0,"dir":0},
             "valve_A": {"state": 0},  # 三通阀门
             "valve_B": {"state": 0},  # 三通阀门
             "if_connect":self.ifconnect,
@@ -527,6 +527,7 @@ class Filter(Facility):
             if name in self.liquid_convert_dict and if_save:
                 self.liquid_convert_dict[name]["speed"] = speed
                 self.data_dict[name]["speed"] = speed
+                self.data_dict[name]["mL/min"] = speed * self.liquid_convert_dict[name]["param"]*60.0
             result = self.set_pump_speed(address, speed)
         return result
 
