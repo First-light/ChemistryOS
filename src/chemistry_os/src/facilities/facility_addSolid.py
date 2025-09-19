@@ -520,7 +520,7 @@ class Add_Solid(Facility):
             while not timeout or period < timeout:
                 if cmd.cmd == Add_Solid.CommandCode.BEGIN:
                     Info = {
-                        '现有重量' : str(self.latest_frame.weight_now) + ' g',
+                        '现有重量' : "{:.2f}".format(self.latest_frame.weight_now) + ' g',
                         '目标重量' : str(self.latest_frame.weight_target) + ' g'
                     }
                     Flowdisplay.update_process_display_dict(Process=None, Action='固体振动进料', Info=Info)
