@@ -63,19 +63,19 @@ filter = Filter("filter")
 # main_server.start()
 
 hn_sdk=HN_SDK()
-hn_sdk.HN_init()
+# hn_sdk.HN_init()
 # with add_Solid:
 #     add_Solid.clip_open()
 # exit()
-hn_sdk.name_catch('test_tube_support')
-hn_sdk.name_put('test_tube_add_place', test_tube_add=True)
-with add_Solid:
-    add_Solid.add_solid_series(0.5)
-    add_Solid.tube_ver()
-    # add_Solid.clip_open()
-    # time.sleep(2)
-    # add_Solid.clip_close()
-exit()
+# hn_sdk.name_catch('test_tube_support')
+# hn_sdk.name_put('test_tube_add_place', test_tube_add=True)
+# with add_Solid:
+#     add_Solid.add_solid_series(0.5)
+#     add_Solid.tube_ver()
+#     # add_Solid.clip_open()
+#     # time.sleep(2)
+#     # add_Solid.clip_close()
+# exit()
 
 
 hn_sdk.fr5A_init()

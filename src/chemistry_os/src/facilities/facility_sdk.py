@@ -63,7 +63,7 @@ class HN_SDK(Facility):
     compound_c = 0.50
     default_speed = 20.0
     default_put_speed = 10.0
-    should_safe = False 
+    should_safe = True 
     liquid_config = {
         'HCl': {
             'temp': 0,
@@ -706,7 +706,7 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(desc_pos_aim_pre, vel=self.default_speed)
         time.sleep(1)
 
-        self.fr5_A.gripper_25()
+        self.fr5_A.gripper_30()
         time.sleep(1)
 
         #靠近，完成抓取
@@ -757,7 +757,7 @@ class HN_SDK(Facility):
         self.fr5_A.move_by(0, 0, -obj_statu['put_height'], vel=self.default_put_speed)
         time.sleep(1)
 
-        self.fr5_A.gripper_25()
+        self.fr5_A.gripper_30()
         time.sleep(1)
         self.fr5_A.data_dict["gripper_contain"] =""#用于输出夹持的物品信息
 
