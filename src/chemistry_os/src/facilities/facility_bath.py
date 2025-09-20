@@ -18,7 +18,7 @@ from utilities.utility_param import ParamUtils
 
 class Bath(Facility):
     type = "bath"
-    bath_com = '/dev/ttyUSB0'
+    bath_com = '/dev/ttyUSB_485'
     bath_addr = 0x11
 
     def __init__(self,name:str):

@@ -2,6 +2,7 @@ import time
 import sys
 
 sys.path.append('src/chemistry_os/src')
+from facilities.facility_thermometer import Thermometer
 from utilities.events import event_countdown
 from facilities.facility_pumps import PumpGroup
 from facilities.facility_addSolid import Add_Solid
@@ -45,6 +46,7 @@ fr5_C = Fr5Arm("fr5C","192.168.58.3")
 fr5_A = Fr5Arm("fr5A","192.168.58.2")
 bath = Bath('bath')
 filter = Filter("filter")
+thermometer = Thermometer("thermometer")
 
 # with add_Solid:
 #     # add_Solid.add_solid_series(0.5)
@@ -63,7 +65,12 @@ filter = Filter("filter")
 # main_server.start()
 
 hn_sdk=HN_SDK()
-# hn_sdk.HN_init()
+hn_sdk.HN_init()
+# hn_sdk.temp_start()
+# CommandParser.wait_input("parser", 'ok?')
+# hn_sdk.temp_over()
+# exit()
+
 # with add_Solid:
 #     add_Solid.clip_open()
 # exit()
@@ -78,10 +85,16 @@ hn_sdk=HN_SDK()
 # exit()
 
 
-hn_sdk.fr5A_init()
-fr5_C.check_place_move()
-# hn_sdk.move_shaoping_support2C()
+# hn_sdk.fr5A_init()
+# fr5_C.check_place_move()
+hn_sdk.move_shaoping_support2C()
 hn_sdk.temp_on()
+CommandParser.wait_input("parser", 'ok?')
+fr5_C.move_to_safe_catch(1)
+CommandParser.wait_input("parser", 'ok?')
+fr5_C.move_to_safe_catch(0)
+CommandParser.wait_input("parser", 'ok?')
+fr5_C.move_to_safe_catch(2)
 CommandParser.wait_input("parser", 'ok?')
 hn_sdk.temp_off()
 exit()

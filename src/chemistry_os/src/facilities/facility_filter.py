@@ -15,7 +15,7 @@ from facilities.facility_parser import CommandParser
 import time
 
 
-# sudo chmod 666 /dev/ttyUSB0 开串口权限
+# sudo chmod 666 /dev/ttyUSB_485 开串口权限
 # ls -l /dev/ttyUSB* 查串口设备
 
 # valve 0方向对应T阀门的左侧
@@ -43,7 +43,7 @@ class Filter(Facility):
         "pump": AddressEnum.PUMP.value
     }
 
-    def __init__(self, name: str, com: str = "/dev/ttyUSB0", baudrate: int = 9600, address = 0x50, sub_addresses: dict = default_sub_addresses):
+    def __init__(self, name: str, com: str = "/dev/ttyUSB_485", baudrate: int = 9600, address = 0x50, sub_addresses: dict = default_sub_addresses):
         """
         初始化抽滤装置类
         :param name: 设备名称

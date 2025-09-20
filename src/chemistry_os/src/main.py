@@ -2,6 +2,7 @@ import sys
 
 
 sys.path.append('src/chemistry_os/src')
+from facilities.facility_thermometer import Thermometer
 from utilities.utility_param import ParamTuple, ParamUtils
 from facilities.flowdisplay import Flowdisplay
 from facilities.facility_pumps import PumpGroup
@@ -49,6 +50,7 @@ add_Solid=Add_Solid('add_Solid')
 fr5_C = Fr5Arm("fr5C","192.168.58.3")
 fr5_A = Fr5Arm("fr5A","192.168.58.2")
 bath = Bath('bath')
+thermometer = Thermometer("thermometer")
 hn_sdk=HN_SDK()
 
 def reset_make_func():
@@ -75,7 +77,7 @@ def project_make_func():
     ProjectUtils.register_object("fr5C")
     ProjectUtils.register_object("fr5A")
     ProjectUtils.register_object('bath')
-    # ProjectUtils.register_object('thermometer')
+    ProjectUtils.register_object('thermometer')
     ProjectUtils.register_object(hn_sdk.name)
 
     ProjectUtils.register_process(hn_sdk.name,"add_liquid_config_init")
@@ -143,6 +145,7 @@ def main_thread_func():
     main_server.register("add_Solid_data", 20, add_Solid.data_dict)
     main_server.register("params", 50, ParamUtils.param_dict,ParamUtils.param_dict_update)
     main_server.register("liquid_config",100, hn_sdk.liquid_config)
+    main_server.register("thermometer_config",500, thermometer.data_dict)
     main_server.start()
 
     # main_parser.parse("pro run") # 运行流程

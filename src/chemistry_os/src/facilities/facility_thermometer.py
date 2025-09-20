@@ -9,16 +9,26 @@ from utilities.utility_param import ParamUtils
 
 class Thermometer(Facility):
 
-    usb_name='/dev/ttyUSB0'
+    usb_name='/dev/ttyUSB_tem'
     type='thermometer'
 
     def __init__(self, name: str):
         super().__init__(name, Thermometer.type)
         self.init_dict = ParamUtils.get_init_params(self)
         self.data_dict = {
-            "temperature": 0
+            "temperature": '--'
         }
         self.read_temp()
+        self.update_data_dict(temperature='--')
+    
+    def cmd_error_handing(self):
+        pass
+
+    def cmd_reset(self):
+        pass
+
+    def cmd_stop_handing(self):
+        pass
 
     def update_data_dict(self, temperature=None):
         """
@@ -43,17 +53,21 @@ class Thermometer(Facility):
 
         return result/10
 
-    def read_temp(self, user_com):
+    def read_temp(self):
         command = bytearray([0x00, 0x03, 0x00, 0x00, 0x00, 0x01, 0x85, 0xDB])
         try:
-            with serial.Serial(user_com, 9600) as ser:
+            with serial.Serial(self.usb_name, 9600) as ser:
                 ser.write(command)
                 time.sleep(0.05)
                 response = ser.read(ser.in_waiting)
                 result = self.extract_and_convert_temperature(response)
+                # print("Temperature:", result)
                 self.update_data_dict(temperature=result)
         except Exception as e:
             print("Error:", str(e))
 
 if __name__ == "__main__":
-    pass
+    thermometer = Thermometer("thermometer")
+    while 1:
+        thermometer.read_temp()
+        print(thermometer.data_dict['temperature'])

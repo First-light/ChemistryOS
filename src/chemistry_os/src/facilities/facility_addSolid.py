@@ -17,7 +17,7 @@ from utilities.utility_param import ParamUtils
 
 # --- 配置常量 ---
 # 可以移到 AddSolid 的 __init__ 或作为类变量，这里为方便演示先放外面
-DEFAULT_SERIAL_PORT = '/dev/ttyUSB0'
+DEFAULT_SERIAL_PORT = '/dev/ttyUSB_485'
 DEFAULT_BAUD_RATE = 9600
 DEFAULT_SEND_INTERVAL_MS = 100  # MCU发送状态的典型间隔
 

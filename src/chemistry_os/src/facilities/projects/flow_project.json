@@ -3,7 +3,7 @@
         "filter": {
             "type": "filter",
             "name": "filter",
-            "com": "/dev/ttyUSB0",
+            "com": "/dev/ttyUSB_485",
             "baudrate": 9600,
             "address": 80,
             "sub_addresses": {
@@ -36,6 +36,10 @@
         "bath": {
             "type": "bath",
             "name": "bath"
+        },
+        "thermometer": {
+            "type": "thermometer",
+            "name": "thermometer"
         },
         "sdk": {
             "type": "Chemistry OS SDK"
