@@ -81,6 +81,7 @@ def project_make_func():
     ProjectUtils.register_object(hn_sdk.name)
 
     ProjectUtils.register_process(hn_sdk.name,"add_liquid_config_init")
+    ProjectUtils.register_process(hn_sdk.name,"temp_start")
     ProjectUtils.register_process(hn_sdk.name,"HN_init")
     ProjectUtils.register_process(hn_sdk.name,"move_shaoping_A2C")
     ProjectUtils.register_process(hn_sdk.name,"bath_open")
@@ -100,7 +101,13 @@ def project_make_func():
     ProjectUtils.register_process(hn_sdk.name,"interactable_countdown",[ParamTuple.reaction_time_2])
     ProjectUtils.register_sub_process("持续反应过程2")
     ProjectUtils.register_process(hn_sdk.name,"bath_over")
-    ProjectUtils.register_process(hn_sdk.name,"bath_wash")
+    ProjectUtils.register_process(hn_sdk.name,"bath_update")
+    ProjectUtils.register_process(hn_sdk.name,"bath_catch",['bath_fr5_catch'])
+    ProjectUtils.register_process(hn_sdk.name,"move_wash",['sanjinshaoping_wash_1', 0])
+    ProjectUtils.register_process(hn_sdk.name,"move_wash",['sanjinshaoping_wash_2', 1])
+    ProjectUtils.register_process(hn_sdk.name,"move_wash",['sanjinshaoping_wash_3', 2])
+    ProjectUtils.register_process(hn_sdk.name,"move_wash",['sanjinshaoping_wash_1', 3])
+    ProjectUtils.register_process(hn_sdk.name,"bath_put",['bath_fr5_put'])
     ProjectUtils.register_sub_process("中间产物抽滤和乙腈滴加")
     ProjectUtils.register_process(hn_sdk.name,"bath_open")
     ProjectUtils.register_process(hn_sdk.name,"add_liquid_bath",['N2H4'])
@@ -110,6 +117,7 @@ def project_make_func():
     ProjectUtils.register_process(hn_sdk.name,"bath_over")
     ProjectUtils.register_process(hn_sdk.name,"fr5_C_pour")
     ProjectUtils.register_process(hn_sdk.name,"move_shaoping_C2A")
+    ProjectUtils.register_process(hn_sdk.name,"temp_over")
     ProjectUtils.register_sub_process("实验结束")
     # 添加您需要的功能
     pass

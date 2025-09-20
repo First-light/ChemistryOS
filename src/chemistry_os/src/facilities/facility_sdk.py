@@ -63,7 +63,7 @@ class HN_SDK(Facility):
     compound_c = 0.50
     default_speed = 20.0
     default_put_speed = 10.0
-    should_safe = True 
+    should_safe = False 
     liquid_config = {
         'HCl': {
             'temp': 0,
@@ -115,7 +115,7 @@ class HN_SDK(Facility):
             # 添加温度计线程控制变量
             self.thermometer_stop_event = threading.Event()
             self.thermometer_thread = None
-            self.can_reset = False
+            self.flask_state = 0
 
         except ValueError as e:
             self.log.info(e)
@@ -129,7 +129,7 @@ class HN_SDK(Facility):
         self.parser.register("add_liquid", self.add_liquid, {"name":'', "rpm":150, "volume":0.0}, "add liquid to named place")
         self.parser.register("add_liquid_bath", self.add_liquid_bath, {"liquid_name":''}, "add liquid to named place and bath")
         self.parser.register("add_solid", self.add_solid, {"gram":0.0, "tube_from":'', "beaker_from":''}, "add solid to named place")  # 修正参数名
-        self.parser.register("name_catch_and_put", self.name_catch_and_put, {"name1":'', "name2":''}, "fr5 catch name1 and put name2")
+        self.parser.register("name_catch_and_put", self.name_catch_and_put, {"name1":'', "name2":'', "test_tube_add_catch": False, "test_tube_add_put": False}, "fr5 catch name1 and put name2")
         self.parser.register("name_catch_pour_put", self.name_catch_pour_put, {"name1":'', "name2":'', "name3":''}, "catch, pour and put")
         self.parser.register("fr5_gripper_activate", self.fr5_gripper_activate, {}, "activate fr5 gripper")
         self.parser.register("fr5_Go_to_start_zone_0", self.fr5_Go_to_start_zone_0, {}, "fr5 go to start zone 0")
@@ -148,8 +148,12 @@ class HN_SDK(Facility):
         self.parser.register("move_shaoping_C2A", self.move_shaoping_C2support, {}, "move_shaoping_C2A")
         self.parser.register("confirm_safety", self.confirm_safety, {"text":'ok?'}, "confirm_safety")
         self.parser.register("bath_wash",self.bath_wash,{},"bath_wash")
+        self.parser.register("move_wash",self.move_wash,{"wash_place":'', "index":4},"move_wash")
+        self.parser.register("bath_update",self.bath_update,{},"bath_update")
         self.parser.register("temp_on",self.temp_on,{},"temp_on")
         self.parser.register("temp_off",self.temp_off,{},"temp_off")
+        self.parser.register("temp_start",self.temp_start,{},"temp_start")
+        self.parser.register("temp_over",self.temp_over,{},"temp_over")
         self.parser.register("fr5_C_pour",self.fr5_C_pour,{},"fr5_C_pour")
         self.parser.register("reset_all",self.reset_all_facilities,{},"reset_all_facilities")
 
@@ -165,7 +169,9 @@ class HN_SDK(Facility):
 
     def reset_all_facilities(self):
         self.bath_over()
-        if self.can_reset:
+        if self.flask_state == 2:
+            self.name_put('sanjinshaoping_support_put')
+        elif self.flask_state == 1:
             self.move_shaoping_C2support()
         self.HN_init()
 
@@ -182,6 +188,9 @@ class HN_SDK(Facility):
         self.move_wash('sanjinshaoping_wash_2', 1)
         self.move_wash('sanjinshaoping_wash_1', 2)
         self.name_put("sanjinshaoping_support")
+    
+    def bath_update(self):
+        Flowdisplay.update_process_display_dict(Process='冲洗抽滤', Action='', Info={})
 
     def bath_wash(self):
         Flowdisplay.update_process_display_dict(Process='冲洗抽滤', Action='', Info={})
@@ -238,9 +247,6 @@ class HN_SDK(Facility):
             self.filter.filter_process_D(ParamTuple.CH3CN_volume_add)
             self.fr5_A.move_to_desc(dest_safe, vel=self.default_put_speed)
             self.filter.filter_process_A()
-            
-
-        
 
         #移动到下方位置
         self.fr5_A.move_to_desc(dest_safe, vel=self.default_put_speed)
@@ -258,7 +264,6 @@ class HN_SDK(Facility):
             self.filter.filter_process_C_N()
         elif index == 3:
             pass
-
 
         #移动到准备位置
         self.fr5_A.move_to_desc(desc_pre, vel=self.default_speed)
@@ -363,6 +368,11 @@ class HN_SDK(Facility):
         desc_pos_aim = dest + obj_statu['catch_direction']
         self.fr5_A.move_to_desc(desc_pos_aim, vel=self.default_speed)
         time.sleep(1)
+
+        if test_tube_add:
+            with self.add_Solid:
+                self.add_Solid.clip_open()
+
         self.confirm_safety()
 
         #下降，完成放置
@@ -528,6 +538,8 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=self.default_speed)
         time.sleep(1)
 
+        self.flask_state = 2
+
     def bath_put(self, name:str):
         obj_statu = self.fr5_A.obj_status[name]
         Info = {
@@ -581,6 +593,8 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=self.default_speed)
         time.sleep(1)
 
+        self.flask_state = 1
+
     def add_liquid(self, name:str, rpm = 150, volume = 0.0, wash = False, name_space='add_liquid_mode_place', volume_batch = 0.1):
         Flowdisplay.update_process_display_dict(Process=name + '液体进料', Action='', Info={})
         self.fr5_C.move_to_safe_catch(1)
@@ -616,11 +630,6 @@ class HN_SDK(Facility):
         obj_statu = self.fr5_A.obj_status[name_space]
         #计算物体位置
         dest = [obj_statu['destination'][0], obj_statu['destination'][1], obj_statu['destination'][2] + obj_statu['put_height']]
-
-        # #移动到准备位置
-        # desc_pos_aim_mid = list(map(lambda x, y: x + y, dest, obj_statu['catch_pre_xyz_offset'])) + obj_statu['catch_direction']
-        # self.fr5_A.move_to_desc(desc_pos_aim_mid, vel=self.default_speed)
-        # time.sleep(1)
 
         #移动到放置位置上方
         desc_pos_aim = dest + obj_statu['catch_direction']
@@ -861,9 +870,8 @@ class HN_SDK(Facility):
             '当前加料次数': now_num + 1
         }
         Flowdisplay.update_process_display_dict(Process='固体进料', Action=None, Info=None, Process_Info=Process_Info)
-        self.name_catch(tube_from)
-        self.name_put(test_tube_add_place, test_tube_add=True)
-        self.name_catch_and_put(beaker_from, beaker_add_place)
+        self.name_catch_and_put(tube_from, test_tube_add_place, test_tube_add_catch = False, test_tube_add_put = True)
+        self.name_catch_and_put(beaker_from, beaker_add_place, test_tube_add_catch = False, test_tube_add_put = False)
 
         while now_num < num - 1:
             with self.add_Solid:
@@ -893,14 +901,20 @@ class HN_SDK(Facility):
         Flowdisplay.update_process_display_dict(Process='固体进料', Action=None, Info=None, Process_Info=update_info(now_num + 1, now_gram, now_add))
         self.name_put(beaker_from)
 
-        self.name_catch(test_tube_add_place, test_tube_add=True)
-        self.name_put(tube_from)
+        self.name_catch_and_put(test_tube_add_place, tube_from, test_tube_add_catch = True, test_tube_add_put = False)
+        
         Flowdisplay.update_process_display_dict(Process='固体进料', Action=None, Info=None, Process_Info={})
 
     
-    def name_catch_and_put(self, name1:str, name2:str):
-        self.name_catch(name1)
-        self.name_put(name2)
+    def name_catch_and_put(self, name1:str, name2:str, test_tube_add_catch:bool = False, test_tube_add_put:bool = False):
+        if test_tube_add_catch:
+            self.name_catch(name1, test_tube_add=True)
+        else:
+            self.name_catch(name1)
+        if test_tube_add_put:
+            self.name_put(name2, test_tube_add=True)
+        else:
+            self.name_put(name2)
 
     def name_catch_pour_put(self, name1:str, name2:str, name3:str):
         self.name_catch(name1)
@@ -1048,7 +1062,6 @@ class HN_SDK(Facility):
         Flowdisplay.update_process_display_dict(Process='烧瓶转移 A to C', Action='', Info={})   
         self.name_catch('sanjinshaoping_support')
         self.bath_put('bath_fr5_put')
-        self.can_reset = True 
         # self.temp_on()
 
 
