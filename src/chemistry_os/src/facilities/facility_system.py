@@ -15,10 +15,11 @@ from utilities.utility_log import LogUtils
 from facility import Facility
 from facilities.facility_fr5arm import Fr5Arm
 from facilities.facility_project import Project
+from facilities.facility_parser import CommandParser
 from prettytable import PrettyTable
-from facilities.flowdisplay import Flowdisplay
 from structs import FacilityState
 from utilities.utility_param import ParamUtils
+
 
 
 class System(Facility):
@@ -58,6 +59,7 @@ class System(Facility):
         self.parser.register("check", self.system_check, {}, "列出所有对象")
         self.parser.register("check_dict",self.check_all_init_dict,{},"检查所有对象初始化参数")
         self.parser.register("reset", self.facility_reset, {"name": ''}, "重置对象状态")
+        self.parser.register("reset_all", self.facility_reset_all, {}, "重置对象状态")
         self.parser.register("json_make", self.json_make, {}, "生成项目json文件")
         self.parser.register("func_make", self.redefine_and_make, {"func":None,"name":None}, "生成项目json文件")
         self.parser.register("!", self.stop_all, {}, "停止所有对象")
@@ -123,7 +125,27 @@ class System(Facility):
         except Exception:
             self.log.warning(f"初始化设备{name}失败")
 
-        
+    def facility_reset_all(self):
+        # 收集需要停止的对象并按优先级排序
+        try:
+            for tuple_t in Facility.tuple_list:
+                name = tuple_t.name
+                object_type = tuple_t.type
+                object = tuple_t.facility
+                
+                # 只处理在配置中的对象类型
+                if object_type in System.stop_priority_config and object.state == FacilityState.STOP:
+                    self.log.info(f"对象 {name} 重启。")
+                    object.cmd_reset()
+                    ret = CommandParser.wait_input("parser","确定重启完成？（y/n）")
+                    if ret == "y":
+                        object.state = FacilityState.IDLE
+                        self.log.info(f"对象 {name} (类型: {object_type}) 标记空闲。")
+
+        except Exception as e:
+            self.log.error(f"重启所有对象时出错: {e}")
+
+
     def load_data(self):
         try:
             self.fac_location_file_path = "src/chemistry_os/src/facilities/location/fac_location.json"

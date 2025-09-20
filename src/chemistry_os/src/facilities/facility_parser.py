@@ -86,7 +86,8 @@ class CommandParser(Facility):
             if self.execute_buffer:
                 self.is_executing = True
                 command_line_t = self.execute_buffer.pop(0)
-                self.parse(command_line_t)
+                if command_line_t != '':   #检测到无输入则不处理
+                    self.parse(command_line_t)
                 self.is_executing = False
             time.sleep(0.002)
         self.log.info("执行器线程退出")
@@ -102,6 +103,7 @@ class CommandParser(Facility):
                     if not self.is_executing: self.execute_buffer.append(command_line_t)
                 elif self.parser_state is ParserState.INPUT_WAIT:
                     self.parser_state = ParserState.READY
+                    self.parser_buffer.append(command_line_t)
                 else:
                     pass
             time.sleep(0.002)  # 模拟读取间隔
@@ -115,6 +117,7 @@ class CommandParser(Facility):
         while self.running:
             user_input = input(">")
             self.parser_buffer.append(user_input)  # 改为 append，保持完整命令
+
             time.sleep(0.01)
 
     def curses_input(self):#不算好用
