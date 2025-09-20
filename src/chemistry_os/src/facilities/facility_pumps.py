@@ -9,7 +9,7 @@ from utilities.utility_param import ParamUtils
 
 class PumpGroup(Facility):
 
-    usb_name='/dev/ttyUSB0'
+    usb_name='/dev/ttyUSB_485'
     type='add_Liquid'
     reverse=True
     base_speed = 0.0595 # ml/min

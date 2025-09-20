@@ -109,7 +109,7 @@ class HN_SDK(Facility):
             self.add_Solid: Add_Solid = Facility.get_facility_by_name("add_Solid", Add_Solid.type,True,True)
             self.bath: Bath = Facility.get_facility_by_name("bath", Bath.type,True,True)
             self.filter: Filter = Facility.get_facility_by_name("filter", Filter.type,True,True)
-            # self.thermometer: Thermometer = Facility.get_facility_by_name("thermometer", Thermometer.type,True,True)
+            self.thermometer: Thermometer = Facility.get_facility_by_name("thermometer", Thermometer.type,True,True)
             self.init_dict = ParamUtils.get_init_params(self)
 
             # 添加温度计线程控制变量
@@ -775,13 +775,13 @@ class HN_SDK(Facility):
         self.fr5_C.move_to_safe_catch(3)
         self.temp_catch('temp_support')
         self.temp_put('temp_place')
-        # self.temp_start()
+        self.temp_start()
 
     def temp_off(self):
         self.fr5_C.move_to_safe_catch(3)
+        self.temp_over()
         self.temp_catch('temp_place',shaoping=True)
         self.temp_put('temp_support')
-        # self.temp_over()
 
     def temp_start(self):
         # 如果已有线程在运行，先停止它
@@ -796,7 +796,7 @@ class HN_SDK(Facility):
                 try:
                     self.thermometer.read_temp()
                     # 添加短暂等待，避免过于频繁的读取
-                    if not self.thermometer_stop_event.wait(0.1):  # 等待0.1秒或直到停止事件被设置
+                    if not self.thermometer_stop_event.wait(0.5):  # 等待0.1秒或直到停止事件被设置
                         continue
                     else:
                         break
@@ -821,6 +821,7 @@ class HN_SDK(Facility):
                 self.log.info("温度计线程已成功停止")
         
         self.thermometer_thread = None
+        self.thermometer.update_data_dict(temperature='--')
     
     def add_solid(self, gram:float, tube_from:str, beaker_from:str, test_tube_add_place:str='test_tube_add_place', beaker_add_place:str='beaker_add_place', pour_place:str='bath_pour_place', batch_gram_max:float = 0.6, min_unit: float = 0.01):
         
