@@ -35,6 +35,7 @@ class System(Facility):
         "filter":4,
         "PumpGroup":5,
         "project": 6,  # 项目
+        "Chemistry OS SDK":7
     }
     
 

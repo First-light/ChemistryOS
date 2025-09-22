@@ -42,7 +42,7 @@ def main_thread_func():
     hn_sdk.HN_init()
     # 抓取三颈烧瓶
     main_server = TCPServer()
-    main_server.register("example_unit", 5,fr5_A.data_dict,)
+    main_server.register_pkg("example_unit", 5,fr5_A.data_dict,)
     main_server.start()
 
     main_parser = CommandParser()

@@ -49,13 +49,16 @@ class TCPServer(Facility):
         self.callback = None
         self.pkg_ID = 0
         self.loop_time = 0.01  # 发送和接收数据的循环时间间隔
-        self.units_init()
         self.file_timestape = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        self.register("tcp",50,self.data_dict)
+
+        self.close_log()
+        self.units_init()
+        self.register_pkg("tcp",50,self.data_dict)
         self.init_dict = ParamUtils.get_init_params(self)
 
     def cmd_init(self):
-        pass
+        self.parser.register("open_log",self.open_log,{}, "open log")
+        self.parser.register("close_log",self.close_log,{}, "close log")
 
     def cmd_error_handing(self):
         pass
@@ -70,6 +73,8 @@ class TCPServer(Facility):
         pass
         # self.register("temperature_unit", 10, {"temperature": 25.0})
         # self.register("pressure_unit", 3, {"pressure": 101.3})
+
+
 
     def start(self,T: float = 0.01):
         """
@@ -215,6 +220,13 @@ class TCPServer(Facility):
             self.data_log_save(decoded_data, "receive")
             
 
+    def open_log(self):
+        self.log.info(f"开启日志记录")
+        self.is_logging = True
+
+    def close_log(self):
+        self.log.info(f"关闭日志记录")
+        self.is_logging = False
 
     def receive_data(self):
         """
@@ -343,7 +355,7 @@ class TCPServer(Facility):
         except Exception as e:
             self.log.error(f"生成数据包失败: {str(e)}")
 
-    def register(self, name: str, 
+    def register_pkg(self, name: str, 
                  max_cycle: int, 
                  data_dict: Dict[str, Any],
                  func: Callable[[], None] =  None,

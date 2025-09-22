@@ -15,8 +15,8 @@ def main_thread_func():
 
     main_server = TCPServer(test=True)
     
-    main_server.register("log", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
-    main_server.register("facility_location",200, System.facility_location_dict)
+    main_server.register_pkg("log", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
+    main_server.register_pkg("facility_location",200, System.facility_location_dict)
     # main_server.register("params", 50, ParamUtils.param_dict,ParamUtils.param_dict_update)
     main_server.start()
     try:

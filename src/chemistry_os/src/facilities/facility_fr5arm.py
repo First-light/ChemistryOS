@@ -342,26 +342,32 @@ class Fr5Arm(Facility):
     def move_listen(self):
         result = 0
         consecutive_non_zero_count = 0
+        old_pose = self.get_pose("tool")
+        print(old_pose)
         while True:
             ret = self.robot.GetRobotMotionDone()
             if ret[1] == 0:
                 break
             else:
                 consecutive_non_zero_count += 1
-                if consecutive_non_zero_count >= 5:
-                    result = 2
-                    break
-            time.sleep(0.01)
+                if consecutive_non_zero_count >= 10:
+                    new_pose = self.get_pose("tool")
+                    deviation = sum(abs(new - old) for new, old in zip(new_pose, old_pose))
+                    if deviation <= 1.0:
+                        break
+                    else:
+                        result = 2
+                        self.log.error(f"状态超时")
+                        break
+            time.sleep(0.05)
 
         while True and result == 0:
             if self.state == FacilityState.ERROR:
                 self.log.error(f"{self.name}监听到 ERROR")
-                self.shut_down()
                 result = 2
                 break
             if self.state == FacilityState.STOP:
                 self.log.error(f"{self.name}监听到 STOP")
-                self.shut_down()
                 result = 2
                 break
             ret = self.robot.GetRobotMotionDone()  # 查询机械臂运动完成状态
@@ -375,18 +381,20 @@ class Fr5Arm(Facility):
             else:
                 if ret != -4:
                     self.log.error(f"{self.name}状态查询错误，错误码: {ret}")
-                    self.shut_down()
                     result = 2
                     break
-            time.sleep(0.01)  # 短暂休眠，避免过于频繁的查询
+            time.sleep(0.05)  # 短暂休眠，避免过于频繁的查询
         if result==2:
             self.log.error(f"机械臂运动异常")
+            self.shut_down()
             self.facility_emergency = True
+        else:
+            self.log.info("到达")
         return result
 
     def move(self, new_pose: list, type="MoveL", vel_t=default_speed, acc_t=default_acc):
         if type == "MoveL":
-            ret = self.robot.MoveL(new_pose, 0, 0, vel=vel_t, acc=acc_t, blendR=-1)  # 笛卡尔空间直线运动
+            ret = self.robot.MoveL(new_pose, 0, 0, vel=vel_t, acc=acc_t, blendR=0)  # 笛卡尔空间直线运动
             if ret != 0:
                 self.log.info(f"笛卡尔空间直线运动失败，错误码: {ret}")
                 self.shut_down()
@@ -396,7 +404,7 @@ class Fr5Arm(Facility):
             inverse_kin_result = self.robot.GetInverseKin(0, new_pose, -1)
             if isinstance(inverse_kin_result, (list, tuple)) and len(inverse_kin_result) > 1:
                 new_joint = list(inverse_kin_result[1])
-                ret = self.robot.MoveJ(new_joint, 0, 0, new_pose, vel=vel_t, acc=acc_t, blendT=-1)  # 关节空间直线运动
+                ret = self.robot.MoveJ(new_joint, 0, 0, new_pose, vel=vel_t, acc=acc_t, blendT=0)  # 关节空间直线运动
                 if ret != 0:
                     self.log.info(f"关节空间直线运动失败，错误码: {ret}")
                     self.shut_down()
@@ -411,7 +419,7 @@ class Fr5Arm(Facility):
                 self.move_listen()
 
     def move_joint(self, new_joint: list, vel_t=default_speed, acc_t=default_acc):
-        ret = self.robot.MoveJ(new_joint, 0, 0, vel=vel_t, acc=acc_t, blendT=-1)  # 关节空间直线运动
+        ret = self.robot.MoveJ(new_joint, 0, 0, vel=vel_t, acc=acc_t, blendT=0)  # 关节空间直线运动
         if ret != 0:
             self.log.info(f"关节空间直线运动失败，错误码: {ret}")
             self.shut_down()
@@ -450,7 +458,6 @@ class Fr5Arm(Facility):
         formatted_pose = tuple(round(x, 2) for x in new_pose)
         self.log.info(f"新位姿: {formatted_pose}")
         self.move(new_pose,type,vel,acc)
-        self.log.info("到达")
 
 
     def move_to(self,x=0, y=0, z=0, r1=0, r2=0, r3=0,offset = False,type = "MoveL",vel=default_speed,acc=default_acc):
@@ -459,7 +466,6 @@ class Fr5Arm(Facility):
         formatted_pose = tuple(round(x, 2) for x in new_pose)
         self.log.info(f"新位姿: {formatted_pose}")
         self.move(new_pose,type,vel,acc)
-        self.log.info("到达")
 
     def move_to_desc(self, desc:list, offset = False,type = "MoveL",vel=default_speed,acc=default_acc):
         new_list = [val + (self.initial_offset[i] if offset else 0) for i, val in enumerate(desc)]
@@ -467,7 +473,6 @@ class Fr5Arm(Facility):
         formatted_pose = tuple(round(x, 2) for x in new_pose)
         self.log.info(f"新位姿: {formatted_pose}")
         self.move(new_pose,type,vel,acc)
-        self.log.info("到达")
 
     def move_circle(self,angle_j1:list = None):
         if angle_j1 == None:
@@ -477,7 +482,6 @@ class Fr5Arm(Facility):
             new_joint = self.get_pose("joy")
             new_joint[0] = angle_j1
             self.move_joint(new_joint)
-            self.log.info("到达")
 
     def move_circle_to(self,x=0, y=0, z=0, r1=0, r2=0, r3=0,offset = False,type = "MoveJ",vel=default_speed,acc=default_acc):
         self.move_circle_back()
@@ -489,7 +493,6 @@ class Fr5Arm(Facility):
         formatted_pose = tuple(round(x, 2) for x in new_pose)
         self.log.info(f"新位姿: {formatted_pose}")
         self.move(new_pose,type,vel,acc)
-        self.log.info("到达")
         
     def move_circle_back(self):
         self.log.info("转移到安全区")
@@ -512,7 +515,6 @@ class Fr5Arm(Facility):
             new_pose[4] = old_pose[4]
             new_pose[5] = old_pose[5]
             self.move_to(new_pose[0],new_pose[1],new_pose[2],new_pose[3],new_pose[4],new_pose[5],type="MoveJ")
-            self.log.info("到达")
 
     def from_by(self,fx=0, fy=0, fz=0, f1=0, f2=0, f3=0,x=0, y=0, z=0, r1=0, r2=0, r3=0,offset = False,type:str= "MoveL",vel=default_speed,acc=default_acc):
         self.move_to(fx,fy,fz,f1,f2,f3,offset=offset,type="MoveJ",vel=vel,acc=acc)
@@ -693,8 +695,8 @@ class Fr5Arm(Facility):
             time.sleep(1.0)
         
     def shut_down(self):
-        ret = self.robot.StopMotion()
-        self.log.info(f"机械臂运动暂停{ret}")
+        # ret = self.robot.StopMotion()
+        # self.log.info(f"机械臂运动暂停{ret}")
         self.can_gripper = False
         ret = self.robot.RobotEnable(0)  # 机械臂下使能
         if ret != 0:
