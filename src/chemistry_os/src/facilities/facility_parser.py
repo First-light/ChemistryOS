@@ -9,6 +9,8 @@ from facility import Facility
 from structs import BufferMod, ParserState
 from utilities.utility_param import ParamUtils
 from utilities.utility_log import LogUtils
+from lib.curses.simple import curses_input_for_parser, cleanup_curses_ui
+from lib.ansi_ui import start_ansi_ui  # 导入新函数
 
 class CommandParser(Facility):
     
@@ -29,6 +31,7 @@ class CommandParser(Facility):
         self.parser_buffer:list[str] = []
         self.execute_buffer:list[str] = []
         self.input_thread_shell = None
+        self.input_thread_ansi = None
         self.input_thread_curses = None
         self.input_thread_unity = None
         self.running = False
@@ -54,6 +57,11 @@ class CommandParser(Facility):
             self.input_thread_shell = threading.Thread(target=self.shell_input)
             self.input_thread_shell.daemon = True
             self.input_thread_shell.start()
+        elif input == "ansi":
+            self.log.info("开启 ANSI UI 输入模式")
+            self.input_thread_ansi = threading.Thread(target=start_ansi_ui, args=(self,))
+            self.input_thread_ansi.daemon = True
+            self.input_thread_ansi.start()
         elif input == "curses":
             self.log.info("开启curses输入")
             self.input_thread_curses = threading.Thread(target=self.curses_input)
@@ -76,10 +84,10 @@ class CommandParser(Facility):
             from lib.curses.simple import cleanup_curses_ui
             cleanup_curses_ui()
         
-        if self.parser_thread:
+        if self.parser_thread and self.parser_thread.is_alive():
             self.parser_thread.join()
-        if self.input_thread_shell:
-            self.input_thread_shell.join()
+        if self.execute_thread and self.execute_thread.is_alive():
+            self.execute_thread.join()
 
     def execute_thread_func(self):
         while self.running:
@@ -123,7 +131,7 @@ class CommandParser(Facility):
     def curses_input(self):#不算好用
         """使用新的极简 curses 界面"""
         self._using_curses = True
-        from lib.curses.simple import curses_input_for_parser
+        # 这个函数会阻塞，直到 curses 界面退出
         curses_input_for_parser(self)
 
     def unity_input(self):

@@ -125,7 +125,7 @@ class PkgCmdParser:
                 if self.obj_state == FacilityState.BUSY and self.facility.facility_emergency is not True:
                     self.obj_state = FacilityState.IDLE
                 else:
-                    self.obj_log.error(f"设备运行时状态异常：{self.obj_state}")
+                    self.obj_log.error(f"设备运行时状态异常：{self.obj_state} 紧急：{self.facility.facility_emergency}")
                     if self.facility.facility_emergency:
                         self.obj_state = ParamUtils.set_facility_state(self.facility.state, FacilityState.ERROR)
                     result = False

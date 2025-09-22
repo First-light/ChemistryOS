@@ -16,14 +16,14 @@ sys.path.append('src/chemistry_os/src')
 @staticmethod
 def main_thread_func():
     fr5 = Fr5Arm("fr5A","192.168.58.2")
-    fr5.Go_to_start_zone_0()
+    fr5.fr5_init()
 
 
     main_server = TCPServer()
     
-    main_server.register("log", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
-    main_server.register("flow", 50, Flowdisplay.process_display_dict, Flowdisplay.update_process_display_dict)
-    main_server.register("fr5A", 5, fr5.data_dict, fr5.data_dict_update)
+    main_server.register_pkg("log", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
+    main_server.register_pkg("flow", 50, Flowdisplay.process_display_dict, Flowdisplay.update_process_display_dict)
+    main_server.register_pkg("fr5A", 5, fr5.data_dict, fr5.data_dict_update)
 
     main_server.start()
     main_parser = CommandParser()

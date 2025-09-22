@@ -36,7 +36,7 @@ main_parser.start(input="shell")
 
 
 # add_Liquid=PumpGroup('add_Liquid')
-# add_Liquid.add_liquid('N2H4', 150, 5)
+# add_Liquid.add_liquid('H2O2', 150, 5)
 # exit()
 
 
@@ -66,6 +66,7 @@ thermometer = Thermometer("thermometer")
 
 hn_sdk=HN_SDK()
 hn_sdk.HN_init()
+
 # hn_sdk.temp_start()
 # CommandParser.wait_input("parser", 'ok?')
 # hn_sdk.temp_over()
@@ -85,17 +86,17 @@ hn_sdk.HN_init()
 # exit()
 
 
-# hn_sdk.fr5A_init()
-# fr5_C.check_place_move()
-hn_sdk.move_shaoping_support2C()
+hn_sdk.fr5A_init()
+fr5_C.check_place_move()
+# hn_sdk.move_shaoping_support2C()
 hn_sdk.temp_on()
-CommandParser.wait_input("parser", 'ok?')
+# CommandParser.wait_input("parser", 'ok?')
 fr5_C.move_to_safe_catch(1)
-CommandParser.wait_input("parser", 'ok?')
+# CommandParser.wait_input("parser", 'ok?')
 fr5_C.move_to_safe_catch(0)
-CommandParser.wait_input("parser", 'ok?')
+# CommandParser.wait_input("parser", 'ok?')
 fr5_C.move_to_safe_catch(2)
-CommandParser.wait_input("parser", 'ok?')
+# CommandParser.wait_input("parser", 'ok?')
 hn_sdk.temp_off()
 exit()
 

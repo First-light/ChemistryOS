@@ -52,7 +52,8 @@ class Project(Facility):
                 time.sleep(0.1)
 
             elif self.project_state == ProjectState.RUNNING:
-                self.executor_running()    
+                if not self.facility_emergency:
+                    self.executor_running()    
                 time.sleep(0.1)
 
             elif self.project_state == ProjectState.PAUSE:
@@ -244,14 +245,17 @@ class Project(Facility):
     def cmd_error_handing(self):
         self.log.info("流程暂停")
         self.project_state = ProjectState.PAUSE
+        self.facility_emergency = True
         pass
 
     def cmd_stop_handing(self):
         self.log.info("流程暂停")
         self.project_state = ProjectState.PAUSE
+        self.facility_emergency = True
         pass
 
     def cmd_reset(self):#从error/stop恢复idle的状态
+        self.facility_emergency = False
         pass
 
     # 定义了一个递归函数 print_steps，用于打印步骤序列。

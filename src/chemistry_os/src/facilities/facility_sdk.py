@@ -158,23 +158,38 @@ class HN_SDK(Facility):
         self.parser.register("reset_all",self.reset_all_facilities,{},"reset_all_facilities")
 
     def cmd_error_handing(self):
+        self.facility_emergency = True
         pass
 
     def cmd_stop_handing(self):
+        self.facility_emergency = True
         pass
 
     def cmd_reset(self):#从error/stop恢复idle的状态
-        
+        self.facility_emergency = False
         pass
 
     def reset_all_facilities(self):
-        self.bath_over()
+        self.log.info(f"复位所有设备：{self.flask_state}")
         if self.flask_state == 2:
             self.name_put('sanjinshaoping_support_put')
         elif self.flask_state == 1:
             self.move_shaoping_C2support()
+        self.bath_over()
         self.HN_init()
-
+        
+    def reset_all_facilities_force(self):
+        self.log.info(f"强制复位所有设备：{self.flask_state}")
+        CommandParser.wait_input("parser","请确认设备已")
+        if self.flask_state == 2:
+            self.name_put('sanjinshaoping_support_put')
+        elif self.flask_state == 1:
+            self.fr5_A.check_place_move()
+            self.fr5_C.check_place_move()
+            self.move_shaoping_C2support()
+        self.bath_over()
+        self.HN_init()
+                
 
     def confirm_safety(self, text:str='ok?'):
         if self.should_safe:
@@ -538,7 +553,10 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=self.default_speed)
         time.sleep(1)
 
-        self.flask_state = 2
+        if self.facility_emergency:
+            self.log.error("检测到紧急停止，取消烧瓶状态位改变")
+        else:
+            self.flask_state = 2
 
     def bath_put(self, name:str):
         obj_statu = self.fr5_A.obj_status[name]
@@ -593,7 +611,10 @@ class HN_SDK(Facility):
         self.fr5_A.move_to_desc(self.fr5_A.safe_place[obj_statu['safe_place_id']], vel=self.default_speed)
         time.sleep(1)
 
-        self.flask_state = 1
+        if self.facility_emergency:
+            self.log.error("检测到紧急停止，取消烧瓶状态位改变")
+        else:
+            self.flask_state = 1
 
     def add_liquid(self, name:str, rpm = 150, volume = 0.0, wash = False, name_space='add_liquid_mode_place', volume_batch = 0.1):
         Flowdisplay.update_process_display_dict(Process=name + '液体进料', Action='', Info={})

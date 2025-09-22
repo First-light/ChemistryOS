@@ -25,11 +25,11 @@ if __name__ == '__main__':
     hn_sdk=HN_SDK()
 
     main_server = TCPServer(test=True)
-    main_server.register("log", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
-    main_server.register("flow", 50, Flowdisplay.process_display_dict, Flowdisplay.data_update)
-    main_server.register("fr5A", 5, fr5_A.data_dict, fr5_A.data_dict_update)
-    main_server.register("fr5C", 5, fr5_C.data_dict, fr5_C.data_dict_update)
-    main_server.register("addsolid", 25, add_Solid.data_dict)
+    main_server.register_pkg("log", 50, Facility.log_cache_dict, Facility.log_cache_dict_update)
+    main_server.register_pkg("flow", 50, Flowdisplay.process_display_dict, Flowdisplay.data_update)
+    main_server.register_pkg("fr5A", 5, fr5_A.data_dict, fr5_A.data_dict_update)
+    main_server.register_pkg("fr5C", 5, fr5_C.data_dict, fr5_C.data_dict_update)
+    main_server.register_pkg("addsolid", 25, add_Solid.data_dict)
     main_server.start()
 
     # 机械臂初始化

@@ -44,6 +44,9 @@ ParamTuple.reaction_time_3 = 14400
 ParamTuple.project_name  = "flow_project"
 ParamTuple.init_name = "flow_init"
 
+main_sys = System("os")
+main_parser = CommandParser()
+main_server = TCPServer(test=True)
 filter = Filter("filter")
 add_Liquid=PumpGroup('add_Liquid')
 add_Solid=Add_Solid('add_Solid')
@@ -80,6 +83,7 @@ def project_make_func():
     ProjectUtils.register_object('thermometer')
     ProjectUtils.register_object(hn_sdk.name)
 
+    ProjectUtils.register_process(main_server.name,"open_log")
     ProjectUtils.register_process(hn_sdk.name,"add_liquid_config_init")
     ProjectUtils.register_process(hn_sdk.name,"temp_start")
     ProjectUtils.register_process(hn_sdk.name,"HN_init")
@@ -103,10 +107,10 @@ def project_make_func():
     ProjectUtils.register_process(hn_sdk.name,"bath_over")
     ProjectUtils.register_process(hn_sdk.name,"bath_update")
     ProjectUtils.register_process(hn_sdk.name,"bath_catch",['bath_fr5_catch'])
-    ProjectUtils.register_process(hn_sdk.name,"move_wash",['sanjinshaoping_wash_1', 0])
+    # ProjectUtils.register_process(hn_sdk.name,"move_wash",['sanjinshaoping_wash_1', 0])
     ProjectUtils.register_process(hn_sdk.name,"move_wash",['sanjinshaoping_wash_2', 1])
     ProjectUtils.register_process(hn_sdk.name,"move_wash",['sanjinshaoping_wash_3', 2])
-    ProjectUtils.register_process(hn_sdk.name,"move_wash",['sanjinshaoping_wash_1', 3])
+    # ProjectUtils.register_process(hn_sdk.name,"move_wash",['sanjinshaoping_wash_1', 3])
     ProjectUtils.register_process(hn_sdk.name,"bath_put",['bath_fr5_put'])
     ProjectUtils.register_sub_process("中间产物抽滤和乙腈滴加")
     ProjectUtils.register_process(hn_sdk.name,"bath_open")
@@ -118,6 +122,7 @@ def project_make_func():
     ProjectUtils.register_process(hn_sdk.name,"fr5_C_pour")
     ProjectUtils.register_process(hn_sdk.name,"move_shaoping_C2A")
     ProjectUtils.register_process(hn_sdk.name,"temp_over")
+    ProjectUtils.register_process(main_server.name,"close_log")
     ProjectUtils.register_sub_process("实验结束")
     # 添加您需要的功能
     pass
@@ -132,28 +137,26 @@ def main_thread_func():
     pro = Project(name="pro",file=ParamTuple.project_name + ".json") 
     # pro_reset = Project(name="pro_reset",file=ParamTuple.init_name + ".json") 
     
-    main_parser = CommandParser()
     main_parser.parse("os check")
     main_parser.start()
     main_parser.start(input="unity")
 
-    main_server = TCPServer(test=True)
-    main_server.register("flow", 50, Flowdisplay.process_display_dict, Flowdisplay.data_update)
-    main_server.register("log", 10, Facility.log_cache_dict, Facility.log_cache_dict_update)
-    main_server.register("project_json", 200, pro.project_dict,enable=False)
-    main_server.register("project_data_dict", 20, pro.data_dict,pro.data_dict_update)
+    main_server.register_pkg("flow", 50, Flowdisplay.process_display_dict, Flowdisplay.data_update)
+    main_server.register_pkg("log", 10, Facility.log_cache_dict, Facility.log_cache_dict_update)
+    main_server.register_pkg("project_json", 200, pro.project_dict,enable=False)
+    main_server.register_pkg("project_data_dict", 20, pro.data_dict,pro.data_dict_update)
     # main_server.register("reset_data_dict", 20, pro_reset.data_dict,pro_reset.data_dict_update)
-    main_server.register("facility_location",200, System.facility_location_dict,enable=False)
-    main_server.register("facility_state",10, System.facility_state_dict,System.facility_state_dict_update)
-    main_server.register("fr5A_data", 5, fr5_A.data_dict, fr5_A.data_dict_update)
-    main_server.register("fr5C_data", 5, fr5_C.data_dict, fr5_C.data_dict_update)
-    main_server.register("bath_data", 20, bath.data_dict)
-    main_server.register("filter_data", 20, filter.data_dict, filter.data_dict_update)
-    main_server.register("add_Liquid_data", 20, add_Liquid.data_dict)
-    main_server.register("add_Solid_data", 20, add_Solid.data_dict)
-    main_server.register("params", 50, ParamUtils.param_dict,ParamUtils.param_dict_update)
-    main_server.register("liquid_config",100, hn_sdk.liquid_config)
-    main_server.register("thermometer_config",500, thermometer.data_dict)
+    main_server.register_pkg("facility_location",200, System.facility_location_dict,enable=False)
+    main_server.register_pkg("facility_state",10, System.facility_state_dict,System.facility_state_dict_update)
+    main_server.register_pkg("fr5A_data", 5, fr5_A.data_dict, fr5_A.data_dict_update)
+    main_server.register_pkg("fr5C_data", 5, fr5_C.data_dict, fr5_C.data_dict_update)
+    main_server.register_pkg("bath_data", 20, bath.data_dict)
+    main_server.register_pkg("filter_data", 20, filter.data_dict, filter.data_dict_update)
+    main_server.register_pkg("add_Liquid_data", 20, add_Liquid.data_dict)
+    main_server.register_pkg("add_Solid_data", 20, add_Solid.data_dict)
+    main_server.register_pkg("params", 50, ParamUtils.param_dict,ParamUtils.param_dict_update)
+    main_server.register_pkg("liquid_config",100, hn_sdk.liquid_config)
+    main_server.register_pkg("thermometer_config",500, thermometer.data_dict)
     main_server.start()
 
     # main_parser.parse("pro run") # 运行流程
@@ -165,7 +168,6 @@ def main_thread_func():
         pass
 
 if __name__ == '__main__':
-    main_sys = System("os")
     main_sys.main_thread_target = main_thread_func
     main_sys.start()
 
