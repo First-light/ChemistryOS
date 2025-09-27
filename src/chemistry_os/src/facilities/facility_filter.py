@@ -43,7 +43,7 @@ class Filter(Facility):
         "pump": AddressEnum.PUMP.value
     }
 
-    def __init__(self, name: str, com: str = "/dev/ttyUSB_485", baudrate: int = 9600, address = 0x50, sub_addresses: dict = default_sub_addresses):
+    def __init__(self, name: str, com: str = "/dev/ttyUSB_485", baudrate: int = 9600, address = 0x50, sub_addresses: dict = default_sub_addresses,if_test = False):
         """
         初始化抽滤装置类
         :param name: 设备名称
@@ -56,6 +56,7 @@ class Filter(Facility):
         self.ifconnect = False
         self.baudrate = baudrate
         self.address = address
+        self.if_test = if_test
         self.sub_addresses = sub_addresses
         self.data_dict = {
             "solvent": {"state": 0, "address": AddressEnum.SOLVENT.value,"speed":0,"mL/min":0,"dir":0},
@@ -465,6 +466,10 @@ class Filter(Facility):
         elif self.facility_emergency:
             self.log.warning(f"发送指令失败 {command_t} 设备处于紧急状态")
             return None
+        elif self.if_test:
+            self.log.info(f"测试模式，未发送指令: {command_t}")
+            return "test_mode"
+        
         wait_time = 2.0
         try:
             with serial.Serial(port=self.com, baudrate=self.baudrate, timeout=1, stopbits=2) as ser:

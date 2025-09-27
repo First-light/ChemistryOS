@@ -10,7 +10,9 @@ import time
 
 @staticmethod
 def main_thread_func():
-    filter = Filter("filter")
+    filter = Filter("filter",if_test=True)
+
+
     print(filter.liquid_convert_dict)
     main_parser = CommandParser()
     main_parser.start()

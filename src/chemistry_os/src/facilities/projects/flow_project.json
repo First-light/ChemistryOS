@@ -12,7 +12,8 @@
                 "water": 2,
                 "acid": 3,
                 "pump": 1
-            }
+            },
+            "if_test": true
         },
         "add_Liquid": {
             "type": "add_Liquid",
@@ -211,11 +212,19 @@
             "object": "sdk",
             "command": "move_wash",
             "parameters": {
+                "wash_place": "sanjinshaoping_wash_1",
+                "index": 0
+            }
+        },
+        "step18": {
+            "object": "sdk",
+            "command": "move_wash",
+            "parameters": {
                 "wash_place": "sanjinshaoping_wash_2",
                 "index": 1
             }
         },
-        "step18": {
+        "step19": {
             "object": "sdk",
             "command": "move_wash",
             "parameters": {
@@ -223,7 +232,15 @@
                 "index": 2
             }
         },
-        "step19": {
+        "step20": {
+            "object": "sdk",
+            "command": "move_wash",
+            "parameters": {
+                "wash_place": "sanjinshaoping_wash_1",
+                "index": 3
+            }
+        },
+        "step21": {
             "object": "sdk",
             "command": "bath_put",
             "parameters": {
@@ -237,15 +254,17 @@
                 "step16",
                 "step17",
                 "step18",
-                "step19"
+                "step19",
+                "step20",
+                "step21"
             ]
         },
-        "step20": {
+        "step22": {
             "object": "sdk",
             "command": "bath_open",
             "parameters": {}
         },
-        "step21": {
+        "step23": {
             "object": "sdk",
             "command": "add_liquid_bath",
             "parameters": {
@@ -254,11 +273,11 @@
         },
         "水合肼滴加": {
             "sequence": [
-                "step20",
-                "step21"
+                "step22",
+                "step23"
             ]
         },
-        "step22": {
+        "step24": {
             "object": "sdk",
             "command": "interactable_countdown",
             "parameters": {
@@ -267,41 +286,41 @@
         },
         "持续反应过程3": {
             "sequence": [
-                "step22"
+                "step24"
             ]
         },
-        "step23": {
+        "step25": {
             "object": "sdk",
             "command": "bath_over",
             "parameters": {}
         },
-        "step24": {
+        "step26": {
             "object": "sdk",
             "command": "fr5_C_pour",
             "parameters": {}
         },
-        "step25": {
+        "step27": {
             "object": "sdk",
             "command": "move_shaoping_C2A",
             "parameters": {}
         },
-        "step26": {
+        "step28": {
             "object": "sdk",
             "command": "temp_over",
             "parameters": {}
         },
-        "step27": {
+        "step29": {
             "object": "server",
             "command": "close_log",
             "parameters": {}
         },
         "实验结束": {
             "sequence": [
-                "step23",
-                "step24",
                 "step25",
                 "step26",
-                "step27"
+                "step27",
+                "step28",
+                "step29"
             ]
         }
     }
