@@ -342,22 +342,24 @@ class Fr5Arm(Facility):
     def move_listen(self):
         result = 0
         consecutive_non_zero_count = 0
-        old_pose = self.get_pose("tool")
-        print(old_pose)
+        old_pose = [0,0,0,0,0,0]
         while True:
             ret = self.robot.GetRobotMotionDone()
             if ret[1] == 0:
                 break
             else:
                 consecutive_non_zero_count += 1
-                if consecutive_non_zero_count >= 10:
+                if consecutive_non_zero_count == 10:
+                    old_pose = self.get_pose("tool")
+                    self.log.warning(f"机械臂长时间未响应")
+                if consecutive_non_zero_count >= 30:
                     new_pose = self.get_pose("tool")
                     deviation = sum(abs(new - old) for new, old in zip(new_pose, old_pose))
-                    if deviation <= 1.0:
+                    if deviation <= 3.0:
                         break
                     else:
                         result = 2
-                        self.log.error(f"状态超时")
+                        self.log.error(f"状态超时,{old_pose},{new_pose}")
                         break
             time.sleep(0.05)
 
@@ -632,7 +634,7 @@ class Fr5Arm(Facility):
             time.sleep(0.5)
             self.robot.ActGripper(1, 1)
             time.sleep(3.0)
-            # self.robot.MoveGripper(1, 100, 50, 10, 10000, 0, 0, 0, 0, 0)
+            # self.robot.MoveGripper(1, 100, 50, 10, 20000, 0, 0, 0, 0, 0)
             self.catch()
             self.put()
             # time.sleep(0.5)
@@ -642,7 +644,7 @@ class Fr5Arm(Facility):
         if not self.can_gripper:
             self.log.warning("机械臂未使能，无法使用夹爪")
         else:
-            self.robot.MoveGripper(1, 0, 50, 5, 10000, 0, 0, 0, 0, 0)
+            self.robot.MoveGripper(1, 0, 50, 5, 20000, 0, 0, 0, 0, 0)
             self.log.info("夹爪抓取")
             time.sleep(1.0)
 
@@ -650,7 +652,7 @@ class Fr5Arm(Facility):
         if not self.can_gripper:
             self.log.warning("机械臂未使能，无法使用夹爪")
         else:
-            self.robot.MoveGripper(1, 100, 50, 10, 10000, 0, 0, 0, 0, 0)
+            self.robot.MoveGripper(1, 100, 50, 10, 20000, 0, 0, 0, 0, 0)
             self.log.info("夹爪放置")
             time.sleep(1.0)
 
@@ -658,7 +660,7 @@ class Fr5Arm(Facility):
         if not self.can_gripper:
             self.log.warning("机械臂未使能，无法使用夹爪")
         else:
-            self.robot.MoveGripper(1, 50, 50, 10, 10000, 0, 0, 0, 0, 0)
+            self.robot.MoveGripper(1, 50, 50, 10, 20000, 0, 0, 0, 0, 0)
             self.log.info("夹爪半开")
             time.sleep(1.0)
 
@@ -666,7 +668,7 @@ class Fr5Arm(Facility):
         if not self.can_gripper:
             self.log.warning("机械臂未使能，无法使用夹爪")
         else:
-            self.robot.MoveGripper(1, 15, 50, 10, 10000, 0, 0, 0, 0, 0)
+            self.robot.MoveGripper(1, 15, 50, 10, 20000, 0, 0, 0, 0, 0)
             self.log.info("夹爪开15")
             time.sleep(1.0)
 
@@ -674,7 +676,7 @@ class Fr5Arm(Facility):
         if not self.can_gripper:
             self.log.warning("机械臂未使能，无法使用夹爪")
         else:
-            self.robot.MoveGripper(1, 20, 50, 10, 10000, 0, 0, 0, 0, 0)
+            self.robot.MoveGripper(1, 20, 50, 10, 20000, 0, 0, 0, 0, 0)
             self.log.info("夹爪开20")
             time.sleep(1.0)
 
@@ -682,7 +684,7 @@ class Fr5Arm(Facility):
         if not self.can_gripper:
             self.log.warning("机械臂未使能，无法使用夹爪")
         else:
-            self.robot.MoveGripper(1, 20, 50, 10, 10000, 0, 0, 0, 0, 0)
+            self.robot.MoveGripper(1, 20, 50, 10, 20000, 0, 0, 0, 0, 0)
             self.log.info("夹爪开20")
             time.sleep(1.0)
 
@@ -690,7 +692,7 @@ class Fr5Arm(Facility):
         if not self.can_gripper:
             self.log.warning("机械臂未使能，无法使用夹爪")
         else:
-            self.robot.MoveGripper(1, 30, 50, 10, 10000, 0, 0, 0, 0, 0)
+            self.robot.MoveGripper(1, 30, 50, 10, 20000, 0, 0, 0, 0, 0)
             self.log.info("夹爪开30")
             time.sleep(1.0)
         
