@@ -143,6 +143,8 @@ class Fr5Arm(Facility):
                     obj_info['catch_pre_xyz_offset'] = [-obj_info['catch_pre_offset'], 0.0, 0.0]
                 elif abs(obj_info['catch_direction'][2]-180)<0.1:
                     obj_info['catch_pre_xyz_offset'] = [0.0, -obj_info['catch_pre_offset'], 0.0]
+                elif abs(obj_info['catch_direction'][2]+45)<0.1:
+                    obj_info['catch_pre_xyz_offset'] = [0.0, obj_info['catch_pre_offset'] / 1.414, obj_info['catch_pre_offset'] / 1.414]
 
     def cmd_init(self):
         self.parser.register("moveto",self.move_to,
@@ -346,23 +348,28 @@ class Fr5Arm(Facility):
         while True:
             ret = self.robot.GetRobotMotionDone()
             if ret[1] == 0:
+
                 break
             else:
                 consecutive_non_zero_count += 1
                 if consecutive_non_zero_count == 10:
                     old_pose = self.get_pose("tool")
                     self.log.warning(f"机械臂长时间未响应")
-                if consecutive_non_zero_count >= 30:
+                if consecutive_non_zero_count >= 50:
                     new_pose = self.get_pose("tool")
                     deviation = sum(abs(new - old) for new, old in zip(new_pose, old_pose))
-                    if deviation <= 3.0:
+                    if deviation <= 5.0:
+                        self.log.warning(f"状态超时，但已就位")
                         break
                     else:
                         result = 2
                         self.log.error(f"状态超时,{old_pose},{new_pose}")
                         break
-            time.sleep(0.05)
+            time.sleep(0.10)
 
+        if consecutive_non_zero_count != 0:
+            self.log.warning(f"机械臂异常点数，{consecutive_non_zero_count}")
+            
         while True and result == 0:
             if self.state == FacilityState.ERROR:
                 self.log.error(f"{self.name}监听到 ERROR")
@@ -385,13 +392,14 @@ class Fr5Arm(Facility):
                     self.log.error(f"{self.name}状态查询错误，错误码: {ret}")
                     result = 2
                     break
-            time.sleep(0.05)  # 短暂休眠，避免过于频繁的查询
+            time.sleep(0.10)  # 短暂休眠，避免过于频繁的查询
         if result==2:
             self.log.error(f"机械臂运动异常")
             self.shut_down()
             self.facility_emergency = True
         else:
             self.log.info("到达")
+        time.sleep(0.2) # 确保机械臂完全停止，刷新状态
         return result
 
     def move(self, new_pose: list, type="MoveL", vel_t=default_speed, acc_t=default_acc):
@@ -637,8 +645,8 @@ class Fr5Arm(Facility):
             # self.robot.MoveGripper(1, 100, 50, 10, 20000, 0, 0, 0, 0, 0)
             self.catch()
             self.put()
-            # time.sleep(0.5)
             self.log.info("夹爪初始化完成")
+            time.sleep(1.0)
 
     def catch(self):
         if not self.can_gripper:
@@ -646,7 +654,7 @@ class Fr5Arm(Facility):
         else:
             self.robot.MoveGripper(1, 0, 50, 5, 20000, 0, 0, 0, 0, 0)
             self.log.info("夹爪抓取")
-            time.sleep(1.0)
+            time.sleep(2.5)
 
     def put(self):
         if not self.can_gripper:
@@ -654,7 +662,7 @@ class Fr5Arm(Facility):
         else:
             self.robot.MoveGripper(1, 100, 50, 10, 20000, 0, 0, 0, 0, 0)
             self.log.info("夹爪放置")
-            time.sleep(1.0)
+            time.sleep(2.5)
 
     def gripper_half(self):
         if not self.can_gripper:
@@ -662,7 +670,7 @@ class Fr5Arm(Facility):
         else:
             self.robot.MoveGripper(1, 50, 50, 10, 20000, 0, 0, 0, 0, 0)
             self.log.info("夹爪半开")
-            time.sleep(1.0)
+            time.sleep(2.5)
 
     def gripper_15(self):
         if not self.can_gripper:
@@ -670,7 +678,7 @@ class Fr5Arm(Facility):
         else:
             self.robot.MoveGripper(1, 15, 50, 10, 20000, 0, 0, 0, 0, 0)
             self.log.info("夹爪开15")
-            time.sleep(1.0)
+            time.sleep(2.5)
 
     def gripper_20(self):
         if not self.can_gripper:
@@ -678,7 +686,7 @@ class Fr5Arm(Facility):
         else:
             self.robot.MoveGripper(1, 20, 50, 10, 20000, 0, 0, 0, 0, 0)
             self.log.info("夹爪开20")
-            time.sleep(1.0)
+            time.sleep(2.5)
 
     def gripper_25(self):
         if not self.can_gripper:
@@ -686,7 +694,7 @@ class Fr5Arm(Facility):
         else:
             self.robot.MoveGripper(1, 20, 50, 10, 20000, 0, 0, 0, 0, 0)
             self.log.info("夹爪开20")
-            time.sleep(1.0)
+            time.sleep(2.5)
 
     def gripper_30(self):
         if not self.can_gripper:
@@ -694,8 +702,8 @@ class Fr5Arm(Facility):
         else:
             self.robot.MoveGripper(1, 30, 50, 10, 20000, 0, 0, 0, 0, 0)
             self.log.info("夹爪开30")
-            time.sleep(1.0)
-        
+            time.sleep(2.5)
+
     def shut_down(self):
         # ret = self.robot.StopMotion()
         # self.log.info(f"机械臂运动暂停{ret}")
@@ -838,6 +846,7 @@ class Fr5Arm(Facility):
         用于机械臂初始化和复位操作。
         """
         self.log.info("初始化自动寻路")
+        time.sleep(1)
         Info={
             '机械臂对象': self.name
         }

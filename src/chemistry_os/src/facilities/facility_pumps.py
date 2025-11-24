@@ -1,3 +1,4 @@
+import math
 import sys
 sys.path.append('src/chemistry_os/src')
 import serial
@@ -42,6 +43,12 @@ class PumpGroup(Facility):
                 'direction': 1,
                 'speed': 0,
                 'on_off': 0
+            },
+            "Water": {
+                'addr': 0x06,
+                'direction': 0,
+                'speed': 0,
+                'on_off': 0
             }
         }
         self.add_liquid_config = {
@@ -69,13 +76,18 @@ class PumpGroup(Facility):
                 'addr': 0x15,
                 'pipe_volume': 3.14 * 0.04 * 0.04 * 250,
                 'base_speed': 0.0634
+            },
+            "Water": {
+                'addr': 0x06,
+                'pipe_volume': math.pi * (0.04 ** 2) * 205,
+                'base_speed': 0.07305
             }
         }
 
     def update_data_dict(self, addr, direction=None, speed=None, on_off=None):
         """
         更新数据字典，支持通过名称或地址进行更新
-        :param identifier: 可以是名称(str)或地址(int)
+        :param addr: 可以是名称(str)或地址(int)
         """
         name = None
         
@@ -157,6 +169,7 @@ class PumpGroup(Facility):
         return [crc & 0xFF, (crc >> 8) & 0xFF]
     
     def writedirection(self, addr, forward=1):
+        forward = 0 if forward==1 else 1
         buffer = [addr, 0x06, 0x00, 0x01, 0x00, forward]
         crc_bytes = self.crc16_modbus(buffer)
         buffer.extend(crc_bytes)
@@ -245,11 +258,18 @@ class PumpGroup(Facility):
             self.log.info("Error1: " + str(e))
 
     def liquid_wash(self, name, rpm, tim):
-        if name=='ice':
-            addr=0x02
-        if name=='HCl':
-            addr=0x01
-        self.writespeed(addr, rpm*10)
+        # Determine address: special cases first, then try config
+        if name == 'ice':
+            addr = 0x02
+        elif name == 'HCl':
+            addr = 0x01
+        elif name in self.add_liquid_config:
+            addr = self.add_liquid_config[name]['addr']
+        else:
+            self.log.error(f"liquid_wash: 未知的液体名 '{name}'，无法确定地址")
+            return
+
+        self.writespeed(addr, int(rpm * 10))
         self.startadd(addr)
         time.sleep(tim)
         self.stopadd(addr)
@@ -290,18 +310,46 @@ class PumpGroup(Facility):
         self.writespeed(addr, rpm*10)
         self.writedirection(addr, 0)
         self.startadd(addr)
-        event_countdown(pipe_time, name=name, volume=self.pipe_volume_max, rpm=rpm, directon=0, speed=speed)
+        # pass boolean for directon parameter
+        event_countdown(pipe_time, name=name, volume=self.pipe_volume_max, rpm=rpm, directon=False, speed=speed)
         self.stopadd(addr)
         self.writedirection(addr, 1)
 
 
 if __name__ == "__main__":
-    add_Liquid=PumpGroup('add_Liquid')
+    add_Liquid = PumpGroup('add_Liquid')
 
-    # add_Liquid.writespeed(0x12, 100)
-    # add_Liquid.writespeed(0x13, 100)
-    # add_Liquid.writespeed(0x14, 100)
-    # add_Liquid.writespeed(0x15, 100)
-    # add_Liquid.update_data_dict(0x12)
+    name = 'Water'
+    rpm = 150
+    volume_ml = 20
 
-    add_Liquid.add_liquid('HCl', 150, 100)
+    # 读取配置并计算泵速与运行时间（不包含管路体积，保留管内残余）
+    cfg = add_Liquid.add_liquid_config.get(name)
+    if not cfg:
+        add_Liquid.log.error(f"未找到 {name} 的配置，测试退出")
+        sys.exit(1)
+
+    addr = cfg['addr']
+    base_speed = cfg['base_speed']  # ml/min at rpm=1
+    speed_ml_per_min = base_speed * rpm
+    if speed_ml_per_min <= 0:
+        add_Liquid.log.error("计算到的速度为 0，测试退出")
+        sys.exit(1)
+
+    # run_time_s = volume_ml / speed_ml_per_min * 60  # 秒
+
+    # 预回吸（确保管内为液体）
+    add_Liquid.log.info("测试：开始预回吸")
+    add_Liquid.liquid_back(name, rpm=rpm)
+    time.sleep(1)
+
+    # 泵出目标体积（不挤空管路）
+    add_Liquid.log.info(f"测试：开始泵出 {volume_ml} ml，rpm={rpm}")
+    add_Liquid.add_liquid(name, rpm=rpm, volume=volume_ml)
+    time.sleep(1)
+
+    # 后回吸（保持管内不外泄/回吸剩余液体）
+    add_Liquid.log.info("测试：开始后回吸")
+    add_Liquid.liquid_back(name, rpm=rpm)
+
+    add_Liquid.log.info("测试完成：预回吸 -> 泵出 5ml -> 后回吸 已完成")

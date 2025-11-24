@@ -95,6 +95,12 @@ class HN_SDK(Facility):
             'volume': 1.14,
             'wash': False,
         },
+        'Water': {
+            'temp': 25,
+            'rpm': 150,
+            'volume': 5.0,
+            'wash': True,
+        }
     }
     
     def __init__(self):
@@ -107,7 +113,7 @@ class HN_SDK(Facility):
             self.fr5_C: Fr5Arm = Facility.get_facility_by_name("fr5C", Fr5Arm.type,True,True)
             self.add_Liquid: PumpGroup = Facility.get_facility_by_name("add_Liquid", PumpGroup.type,True,True)
             self.add_Solid: Add_Solid = Facility.get_facility_by_name("add_Solid", Add_Solid.type,True,True)
-            self.bath: Bath = Facility.get_facility_by_name("bath", Bath.type,True,True)
+            # self.bath: Bath = Facility.get_facility_by_name("bath", Bath.type,True,True)
             self.filter: Filter = Facility.get_facility_by_name("filter", Filter.type,True,True)
             self.thermometer: Thermometer = Facility.get_facility_by_name("thermometer", Thermometer.type,True,True)
             self.init_dict = ParamUtils.get_init_params(self)
@@ -154,8 +160,10 @@ class HN_SDK(Facility):
         self.parser.register("temp_off",self.temp_off,{},"temp_off")
         self.parser.register("temp_start",self.temp_start,{},"temp_start")
         self.parser.register("temp_over",self.temp_over,{},"temp_over")
-        self.parser.register("fr5_C_pour",self.fr5_C_pour,{},"fr5_C_pour")
+        # self.parser.register("fr5_C_pour",self.fr5_C_pour,{},"fr5_C_pour")
         self.parser.register("reset_all",self.reset_all_facilities,{},"reset_all_facilities")
+
+        self.parser.register("move_beaker_add_liquid", self.move_beaker_add_liquid, {'name': ''}, "move beaker to add liquid position")
 
     def cmd_error_handing(self):
         self.facility_emergency = True
@@ -177,6 +185,8 @@ class HN_SDK(Facility):
             self.move_shaoping_C2support()
         self.bath_over()
         self.HN_init()
+        self.fr5_A.move_to_safe_catch(0)
+        self.fr5_C.move_to_safe_catch(0)
         
     def reset_all_facilities_force(self):
         self.log.info(f"强制复位所有设备：{self.flask_state}")
@@ -1047,6 +1057,7 @@ class HN_SDK(Facility):
         Flowdisplay.update_process_display_dict(Process='HN机械臂初始化', Action='', Info={})
         self.fr5A_init()
         self.fr5C_init()
+        self.add_solid_init()
 
     def add_solid_init(self):
         Flowdisplay.update_process_display_dict(Process='固体进料器初始化', Action='', Info={})
@@ -1092,4 +1103,379 @@ class HN_SDK(Facility):
         self.bath_catch('bath_fr5_catch')
         self.name_put('sanjinshaoping_support_put')
 
-    
+    add_solid_catch = [-619.0, -318.0, 150.0, 90.0, -0.0, -90.0]
+    beaker_A = [-506, -118, 106, 90, 0, -90]
+    beaker_B = [-506, 31, 106, 90, 0, -90]
+    add_liquid = [-221.1, -422.3, 71.9, 90.0, -0.0, -45.0]
+    tube_A = [-47.0, -533.0, 150.0, 90.0, -0.0, -0.0]
+    tube_B = [15.1, -533.0, 150.0, 90.0, -0.0, -0.0]
+    tube_2_add_solid = [-666.0, -453.9, 284.7, 90.0, -0.0, -45.0]
+    safe_pos_tube = [-25.0, -320.0, 335.0, 90.0, 0.0, 0.0]
+    safe_pos_beaker = [-320.0, 25.0, 335.0, 90.0, -0.0, -90.0]
+    # safe_pos_react = [-220.1, 125.0, 335.0, 90.0, -0.0, 180.0]
+
+    safe_pos_mix = [400.0, -100.0, 200.0, 90.0, 0.0, 0.0]
+    safe_pos_mix2 = [200.0, -250.0, 300.0, 90.0, 0.0, 0]
+    beaker_mix = [318.0, -255.0, 100.0, 90.0, 0.0, 0.0]
+    react_in_pos = [200.0, -300.0, 250, 90.0, 0.0, 0.0]
+    react_out_pos = [-250.0, 235.0, 305.0, 90.0, -45.0, -90.0]
+    beaker_waste = [-70.1, -390.0, 210.0, 90.0, -45.0, 0.0]
+
+    def safe_take(self, arm, position, initial_offset=(0, 0, 0), height=50):
+        initial_pos = (
+            position[0] + initial_offset[0],
+            position[1] + initial_offset[1],
+            position[2] + initial_offset[2],
+            position[3],
+            0,
+            position[5]
+        )
+        arm.move_to_desc(initial_pos, vel=self.default_speed)
+        arm.move_to_desc(position)
+        arm.catch()
+        time.sleep(3)
+        arm.move_by(0, 0, height, vel=self.default_speed)
+
+    def safe_place(self, arm, position, final_offset=(0, 0, 0), height=50, full_open=True):
+        initial_pos = (
+            position[0],
+            position[1],
+            position[2] + height,
+            position[3],
+            position[4],
+            position[5]
+        )
+        final_pos = (
+            position[0] + final_offset[0],
+            position[1] + final_offset[1],
+            position[2] + final_offset[2],
+            position[3],
+            position[4],
+            position[5]
+        )
+        arm.move_to_desc(initial_pos, vel=self.default_speed)
+        arm.move_by(z=-height, vel=self.default_speed)
+        if full_open:
+            arm.put()
+        else:
+            arm.gripper_half()
+
+        time.sleep(3)
+        arm.move_to_desc(final_pos)
+
+    def move_beaker_add_liquid(self, name:str):
+        self.fr5_A.move_to_desc(self.safe_pos_beaker, type='MoveJ')
+        target_beaker = self.beaker_A if name == 'beaker_A' else self.beaker_B
+        self.safe_take(self.fr5_A, target_beaker, initial_offset=(60, 0, 0))
+        self.fr5_A.move_to_desc(self.safe_pos_beaker, type='MoveJ')
+        self.fr5_A.move_to_desc(self.safe_pos_tube, type='MoveJ')
+        self.safe_take(self.fr5_A, self.add_liquid, initial_offset=(50, 50, -10), height=0)
+
+    def add_liquid_wash(self, add_Liquid):
+        name = 'Water'
+        rpm = 150
+        volume_ml = 5.0
+
+        # 读取配置并计算泵速与运行时间（不包含管路体积，保留管内残余）
+        cfg = add_Liquid.add_liquid_config.get(name)
+        if not cfg:
+            add_Liquid.log.error(f"未找到 {name} 的配置，测试退出")
+            sys.exit(1)
+
+        addr = cfg['addr']
+        base_speed = cfg['base_speed']  # ml/min at rpm=1
+        speed_ml_per_min = base_speed * rpm
+        if speed_ml_per_min <= 0:
+            add_Liquid.log.error("计算到的速度为 0，测试退出")
+            sys.exit(1)
+
+        # run_time_s = volume_ml / speed_ml_per_min * 60  # 秒
+
+        # 预回吸（确保管内为液体）
+        add_Liquid.log.info("开始预回吸")
+        add_Liquid.liquid_back(name, rpm=rpm)
+        time.sleep(1)
+
+        # 泵出目标体积（不挤空管路）
+        add_Liquid.log.info(f"开始泵出 {volume_ml} ml，rpm={rpm}")
+        add_Liquid.add_liquid(name, rpm=rpm, volume=volume_ml)
+        time.sleep(1)
+
+        # 后回吸（保持管内不外泄/回吸剩余液体）
+        add_Liquid.log.info("开始后回吸")
+        add_Liquid.liquid_back(name, rpm=rpm)
+
+        add_Liquid.log.info("液体滴加完成")
+
+    def move_beaker_add_solid(self):
+        self.fr5_A.move_by(50, 50, -10)
+        self.fr5_A.move_to_desc(self.safe_pos_tube, type='MoveJ')
+        self.fr5_A.move_to_desc(self.safe_pos_beaker, type='MoveJ')
+        self.safe_place(self.fr5_A, self.add_solid_catch, final_offset=(60, 0, 0))
+        self.fr5_A.move_to_desc(self.safe_pos_beaker, type='MoveJ')
+
+    def move_tube_add_solid(self, name:str):
+        self.fr5_A.move_to_desc(self.safe_pos_tube, type='MoveJ')
+        self.fr5_A.gripper_half()
+        target_tube = self.tube_A if name == 'tube_A' else self.tube_B
+        self.safe_take(self.fr5_A, target_tube, initial_offset=(0, 60, 0), height=200)
+        self.fr5_A.move_to_desc(self.safe_pos_tube, type='MoveJ')
+        self.fr5_A.move_to_desc(self.safe_pos_beaker, type='MoveJ')
+        self.safe_place(self.fr5_A, self.tube_2_add_solid, final_offset=(50, 50, 10), height=120)
+        self.fr5_A.move_to_desc(self.safe_pos_beaker, type='MoveJ')
+
+    def add_solid_show(self, gram:float):
+        Flowdisplay.update_process_display_dict(Process='固体进料器加料', Action=f'加料 {gram} g', Info={})
+        with self.add_Solid:
+            self.add_Solid.clip_close()
+            self.add_Solid.add_solid_series(gram)
+            self.add_Solid.tube_ver()
+            self.add_Solid.clip_open()
+
+    def move_tube_back(self, name:str):
+        self.fr5_A.move_to_desc(self.safe_pos_beaker, type='MoveJ')
+        self.safe_take(self.fr5_A, self.tube_2_add_solid, initial_offset=(50, 50, 10), height=120)
+        self.fr5_A.move_to_desc(self.safe_pos_beaker, type='MoveJ')
+        self.fr5_A.move_to_desc(self.safe_pos_tube, type='MoveJ')
+        self.safe_place(self.fr5_A, self.tube_A if name == 'tube_A' else self.tube_B, final_offset=(0, 60, 0), height=200, full_open=False)
+        self.fr5_A.move_to_desc(self.safe_pos_tube, type='MoveJ')
+        self.fr5_A.put()
+
+    def move_mix_reactor(self):
+        Flowdisplay.update_process_display_dict(Process='反应瓶转移', Action='混合反应瓶转移至反应区', Info={})
+        self.fr5_C.move_to_desc(self.safe_pos_mix, type='MoveJ')
+        self.safe_take(self.fr5_C, self.beaker_mix, initial_offset=(0, 60, 0))
+        self.fr5_C.move_to_desc(self.safe_pos_mix, type='MoveJ')
+        self.fr5_C.move_to_desc(self.safe_pos_mix2, type='MoveJ')
+        self.fr5_C.move_to_desc(self.react_in_pos)
+
+    def move_mix_reactor_back(self):
+        Flowdisplay.update_process_display_dict(Process='反应瓶转移', Action='混合反应瓶转移回放置区', Info={})
+        self.fr5_C.move_to_desc(self.safe_pos_mix2, type='MoveJ')
+        self.fr5_C.move_to_desc(self.safe_pos_mix, type='MoveJ')
+        self.safe_place(self.fr5_C, self.beaker_mix, final_offset=(0, 60, 0))
+        self.fr5_C.move_to_desc(self.safe_pos_mix, type='MoveJ')
+
+    def catch_beaker_add_solid(self):
+        self.fr5_A.move_to_desc(self.safe_pos_beaker, type='MoveJ')
+        self.fr5_A.put()
+        self.safe_take(self.fr5_A, self.add_solid_catch, initial_offset=(60, 0, 0))
+        self.fr5_A.move_to_desc(self.safe_pos_beaker, type='MoveJ')
+
+    def shake_beaker(self):
+        self.fr5_A.move_to_desc(self.safe_pos_beaker, type='MoveJ')
+        _, joint_pos = self.fr5_A.robot.GetActualJointPosDegree()
+        if not joint_pos:
+            self.log.error("获取机械臂关节位置失败，无法进行摇晃操作")
+            return
+        joint_pos = list(joint_pos)[:6]
+
+        count = 50
+        per_degree = 0.4
+        loop_count = 20
+        delay = 0.005
+        self.fr5_A.robot.ServoMoveStart()
+        now_joint_pos = joint_pos.copy()
+        for _ in range(loop_count):
+            for i in range(count):
+                now_joint_pos[5] += per_degree
+                now_joint_pos[4] -= per_degree / 2
+                self.fr5_A.robot.ServoJ(now_joint_pos, axisPos=[0,0,0,0,0,0])
+                time.sleep(delay)
+            for i in range(count * 2):
+                now_joint_pos[5] -= per_degree
+                now_joint_pos[4] += per_degree / 2
+                self.fr5_A.robot.ServoJ(now_joint_pos, axisPos=[0,0,0,0,0,0])
+                time.sleep(delay)
+            for i in range(count):
+                now_joint_pos[5] += per_degree
+                now_joint_pos[4] -= per_degree / 2
+                self.fr5_A.robot.ServoJ(now_joint_pos, axisPos=[0,0,0,0,0,0])
+                time.sleep(delay)
+        self.fr5_A.robot.ServoMoveEnd()
+        self.fr5_A.move_to_desc(self.safe_pos_beaker, type='MoveJ')
+
+    def pour(self, arm, steps=2000, max_angle=20.0, plane='xOz', corner='top_right'):
+        """
+        优化版烧杯倾倒动作 - 支持任意边缘点旋转
+        :param arm: 机械臂对象
+        :param steps: 插值步数 (建议>=300)
+        :param max_angle: 最大倾倒角度(度)，负值表示顺时针
+        :param plane: 期望旋转平面 'yOz' 或 'xOz'
+        :param corner: 旋转点位置 ('top_left', 'top_right', 'bottom_left', 'bottom_right')
+        """
+        import numpy as np
+        import time
+
+        # ========== 1. 获取当前位姿并验证 ==========
+        _, pose = arm.robot.GetActualToolFlangePose()
+        if not pose:
+            self.log.error("获取机械臂位姿失败，无法进行操作")
+            return
+        initial_pose = list(pose)[:6]
+        self.log.info(f"初始位姿: {initial_pose}")
+
+        # ========== 2. 烧杯参数与坐标系映射 ==========
+        CUP_HEIGHT = 80.0  # mm
+        CUP_WIDTH = 80.0  # mm
+
+        # 定义所有边缘点的工具坐标系偏移 (根据实际坐标系映射)
+        # 对于 plane='yOz': 实际绕Y轴旋转 -> 烧杯在X-Z平面 (X=宽度, Z=高度)
+        # 对于 plane='xOz': 实际绕Z轴旋转 -> 烧杯在X-Y平面 (X=宽度, Y=高度)
+        corner_offsets = {
+            'top_left': {
+                'yOz': np.array([-CUP_WIDTH / 2, 0.0, CUP_HEIGHT / 2]),
+                'xOz': np.array([-CUP_WIDTH / 2, CUP_HEIGHT / 2, 0.0])
+            },
+            'top_right': {
+                'yOz': np.array([CUP_WIDTH / 2, 0.0, CUP_HEIGHT / 2]),
+                'xOz': np.array([CUP_WIDTH / 2, CUP_HEIGHT / 2, 0.0])
+            },
+            'bottom_left': {
+                'yOz': np.array([-CUP_WIDTH / 2, 0.0, -CUP_HEIGHT / 2]),
+                'xOz': np.array([-CUP_WIDTH / 2, -CUP_HEIGHT / 2, 0.0])
+            },
+            'bottom_right': {
+                'yOz': np.array([CUP_WIDTH / 2, 0.0, -CUP_HEIGHT / 2]),
+                'xOz': np.array([CUP_WIDTH / 2, -CUP_HEIGHT / 2, 0.0])
+            }
+        }
+
+        # 验证参数
+        if plane not in ['yOz', 'xOz']:
+            self.log.error(f"无效平面配置: {plane}，必须为 'yOz' 或 'xOz'")
+            return
+        if corner not in corner_offsets:
+            self.log.error(f"无效旋转点: {corner}，必须为 {list(corner_offsets.keys())}")
+            return
+
+        # 获取旋转点偏移和轴
+        pivot_offset_tool = corner_offsets[corner][plane]
+
+        # 根据平面确定旋转轴 (单位向量)
+        if plane == 'yOz':
+            axis_tool = np.array([0.0, 1.0, 0.0])  # Y轴 (实际绕Y轴旋转)
+            self.log.info(f"使用yOz模式 | 旋转点: {corner} | 旋转轴: Y | 运动平面: xOz")
+        else:  # plane == 'xOz'
+            axis_tool = np.array([0.0, 0.0, 1.0])  # Z轴 (实际绕Z轴旋转)
+            self.log.info(f"使用xOz模式 | 旋转点: {corner} | 旋转轴: Z | 运动平面: xOy")
+
+        # ========== 3. 数学工具函数 (保持不变) ==========
+        def euler_to_matrix(rx, ry, rz):
+            rx, ry, rz = np.radians([rx, ry, rz])
+            cx, sx = np.cos(rx), np.sin(rx)
+            cy, sy = np.cos(ry), np.sin(ry)
+            cz, sz = np.cos(rz), np.sin(rz)
+
+            return np.array([
+                [cy * cz, cz * sx * sy - cx * sz, cx * cz * sy + sx * sz],
+                [cy * sz, cx * cz + sx * sy * sz, cx * sy * sz - cz * sx],
+                [-sy, cy * sx, cx * cy]
+            ])
+
+        def matrix_to_euler(R):
+            sy = np.sqrt(R[0, 0] ** 2 + R[1, 0] ** 2)
+            singular = sy < 1e-6
+
+            if not singular:
+                rx = np.arctan2(R[2, 1], R[2, 2])
+                ry = np.arctan2(-R[2, 0], sy)
+                rz = np.arctan2(R[1, 0], R[0, 0])
+            else:
+                rx = np.arctan2(-R[1, 2], R[1, 1])
+                ry = np.arctan2(-R[2, 0], sy)
+                rz = 0
+
+            return np.degrees([rx, ry, rz])
+
+        def rodrigues_rotation(axis, theta_deg):
+            theta = np.radians(theta_deg)
+            axis = axis / np.linalg.norm(axis)
+            K = np.array([
+                [0, -axis[2], axis[1]],
+                [axis[2], 0, -axis[0]],
+                [-axis[1], axis[0], 0]
+            ])
+            return np.eye(3) + np.sin(theta) * K + (1 - np.cos(theta)) * (K @ K)
+
+        # ========== 4. 计算旋转点和轴 ==========
+        R_initial = euler_to_matrix(initial_pose[3], initial_pose[4], initial_pose[5])
+        p_initial = np.array(initial_pose[:3])
+
+        # 旋转点在基坐标系的位置
+        pivot_pos_base = R_initial @ pivot_offset_tool + p_initial
+
+        # 旋转轴在基坐标系的方向 (单位化)
+        axis_base = R_initial @ axis_tool
+        axis_base = axis_base / np.linalg.norm(axis_base)
+
+        # ========== 5. 生成轨迹序列 ==========
+        trajectory = []
+        for i in range(steps + 1):
+            theta_i = max_angle * i / steps  # 线性插值角度
+
+            # 计算绕固定点的旋转矩阵
+            R_rot = rodrigues_rotation(axis_base, theta_i)
+
+            # 新位置：p_new = R_rot·(p_initial - P) + P
+            p_new = R_rot @ (p_initial - pivot_pos_base) + pivot_pos_base
+
+            # 新姿态
+            R_new = R_rot @ R_initial
+
+            # 转换为位姿表示
+            eulers = matrix_to_euler(R_new)
+            target_pose = [
+                p_new[0], p_new[1], p_new[2],
+                eulers[0], eulers[1], eulers[2]
+            ]
+            trajectory.append(target_pose)
+
+        # ========== 6. 执行伺服运动 (严格检查返回值) ==========
+        arm.robot.ServoMoveStart()
+        success = True
+        try:
+            for i, target_pose in enumerate(trajectory):
+                # 发送基坐标系绝对运动指令
+                ret = arm.robot.ServoCart(0, target_pose, cmdT=0.0016)
+
+                # 严格检查返回值 (0=成功)
+                if ret != 0:
+                    self.log.error(f"伺服运动失败 | 步: {i}/{steps} | 返回值: {ret} | 位姿: {target_pose}")
+                    success = False
+                    break
+
+                time.sleep(0.0016)  # 125Hz 运动周期
+
+        finally:
+            arm.robot.ServoMoveEnd()
+
+        # ========== 7. 运动后处理 ==========
+        if success:
+            self.log.info(f"倾倒动作完成 | 步数: {steps} | 角度: {max_angle}° | 平面: {plane} | 旋转点: {corner}")
+        else:
+            self.log.warning("倾倒动作中断 | 请检查机械臂状态")
+
+    def pour_to_mix(self):
+        Flowdisplay.update_process_display_dict(Process='烧杯倾倒', Action='向混合反应瓶倾倒液体', Info={})
+        self.fr5_A.move_to_desc(self.safe_pos_beaker, type='MoveJ')
+        self.safe_take(self.fr5_A, self.react_out_pos, initial_offset=(0, -60, 20), height=0)
+        self.pour(self.fr5_A, max_angle=90, corner='top_left', plane='xOz')
+        time.sleep(3)
+        self.pour(self.fr5_A, max_angle=-90, corner='top_left', plane='xOz')
+        self.fr5_A.move_to_desc(self.safe_pos_beaker, type='MoveJ')
+
+    def move_beaker_back(self, name:str):
+        self.fr5_A.move_to_desc(self.safe_pos_beaker, type='MoveJ')
+        target_beaker = self.beaker_A if name == 'beaker_A' else self.beaker_B
+        self.safe_place(self.fr5_A, target_beaker, final_offset=(60, 0, 0))
+        self.fr5_A.move_to_desc(self.safe_pos_beaker, type='MoveJ')
+
+    def pour_to_waste(self):
+        Flowdisplay.update_process_display_dict(Process='烧杯倾倒', Action='向漏斗倾倒液体', Info={})
+        self.fr5_C.move_to_desc(self.safe_pos_mix2, type='MoveJ')
+        self.safe_take(self.fr5_C, self.beaker_waste, initial_offset=(50, 0, 20), height=0)
+        self.pour(self.fr5_C, max_angle=90, corner='top_left', plane='xOz')
+        time.sleep(3)
+        self.pour(self.fr5_C, max_angle=-90, corner='top_left', plane='xOz')
+        self.fr5_C.move_to_desc(self.safe_pos_mix2, type='MoveJ')

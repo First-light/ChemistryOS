@@ -52,7 +52,7 @@ add_Liquid=PumpGroup('add_Liquid')
 add_Solid=Add_Solid('add_Solid')
 fr5_C = Fr5Arm("fr5C","192.168.58.3")
 fr5_A = Fr5Arm("fr5A","192.168.58.2")
-bath = Bath('bath')
+# bath = Bath('bath')
 thermometer = Thermometer("thermometer")
 hn_sdk=HN_SDK()
 
@@ -79,49 +79,23 @@ def project_make_func():
     ProjectUtils.register_object("add_Solid")
     ProjectUtils.register_object("fr5C")
     ProjectUtils.register_object("fr5A")
-    ProjectUtils.register_object('bath')
+    # ProjectUtils.register_object('bath')
     ProjectUtils.register_object('thermometer')
     ProjectUtils.register_object(hn_sdk.name)
 
     ProjectUtils.register_process(main_server.name,"open_log")
-    ProjectUtils.register_process(hn_sdk.name,"add_liquid_config_init")
-    ProjectUtils.register_process(hn_sdk.name,"temp_start")
-    ProjectUtils.register_process(hn_sdk.name,"HN_init")
-    ProjectUtils.register_process(hn_sdk.name,"move_shaoping_A2C")
-    ProjectUtils.register_process(hn_sdk.name,"bath_open")
+    # ProjectUtils.register_process(hn_sdk.name,"add_liquid_config_init")
+    # ProjectUtils.register_process(hn_sdk.name,"temp_start")
+    # ProjectUtils.register_process(hn_sdk.name,"HN_init")
     ProjectUtils.register_sub_process("实验开始")
-    ProjectUtils.register_process(hn_sdk.name,"add_liquid_bath",['HCl'])
-    ProjectUtils.register_sub_process("浓盐酸滴加1")
-    ProjectUtils.register_process(hn_sdk.name,"add_solid",[ParamTuple.CompoundC_solid_add, 'test_tube_support', 'beaker_support'])
-    ProjectUtils.register_sub_process("化合物C称量和混合")
-    ProjectUtils.register_process(hn_sdk.name,"add_liquid_bath",['HCl_wash'])
-    ProjectUtils.register_sub_process("浓盐酸滴加2")
-    ProjectUtils.register_process(hn_sdk.name,"add_liquid_bath",['KMnO4'])
-    ProjectUtils.register_sub_process("高锰酸钾的滴加")
-    ProjectUtils.register_process(hn_sdk.name,"interactable_countdown",[ParamTuple.reaction_time_1])
-    ProjectUtils.register_sub_process("持续反应过程1")
-    ProjectUtils.register_process(hn_sdk.name,"add_liquid_bath",['H2O2'])
-    ProjectUtils.register_sub_process("双氧水滴加")
-    ProjectUtils.register_process(hn_sdk.name,"interactable_countdown",[ParamTuple.reaction_time_2])
-    ProjectUtils.register_sub_process("持续反应过程2")
-    ProjectUtils.register_process(hn_sdk.name,"bath_over")
-    ProjectUtils.register_process(hn_sdk.name,"bath_update")
-    ProjectUtils.register_process(hn_sdk.name,"bath_catch",['bath_fr5_catch'])
-    ProjectUtils.register_process(hn_sdk.name,"move_wash",['sanjinshaoping_wash_1', 0])
-    ProjectUtils.register_process(hn_sdk.name,"move_wash",['sanjinshaoping_wash_2', 1])
-    ProjectUtils.register_process(hn_sdk.name,"move_wash",['sanjinshaoping_wash_3', 2])
-    ProjectUtils.register_process(hn_sdk.name,"move_wash",['sanjinshaoping_wash_1', 3])
-    ProjectUtils.register_process(hn_sdk.name,"bath_put",['bath_fr5_put'])
-    ProjectUtils.register_sub_process("中间产物抽滤和乙腈滴加")
-    ProjectUtils.register_process(hn_sdk.name,"bath_open")
-    ProjectUtils.register_process(hn_sdk.name,"add_liquid_bath",['N2H4'])
-    ProjectUtils.register_sub_process("水合肼滴加")
-    ProjectUtils.register_process(hn_sdk.name,"interactable_countdown",[ParamTuple.reaction_time_3])
-    ProjectUtils.register_sub_process("持续反应过程3")
-    ProjectUtils.register_process(hn_sdk.name,"bath_over")
-    ProjectUtils.register_process(hn_sdk.name,"fr5_C_pour")
-    ProjectUtils.register_process(hn_sdk.name,"move_shaoping_C2A")
-    ProjectUtils.register_process(hn_sdk.name,"temp_over")
+    ProjectUtils.register_sub_process("抓取反应烧杯")
+    ProjectUtils.register_sub_process("滴加清水")
+    ProjectUtils.register_sub_process("添加氯化钙")
+    ProjectUtils.register_sub_process("搅拌并倒入反应烧杯")
+    ProjectUtils.register_sub_process("滴加清水2")
+    ProjectUtils.register_sub_process("添加碳酸钠")
+    ProjectUtils.register_sub_process("搅拌并倒入反应烧杯2")
+    ProjectUtils.register_sub_process("反应物倒入废液桶")
     ProjectUtils.register_process(main_server.name,"close_log")
     ProjectUtils.register_sub_process("实验结束")
     # 添加您需要的功能
@@ -150,13 +124,13 @@ def main_thread_func():
     main_server.register_pkg("facility_state",10, System.facility_state_dict,System.facility_state_dict_update)
     main_server.register_pkg("fr5A_data", 5, fr5_A.data_dict, fr5_A.data_dict_update)
     main_server.register_pkg("fr5C_data", 5, fr5_C.data_dict, fr5_C.data_dict_update)
-    main_server.register_pkg("bath_data", 20, bath.data_dict)
+    # main_server.register_pkg("bath_data", 20, bath.data_dict)
     main_server.register_pkg("filter_data", 20, filter.data_dict, filter.data_dict_update)
     main_server.register_pkg("add_Liquid_data", 20, add_Liquid.data_dict)
     main_server.register_pkg("add_Solid_data", 20, add_Solid.data_dict)
     main_server.register_pkg("params", 50, ParamUtils.param_dict,ParamUtils.param_dict_update)
     main_server.register_pkg("liquid_config",100, hn_sdk.liquid_config)
-    main_server.register_pkg("thermometer_config",500, thermometer.data_dict)
+    # main_server.register_pkg("thermometer_config",500, thermometer.data_dict)
     main_server.start()
 
     # main_parser.parse("pro run") # 运行流程
@@ -168,6 +142,41 @@ def main_thread_func():
         pass
 
 if __name__ == '__main__':
-    main_sys.main_thread_target = main_thread_func
-    main_sys.start()
+    # main_sys.main_thread_target = main_thread_func
+    # main_sys.start()
+    # exit()
+
+    mole = 0.002
+
+    hn_sdk.HN_init()
+    hn_sdk.move_mix_reactor()
+
+    hn_sdk.move_beaker_add_liquid('beaker_A')
+    hn_sdk.add_liquid_wash(add_Liquid)
+
+    hn_sdk.move_beaker_add_solid()
+    hn_sdk.move_tube_add_solid('tube_A')
+    hn_sdk.add_solid_show(110.98 * mole)  # CaCl2
+    hn_sdk.move_tube_back('tube_A')
+
+    hn_sdk.catch_beaker_add_solid()
+    hn_sdk.shake_beaker()
+    hn_sdk.pour_to_mix()
+    hn_sdk.move_beaker_back('beaker_A')
+
+    hn_sdk.move_beaker_add_liquid('beaker_B')
+    hn_sdk.add_liquid_wash(add_Liquid)
+
+    hn_sdk.move_beaker_add_solid()
+    hn_sdk.move_tube_add_solid('tube_B')
+    hn_sdk.add_solid_show(105.99 * mole)  # Na2CO3
+    hn_sdk.move_tube_back('tube_B')
+
+    hn_sdk.catch_beaker_add_solid()
+    hn_sdk.shake_beaker()
+    hn_sdk.pour_to_mix()
+    hn_sdk.move_beaker_back('beaker_B')
+
+    hn_sdk.pour_to_waste()
+    hn_sdk.move_mix_reactor_back()
 
