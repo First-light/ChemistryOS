@@ -635,6 +635,7 @@ class Add_Solid(Facility):
 
     def add_solid_series(self, weight: float) -> bool:
         """开始添加指定重量的固体系列操作。"""
+
         self.update_data_dict(tube_direction = 'horizon', clip_status = 'close')
         Info = {
             '现有重量' : '0 g',

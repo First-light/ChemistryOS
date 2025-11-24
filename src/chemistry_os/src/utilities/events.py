@@ -1,12 +1,23 @@
 import time
 import threading
 import sys
-import select
 
 sys.path.append('src/chemistry_os/src')
 from utilities.utility_log import LogUtils
 from facilities.flowdisplay import Flowdisplay
 from facilities.facility_parser import CommandParser
+
+# Ensure there's always a usable logger even if LogUtils.log is None
+try:
+    local_log = LogUtils.log if getattr(LogUtils, 'log', None) is not None else None
+except Exception:
+    local_log = None
+
+if local_log is None:
+    import logging
+    logging.basicConfig(level=logging.INFO)
+    local_log = logging.getLogger('events')
+
 
 def event_countdown(seconds, name:str = '', rpm:float = 0, volume:float = 0, directon:bool = 1, speed:float = 0):
     start_time = time.time()
@@ -76,7 +87,7 @@ def event_countdown(seconds, name:str = '', rpm:float = 0, volume:float = 0, dir
     stop_flag.set()  # 确保输入线程结束
     
     if time.time() >= end_time:
-        LogUtils.log.info("时间到")
-    
+        local_log.info("时间到")
+
     total_time = time.time() - start_time
-    LogUtils.log.info(f"倒计时结束，总耗时: {int(total_time)} 秒")
+    local_log.info(f"倒计时结束，总耗时: {int(total_time)} 秒")

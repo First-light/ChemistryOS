@@ -13,6 +13,7 @@ class Flowdisplay():
         'Process_Info' : {}
     }
 
+    @staticmethod
     def update_process_display_dict(Process=None, Action=None, Info=None, Process_Info=None):
         """
         更新流程显示字典
