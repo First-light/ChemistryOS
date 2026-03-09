@@ -17,7 +17,7 @@ from utilities.utility_param import ParamUtils
 
 # --- 配置常量 ---
 # 可以移到 AddSolid 的 __init__ 或作为类变量，这里为方便演示先放外面
-DEFAULT_SERIAL_PORT = '/dev/ttyUSB_485'
+DEFAULT_SERIAL_PORT = '/dev/ttyUSB_solid'
 DEFAULT_BAUD_RATE = 9600
 DEFAULT_SEND_INTERVAL_MS = 100  # MCU发送状态的典型间隔
 
@@ -520,10 +520,11 @@ class Add_Solid(Facility):
             while not timeout or period < timeout:
                 if cmd.cmd == Add_Solid.CommandCode.BEGIN:
                     Info = {
-                        '现有重量' : "{:.2f}".format(self.latest_frame.weight_now) + ' g',
-                        '目标重量' : str(self.latest_frame.weight_target) + ' g'
+                        '现有重量' : f"{self.latest_frame.weight_now:.2f} g",
+                        '目标重量' : f"{self.latest_frame.weight_target:.2f} g"
                     }
                     Flowdisplay.update_process_display_dict(Process=None, Action='固体振动进料', Info=Info)
+                    # print(Info)
                 if self._frame_arrive_event.wait(timeout=timeout - period if timeout else 1.0):
                     self._frame_arrive_event.clear()
                 end_time = time.thread_time_ns()
@@ -627,13 +628,14 @@ class Add_Solid(Facility):
 
     def set_pid(self, kp: float, kd: float, offset: float) -> bool:
         """设置 PID 参数。"""
+        self.update_data_dict(p = kp, d = kd, offset=offset)
         return self.send_command(Add_Solid.McuControlCommandTypedef(
                 addr=self.addr,
                 cmd=Add_Solid.CommandCode.PID,
                 data=[kp, kd, offset]
         ))
 
-    def add_solid_series(self, weight: float) -> bool:
+    def add_solid_series(self, weight: float) -> float:
         """开始添加指定重量的固体系列操作。"""
         self.update_data_dict(tube_direction = 'horizon', clip_status = 'close')
         Info = {
@@ -711,12 +713,24 @@ class Add_Solid(Facility):
 if __name__ == '__main__':
     # logging.basicConfig(level=logging.DEBUG)
     controller = Add_Solid()
-    with controller:
-        # controller.clip_open()
-        # controller.tube_hor()
-        controller.add_solid_series(0.5)
-        # controller.tube_ver()
-        controller.clip_open()
+    # with controller:
+    #     # controller.clip_open()
+    #     # controller.tube_hor()
+    #     controller.add_solid_series(0.5)
+    #     # controller.tube_ver()
+    #     # controller.clip_open()
+
+    # def add_liquid_thread():
+    #     with controller:
+    #         controller.add_solid_series(0.5)
+
+    # thread_add_liquid = threading.Thread(target=add_liquid_thread, daemon=True)
+    # thread_add_liquid.start()
+
+    # time.sleep(15)
+    # controller.turn_off()
+
+    # thread_add_liquid.join()
     # controller.initialize_serial()
     # frame = controller._thread._read_frame()
     # logging.debug(frame)

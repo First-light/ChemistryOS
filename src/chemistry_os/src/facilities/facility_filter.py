@@ -4,6 +4,7 @@ import sys
 
 
 sys.path.append('src/chemistry_os/src')
+import threading
 import time
 from time import sleep
 from serial.tools import list_ports
@@ -12,6 +13,7 @@ from facility import Facility
 from utilities.utility_param import ParamUtils
 from utilities.utility_emergency import EmergencyUtils
 from facilities.facility_parser import CommandParser
+from facilities.flowdisplay import Flowdisplay
 import time
 
 
@@ -70,10 +72,10 @@ class Filter(Facility):
         }
         self.ser = None
         self.liquid_convert_dict = {
-            "solvent": {"volume":20,"speed":800,"param":0.0033364,"extra_volume":3.14159 * 0.246 * 0.246*70.0},
-            "water": {"volume":20,"speed":800,"param":0.0033364,"extra_volume":3.14159 * 0.246 * 0.246*147},
-            "acid": {"volume":20,"speed":800,"param":0.0033364,"extra_volume":3.14159 * 0.246 * 0.246*126.1},
-            "pump": {"volume":20,"speed":800,"param":0.0033364,"extra_volume":3.14159 * 0.246 * 0.246*70.0},
+            "solvent": {"volume":20,"speed":800,"param":0.0033364,"extra_volume":3.14159 * 0.246 * 0.246 * 70.0},
+            "water": {"volume":20,"speed":800,"param":0.0033364,"extra_volume":3.14159 * 0.246 * 0.246 * 147},
+            "acid": {"volume":20,"speed":800,"param":0.0033364 * 0.83,"extra_volume":3.14159 * 0.246 * 0.246 * 118.0},
+            "pump": {"volume":20,"speed":800,"param":0.0033364,"extra_volume":3.14159 * 0.246 * 0.246 * 70.0},
         }#extra_volume mL
         super().__init__(name, Filter.type)
         self.connect()
@@ -102,10 +104,10 @@ class Filter(Facility):
                              "name": "", "volume": 0.0}, "set pump volume")
         
         self.parser.register("init", self.pump_init, {}, "initialize pump")
-        self.parser.register("A", self.filter_process_A, {}, "start filter process A")
-        self.parser.register("B", self.filter_process_B, {}, "start filter process B")
+        # self.parser.register("A", self.filter_process_A, {}, "start filter process A")
+        # self.parser.register("B", self.filter_process_B, {}, "start filter process B")
         self.parser.register("C", self.filter_process_C, {}, "start filter process C")
-        self.parser.register("D", self.filter_process_D, {}, "start filter process D")
+        # self.parser.register("D", self.filter_process_D, {}, "start filter process D")
         self.parser.register("data", self.print_data, {}, "check data")
         self.parser.register("load", self.liquid_load, {
                              "name": "empty"}, "load liquid into pump by name")
@@ -142,63 +144,162 @@ class Filter(Facility):
             "com":self.com,
         })
 
-    def filter_process_A(self,volume = 50.0):
-        """
-        抽滤过程A
-        """
-        volume_t = int(max(volume -50.0 , 0.0) / 50.0)*25.0 + 30.0 + min(volume,50.0) 
-        self.log.info("开始过程A")
-        self.valve_A_control(0)  # 打开三通阀门
-        self.valve_B_control(0)
-        out = True
-        while out == True:
-            self.log.info(f"抽滤{volume_t}s")
-            self.pump_control_name("pump", 1)# 泵启动
-            time.sleep(volume_t)  
-            self.pump_control_name("pump", 0)
-            volume_t = 30.0
-            if CommandParser.wait_input("parser","是否继续抽滤？(y/n): ").strip().lower() != 'y':
-                out = False
 
-        self.valve_A_control(0)  # 
-        self.valve_B_control(1)  # 
-        self.log.info("等待释放负压")
-        time.sleep(1)  # 
-        self.valve_B_control(0)  # 
-        time.sleep(1)  # 
-        self.valve_B_control(1)  # 
-        time.sleep(1)  # 
-        self.valve_B_control(0)  # 
-        time.sleep(1)  # 
-        self.valve_B_control(1)  # 
-        time.sleep(1)  # 
-        self.valve_B_control(0)  # 
-        time.sleep(1)  # 
-        self.valve_B_control(1)  # 
-        time.sleep(1)  # 
-        self.valve_B_control(0)  # 
-        self.log.info("抽滤过程A完成")
+    def wait_with_skip(self, seconds):
+        start_time = time.time()
+        end_time = start_time + seconds
+        stop_flag = threading.Event()
 
-    def filter_process_B(self,volume = 50.0):
+        def input_thread():
+            while not stop_flag.is_set():
+                try:
+                    user_input = CommandParser.wait_input("parser", "输入 'q' 跳过...")
+                    if stop_flag.is_set():
+                        break
+                    if user_input.lower() == 'q':
+                        stop_flag.set()
+                        break
+                except:
+                    break
+
+        t = threading.Thread(target=input_thread, daemon=True)
+        t.start()
+
+        while time.time() < end_time:
+            if stop_flag.is_set():
+                self.log.info("跳过等待")
+                break
+            time.sleep(1)
+            print(f"\r剩余时间: {int(end_time - time.time())} s", end='', flush=True)
+            Info = {
+                '剩余时间 (秒)': int(end_time - time.time())
+            }
+            Flowdisplay.update_process_display_dict(Process=None, Action=None, Info=Info)
+        
+        stop_flag.set()
+
+    # def filter_process_A(self,volume = 50.0):
+    #     """
+    #     抽滤过程A
+    #     """
+    #     volume_t = int(max(volume -50.0 , 0.0) / 50.0)*25.0 + 30.0 + min(volume,50.0) 
+    #     self.log.info("开始过程A")
+    #     self.valve_A_control(0)  # 打开三通阀门
+    #     self.valve_B_control(0)
+    #     out = True
+    #     volume_t = 600.0
+    #     while out == True:
+    #         self.log.info(f"抽滤{volume_t}s")
+    #         self.pump_control_name("pump", 1)# 泵启动
+    #         self.wait_with_skip(volume_t)  
+    #         self.pump_control_name("pump", 0)
+    #         volume_t = 300.0
+    #         while True:
+    #             user_input = CommandParser.wait_input("parser","是否继续抽滤？(y/n): ").strip().lower()
+    #             if user_input == 'y':
+    #                 break
+    #             elif user_input == 'n':
+    #                 out = False
+    #                 break
+    #             else:
+    #                 self.log.warning("输入无效，请输入 'y' 或 'n'")
+
+    #     self.valve_A_control(0)  # 
+    #     self.valve_B_control(1)  # 
+    #     # time.sleep(5)
+    #     self.log.info("等待释放负压")
+    #     time.sleep(1)  # 
+    #     self.valve_B_control(0)  # 
+    #     time.sleep(1)  # 
+    #     self.valve_B_control(1)  # 
+    #     time.sleep(1)  # 
+    #     self.valve_B_control(0)  # 
+    #     time.sleep(1)  # 
+    #     self.valve_B_control(1)  # 
+    #     time.sleep(1)  # 
+    #     self.valve_B_control(0)  # 
+    #     time.sleep(1)  # 
+    #     self.valve_B_control(1)  # 
+    #     time.sleep(1)  # 
+    #     self.valve_B_control(0)  # 
+    #     self.log.info("抽滤过程A完成")
+
+    # def filter_process_A_new(self):
+    #     """
+    #     抽滤过程A
+    #     """
+    #     out = True
+    #     volume_t = 300.0
+    #     while out == True:
+    #         self.log.info(f"抽滤{volume_t}s")
+    #         self.pump_control_name("pump", 1)# 泵启动
+    #         self.wait_with_skip(volume_t)
+    #         self.pump_control_name("pump", 0)
+    #         volume_t = 100.0
+    #         while True:
+    #             user_input = CommandParser.wait_input("parser","是否继续抽滤？(y/n): ").strip().lower()
+    #             if user_input == 'y':
+    #                 break
+    #             elif user_input == 'n':
+    #                 out = False
+    #                 break
+    #             else:
+    #                 self.log.warning("输入无效，请输入 'y' 或 'n'")
+
+    #     self.log.info("抽滤过程A完成")
+
+    # def filter_process_B(self,volume = 50.0):
+    #     """
+    #     抽滤过程B
+    #     """
+    #     self.log.info("开始过程B")
+    #     out = True
+    #     while out == True:
+    #         sec = self.liquid_convert_name("acid",volume)
+    #         self.log.info(f"酸洗{sec:.3f}s")
+    #         self.pump_control_name("acid", 1)
+    #         self.wait_with_skip(sec)
+    #         self.pump_control_name("acid", 0)
+    #         while True:
+    #             user_input = CommandParser.wait_input("parser","是否继续酸洗？(y/n): ").strip().lower()
+    #             if user_input == 'y':
+    #                 break
+    #             elif user_input == 'n':
+    #                 out = False
+    #                 break
+    #             else:
+    #                 self.log.warning("输入无效，请输入 'y' 或 'n'")
+    #     self.log.info("抽滤过程B完成")
+
+    def filter_process_B_new(self,volume = 50.0):
         """
         抽滤过程B
         """
+        Flowdisplay.update_process_display_dict(Process='冲洗抽滤', Action='加入乙腈', Info={})
         self.log.info("开始过程B")
         out = True
         while out == True:
             sec = self.liquid_convert_name("acid",volume)
-            self.log.info(f"酸洗{sec:.3f}s")
+            self.log.info(f"乙腈溶剂{sec:.3f}s, {volume:.2f}mL")
             self.pump_control_name("acid", 1)
-            time.sleep(sec)
+            self.wait_with_skip(sec)
             self.pump_control_name("acid", 0)
-            if CommandParser.wait_input("parser","是否继续酸洗？(y/n): ").strip().lower() != 'y':
-                out = False
+            while True:
+                user_input = CommandParser.wait_input("parser","是否继续乙腈溶剂？(y/n): ").strip().lower()
+                if user_input == 'y':
+                    break
+                elif user_input == 'n':
+                    out = False
+                    break
+                else:
+                    self.log.warning("输入无效，请输入 'y' 或 'n'")
         self.log.info("抽滤过程B完成")
 
     def filter_process_B_N(self,volume = 0.0):
         """
         抽滤过程B
         """
+        Flowdisplay.update_process_display_dict(Process='冲洗抽滤', Action='乙腈回抽', Info={})
         self.log.info("开始过程BN")
         out = True
         while out == True:
@@ -206,7 +307,7 @@ class Filter(Facility):
             sec = self.liquid_convert_name("acid",volume) + 10.0
             self.log.info(f"回抽{sec:.3f}s")
             self.pump_control_name("acid", 1)
-            time.sleep(sec)
+            self.wait_with_skip(sec)
             self.pump_control_name("acid", 0)
             self.set_pump_dir_name("acid",1)
             out = False
@@ -216,22 +317,31 @@ class Filter(Facility):
         """
         抽滤过程C
         """
+        Flowdisplay.update_process_display_dict(Process='冲洗抽滤', Action='加入清水', Info={})
         self.log.info("开始过程C")
         out = True
         while out == True:
             sec = self.liquid_convert_name("water",volume)
-            self.log.info(f"清水清洗{sec:.3f}s")
+            self.log.info(f"清水清洗{sec:.3f}s, {volume:.2f}mL")
             self.pump_control_name("water", 1)
-            time.sleep(sec)
+            self.wait_with_skip(sec)
             self.pump_control_name("water", 0)
-            if CommandParser.wait_input("parser","是否继续清水清洗？(y/n): ").strip().lower() != 'y':
-                out = False
+            while True:
+                user_input = CommandParser.wait_input("parser","是否继续清水清洗？(y/n): ").strip().lower()
+                if user_input == 'y':
+                    break
+                elif user_input == 'n':
+                    out = False
+                    break
+                else:
+                    self.log.warning("输入无效，请输入 'y' 或 'n'")
         self.log.info("抽滤过程C完成")
 
     def filter_process_C_N(self,volume = 0.0):
         """
         抽滤过程C
         """
+        Flowdisplay.update_process_display_dict(Process='冲洗抽滤', Action='清水回抽', Info={})
         self.log.info("开始过程CN")
         out = True
         while out == True:
@@ -239,32 +349,79 @@ class Filter(Facility):
             sec = self.liquid_convert_name("water",volume) + 10.0
             self.log.info(f"清水回抽{sec:.3f}s")
             self.pump_control_name("water", 1)
-            time.sleep(sec)
+            self.wait_with_skip(sec)
             self.pump_control_name("water", 0)
             self.set_pump_dir_name("water",1)
             out = False
         self.log.info("抽滤过程CN完成")
 
-    def filter_process_D(self,volume = 50.0):
+    def filter_process_D_new(self,volume = 50.0):
         """
         抽滤过程D
         """
         self.log.info("开始过程D")
-        self.valve_A_control(1)  # 
-        self.valve_B_control(1)  # 
         
         out = True
         while out == True:
-            sec = self.liquid_convert_name("solvent") 
-            self.log.info(f"溶剂{sec:.3f}s")
+            sec = self.liquid_convert_name("solvent",volume) 
+            self.log.info(f"乙腈溶剂{sec:.3f}s")
             self.pump_control_name("solvent", 1)
-            time.sleep(sec)
+            self.wait_with_skip(sec)
             self.pump_control_name("solvent", 0)
-            if CommandParser.wait_input("parser","是否继续溶剂？(y/n): ").strip().lower() != 'y':
-                out = False
-        self.valve_A_control(0)  # 打开三通阀门
-        self.valve_B_control(0)  # 
+            while True:
+                user_input = CommandParser.wait_input("parser","是否继续加入乙腈溶剂？(y/n): ").strip().lower()
+                if user_input == 'y':
+                    break
+                elif user_input == 'n':
+                    out = False
+                    break
+                else:
+                    self.log.warning("输入无效，请输入 'y' 或 'n'")
         self.log.info("抽滤过程D完成")
+
+    # def filter_process_D(self,volume = 50.0):
+    #     """
+    #     抽滤过程D
+    #     """
+    #     self.log.info("开始过程D")
+    #     self.valve_A_control(1)  # 
+    #     self.valve_B_control(1)  # 
+        
+    #     out = True
+    #     while out == True:
+    #         sec = self.liquid_convert_name("solvent",volume) 
+    #         self.log.info(f"溶剂{sec:.3f}s")
+    #         self.pump_control_name("solvent", 1)
+    #         time.sleep(sec)
+    #         self.pump_control_name("solvent", 0)
+    #         if CommandParser.wait_input("parser","是否继续溶剂？(y/n): ").strip().lower() != 'y':
+    #             out = False
+    #     self.valve_A_control(0)  # 打开三通阀门
+    #     self.valve_B_control(0)  # 
+    #     self.log.info("抽滤过程D完成")
+
+    def filter_process_D_N(self,volume = 50.0):
+        """
+        抽滤过程D
+        """
+        self.log.info("开始过程DN")
+        # self.valve_A_control(1)  # 
+        # self.valve_B_control(1)  # 
+        
+        out = True
+        while out == True:
+            self.set_pump_dir_name("solvent",0)
+            sec = self.liquid_convert_name("solvent",volume) + 10.0
+            self.log.info(f"溶剂回抽{sec:.3f}s")
+            self.pump_control_name("solvent", 1)
+            self.wait_with_skip(sec)
+            self.pump_control_name("solvent", 0)
+            self.set_pump_dir_name("solvent",1)
+            out = False
+
+        # self.valve_A_control(0)  # 打开三通阀门
+        # self.valve_B_control(0)  # 
+        self.log.info("抽滤过程DN完成")
 
 
     def pump_add_test_name(self,name:str,volume = 0.0,test = True,back = False):
@@ -309,7 +466,7 @@ class Filter(Facility):
         初始化蠕动泵
         """
         self.set_pump_dir_name("pump", 0),
-        self.set_pump_speed_name("pump", 800),
+        self.set_pump_speed_name("pump", 1500),
         self.set_pump_dir_name("water", 1),
         self.set_pump_speed_name("water", 500),
         self.set_pump_dir_name("acid", 1),
@@ -367,7 +524,7 @@ class Filter(Facility):
         
         speed_t = speed * param # mL/s
         tim = (volume + extra_volume) / speed_t # 滴加时间
-        print(speed_t,extra_volume)
+        # print(speed_t,extra_volume)
         return tim
 
 

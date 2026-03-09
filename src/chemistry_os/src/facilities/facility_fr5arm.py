@@ -6,8 +6,6 @@ import sys
 import threading
 sys.path.append('src/chemistry_os/src')
 import lib.fairino.Robot as Robot
-from user.zzp.simple_client import TCPClient
-from user.zzp.unity import DeviceType,Gripper_status,Running_status,Weighing_status,Tube_position
 import time
 import math
 import numpy as np
@@ -48,7 +46,7 @@ class Fr5Arm(Facility):
             self.obj_status = text['obj_status']
             self.safe_place = text['safe_place']
             self.graph = {int(k): {int(inner_k): inner_v for inner_k, inner_v in v.items()} for k, v in text['graph'].items()}
-        
+
         self.obj_status_init()
         self.arm_init()
         self.start_emergency_detect()
@@ -145,6 +143,9 @@ class Fr5Arm(Facility):
                     obj_info['catch_pre_xyz_offset'] = [0.0, -obj_info['catch_pre_offset'], 0.0]
 
     def cmd_init(self):
+        self.parser.register("reset_all",self.fr5_init_and_pose,
+                {},
+                "Reset position and gripper")
         self.parser.register("moveto",self.move_to,
                             {
                             "x": 0.0, # 世界坐标系x
@@ -214,9 +215,7 @@ class Fr5Arm(Facility):
                             },
                             "Move from pose1 to pose2")
        
-        self.parser.register("reset",self.reset_all,
-                            {},
-                            "Reset position and gripper")
+
         self.parser.register("reset_pose",self.reset_pose,
                             {},
                             "Reset position")
@@ -339,29 +338,23 @@ class Fr5Arm(Facility):
         y = r * math.sin(angle_radians)
         return x, y
 
-    def move_listen(self):
+    def move_listen(self, target_pose: list):
         result = 0
         consecutive_non_zero_count = 0
-        old_pose = [0,0,0,0,0,0]
-        while True:
-            ret = self.robot.GetRobotMotionDone()
-            if ret[1] == 0:
-                break
-            else:
-                consecutive_non_zero_count += 1
-                if consecutive_non_zero_count == 10:
-                    old_pose = self.get_pose("tool")
-                    self.log.warning(f"机械臂长时间未响应")
-                if consecutive_non_zero_count >= 30:
-                    new_pose = self.get_pose("tool")
-                    deviation = sum(abs(new - old) for new, old in zip(new_pose, old_pose))
-                    if deviation <= 3.0:
-                        break
-                    else:
-                        result = 2
-                        self.log.error(f"状态超时,{old_pose},{new_pose}")
-                        break
-            time.sleep(0.05)
+        start_counting = False
+        wait_count = 0
+        move_state = 0
+        # 检查初始位置是否已在目标附近
+        initial_pose = self.get_pose("tool")
+        initial_deviation = sum(
+            abs(a - b) if i < 3 else min(abs(a - b), 360 - abs(a - b))
+            for i, (a, b) in enumerate(zip(target_pose, initial_pose))
+        )
+        if initial_deviation <= 5.0:
+            self.log.info(f"初始位置已在目标附近，偏差: {initial_deviation:.2f}")
+        else:
+            start_counting = True
+
 
         while True and result == 0:
             if self.state == FacilityState.ERROR:
@@ -371,20 +364,42 @@ class Fr5Arm(Facility):
             if self.state == FacilityState.STOP:
                 self.log.error(f"{self.name}监听到 STOP")
                 result = 2
-                break
+
             ret = self.robot.GetRobotMotionDone()  # 查询机械臂运动完成状态
             if isinstance(ret, (list, tuple)):
-                if ret[1] != 0:
+                move_state = ret[1]
+            else:
+                move_state = ret
+                if ret != -4:
+                    self.log.error(f"{self.name}状态查询错误，错误码: {ret}")
+                    result = 2
+                    break
+
+            if start_counting == False:
+                if move_state != 0:
                     consecutive_non_zero_count += 1 # 连续5次非0状态 因为开始运动时受到的第一个结果是运动完成
                     if consecutive_non_zero_count >= 5:
                         break
                 else:
                     consecutive_non_zero_count = 0
-            else:
-                if ret != -4:
-                    self.log.error(f"{self.name}状态查询错误，错误码: {ret}")
-                    result = 2
-                    break
+            else :
+                wait_count += 1
+                if move_state != 1:
+                    start_counting = False
+                elif wait_count >= 50:
+                    pose = self.get_pose("tool")
+                    deviation = sum(
+                        abs(a - b) if i < 3 else min(abs(a - b), 360 - abs(a - b))
+                        for i, (a, b) in enumerate(zip(target_pose, pose))
+                    )
+                    if deviation <= 1.0:
+                        self.log.info(f"实际位置已在目标附近，偏差: {initial_deviation:.2f}")
+                        start_counting = False
+                    else:
+                        self.log.error(f"实际位置偏差: {initial_deviation:.2f}")
+                        result = 2
+                        break
+
             time.sleep(0.05)  # 短暂休眠，避免过于频繁的查询
         if result==2:
             self.log.error(f"机械臂运动异常")
@@ -392,6 +407,10 @@ class Fr5Arm(Facility):
             self.facility_emergency = True
         else:
             self.log.info("到达")
+
+        if wait_count >= 3:
+            self.log.warning(f"机械臂异常点数，{wait_count}")
+        time.sleep(0.1)
         return result
 
     def move(self, new_pose: list, type="MoveL", vel_t=default_speed, acc_t=default_acc):
@@ -400,7 +419,7 @@ class Fr5Arm(Facility):
             if ret != 0:
                 self.log.info(f"笛卡尔空间直线运动失败，错误码: {ret}")
                 self.shut_down()
-            self.move_listen()
+            self.move_listen(new_pose)
 
         elif type == "MoveJ":
             inverse_kin_result = self.robot.GetInverseKin(0, new_pose, -1)
@@ -411,22 +430,28 @@ class Fr5Arm(Facility):
                     self.log.info(f"关节空间直线运动失败，错误码: {ret}")
                     self.shut_down()
 
-                self.move_listen()
+                self.move_listen(new_pose)
             else:
                 if inverse_kin_result == -4:
                     self.log.info("逆运动学计算失败，已到达目标位置")
                 else:
                     self.log.info(f"逆运动学计算失败，错误码: {inverse_kin_result}")
                     self.shut_down()
-                self.move_listen()
+                self.move_listen(new_pose)
 
     def move_joint(self, new_joint: list, vel_t=default_speed, acc_t=default_acc):
         ret = self.robot.MoveJ(new_joint, 0, 0, vel=vel_t, acc=acc_t, blendT=0)  # 关节空间直线运动
         if ret != 0:
-            self.log.info(f"关节空间直线运动失败，错误码: {ret}")
+            self.log.error(f"关节空间直线运动失败，错误码: {ret}")
             self.shut_down()
-
-        self.move_listen()
+        
+        kin_result = self.robot.GetForwardKin(new_joint)
+        if isinstance(kin_result, (list, tuple)) and len(kin_result) > 1:
+            target_pose = kin_result[1]
+            self.move_listen(target_pose)
+        else:
+            self.log.error(f"正运动学计算失败，无法获取目标位姿: {kin_result}")
+            self.shut_down()
 
 
     def get_pose(self, data_type: str = None):
@@ -602,13 +627,6 @@ class Fr5Arm(Facility):
             return None
         self.MoveTo(x+s_x,y+s_y,z+s_z,angle_a,angle_c,angle_b)
 
-
-    def reset_all(self):
-        self.open_up()
-        self.reset_pose()
-        self.reset_gripper()
-        
-
     def reset_pose(self):
         self.log.info("机械臂关节初始化")
         self.move_joint(Fr5Arm.default_start_joint)
@@ -637,8 +655,8 @@ class Fr5Arm(Facility):
             # self.robot.MoveGripper(1, 100, 50, 10, 20000, 0, 0, 0, 0, 0)
             self.catch()
             self.put()
-            # time.sleep(0.5)
             self.log.info("夹爪初始化完成")
+            time.sleep(1.0)
 
     def catch(self):
         if not self.can_gripper:
@@ -646,7 +664,7 @@ class Fr5Arm(Facility):
         else:
             self.robot.MoveGripper(1, 0, 50, 5, 20000, 0, 0, 0, 0, 0)
             self.log.info("夹爪抓取")
-            time.sleep(1.0)
+            time.sleep(2.5)
 
     def put(self):
         if not self.can_gripper:
@@ -654,7 +672,7 @@ class Fr5Arm(Facility):
         else:
             self.robot.MoveGripper(1, 100, 50, 10, 20000, 0, 0, 0, 0, 0)
             self.log.info("夹爪放置")
-            time.sleep(1.0)
+            time.sleep(2.5)
 
     def gripper_half(self):
         if not self.can_gripper:
@@ -662,7 +680,7 @@ class Fr5Arm(Facility):
         else:
             self.robot.MoveGripper(1, 50, 50, 10, 20000, 0, 0, 0, 0, 0)
             self.log.info("夹爪半开")
-            time.sleep(1.0)
+            time.sleep(2.5)
 
     def gripper_15(self):
         if not self.can_gripper:
@@ -670,7 +688,7 @@ class Fr5Arm(Facility):
         else:
             self.robot.MoveGripper(1, 15, 50, 10, 20000, 0, 0, 0, 0, 0)
             self.log.info("夹爪开15")
-            time.sleep(1.0)
+            time.sleep(2.5)
 
     def gripper_20(self):
         if not self.can_gripper:
@@ -678,7 +696,7 @@ class Fr5Arm(Facility):
         else:
             self.robot.MoveGripper(1, 20, 50, 10, 20000, 0, 0, 0, 0, 0)
             self.log.info("夹爪开20")
-            time.sleep(1.0)
+            time.sleep(2.5)
 
     def gripper_25(self):
         if not self.can_gripper:
@@ -686,7 +704,7 @@ class Fr5Arm(Facility):
         else:
             self.robot.MoveGripper(1, 20, 50, 10, 20000, 0, 0, 0, 0, 0)
             self.log.info("夹爪开20")
-            time.sleep(1.0)
+            time.sleep(2.5)
 
     def gripper_30(self):
         if not self.can_gripper:
@@ -694,8 +712,8 @@ class Fr5Arm(Facility):
         else:
             self.robot.MoveGripper(1, 30, 50, 10, 20000, 0, 0, 0, 0, 0)
             self.log.info("夹爪开30")
-            time.sleep(1.0)
-        
+            time.sleep(2.5)
+
     def shut_down(self):
         # ret = self.robot.StopMotion()
         # self.log.info(f"机械臂运动暂停{ret}")
@@ -713,17 +731,13 @@ class Fr5Arm(Facility):
         self.can_gripper = True
         if ret != 0:
             self.log.warning(f"机械臂使能失败，错误码: {ret}")
-        else:
-            self.log.info(f"机械臂使能")
 
     def clear_error_code(self):
         ret = self.robot.ResetAllError()
         if ret != 0:
             self.log.warning(f"清除错误码失败，错误码: {ret}")
-        else:
-            self.log.info(f"清除错误码")
 
-    def Go_to_start_zone_0(self,v = default_speed, open = 1):
+    def Go_to_start_zone_0(self,v = default_fr5C_speed, open = 1):
         '''
             机械臂复位
         '''
@@ -759,7 +773,7 @@ class Fr5Arm(Facility):
         else:
             return []
 
-    def move_to_safe_catch(self, aim_place: int):
+    def move_to_safe_catch(self, aim_place: int): 
         if self.now_place == aim_place:
             return
         path = self.find_shortest_path(self.now_place, aim_place)
@@ -828,8 +842,19 @@ class Fr5Arm(Facility):
         return None
     
     def fr5_init(self):
+        self.log.info("***** 机械臂初始化 *****")
+        self.open_up()
         self.reset_gripper()
         self.check_place_move()
+        self.log.info("***** 机械臂初始化完成 *****")
+
+    def fr5_init_and_pose(self,pose_num:int = 0):
+        self.log.info("***** 机械臂初始化 *****")
+        self.open_up()
+        self.reset_gripper()
+        self.check_place_move()
+        self.move_to_safe_catch(pose_num)
+        self.log.info("***** 机械臂初始化完成 *****")
 
     def check_place_move(self):
         """检查当前位置并移动到安全位置
@@ -838,6 +863,7 @@ class Fr5Arm(Facility):
         用于机械臂初始化和复位操作。
         """
         self.log.info("初始化自动寻路")
+        time.sleep(1)
         Info={
             '机械臂对象': self.name
         }

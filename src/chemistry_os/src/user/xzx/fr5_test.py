@@ -13,10 +13,11 @@ import sys
 
 sys.path.append('src/chemistry_os/src')
 
+
 @staticmethod
 def main_thread_func():
     fr5 = Fr5Arm("fr5A","192.168.58.2")
-    fr5.fr5_init()
+    fr5.fr5_init_and_pose()
 
 
     main_server = TCPServer()

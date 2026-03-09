@@ -9,32 +9,38 @@ from utilities.utility_log import LogUtils
 
 @dataclass
 class ParamTuple:
-    CompoundC_solid_add = 1.0 # 化合物C的添加量
-    HCl_volume_add = 26.8*CompoundC_solid_add # 浓盐酸
-    KMnO4_volume_add = 53.52*CompoundC_solid_add # 高锰酸钾添加量 
-    H2O2_volume_add = 20.0*CompoundC_solid_add # 双氧水添加量
-    N2H4_volume_add = 1.14*CompoundC_solid_add # 肼添加量
+    CompoundC_solid_add = 1.0                    # 化合物C的添加量
+    HCl_volume_add = 22.73*CompoundC_solid_add    # 浓盐酸
+    KMnO4_volume_add = 45.45*CompoundC_solid_add # 高锰酸钾添加量 
+    H2O2_volume_add = 11.36*CompoundC_solid_add   # 双氧水添加量
+    N2H4_volume_add = 1.2*CompoundC_solid_add   # 肼添加量
 
-    CH3CN_volume_add = 18.87*CompoundC_solid_add # 乙腈添加量
-    HCl_volume_wash = 80.0*CompoundC_solid_add
-    water_volume_wash = 80.0*CompoundC_solid_add
+    CH3CN_volume_add = 60.0*CompoundC_solid_add # 乙腈添加量
+    HCl_volume_wash = 15.0*CompoundC_solid_add   # 稀盐酸冲洗量
+    water_volume_wash = 30.0*CompoundC_solid_add # 冰水冲洗量
 
     HCl_rpm = 100
     KMnO4_rpm = 15
     H2O2_rpm = 30
-    N2H4_rpm = 15
+    N2H4_rpm = 5
 
     liquid_volume_pump = 200 # ml
     liquid_2_volume_pump = HCl_volume_wash + water_volume_wash 
 
-    HCl_temp = 0
-    KMnO4_temp = 25
-    H2O2_temp = 0
-    N2H4_temp = 25
+    HCl_temp = -5           #浓盐酸滴加温度
+    KMnO4_temp = -5         #高锰酸钾滴加温度
+    H2O2_temp = 25          #双氧水滴加温度
+    N2H4_temp = 25          #水合肼滴加温度
 
-    reaction_time_1 = 7200
-    reaction_time_2 = 1200
-    reaction_time_3 = 14400
+    reaction_time_0 = 900   # 浓盐酸后反应时间
+    reaction_time_mix = 300   # 搅拌时间
+    reaction_temp_0 = -5
+    reaction_time_1 = 7200  # 高锰酸钾后反应时间
+    reaction_temp_1 = 25    # 高锰酸钾后反应温度
+    reaction_time_2 = 1200  # 双氧水后反应时间
+    reaction_temp_2 = 25    # 双氧水后反应温度
+    reaction_time_3 = 7200 # 水合肼后反应时间
+    reaction_temp_3 = 25    # 水合肼后反应温度
     project_name  = "flow_project"
     init_name = "flow_reset"
     

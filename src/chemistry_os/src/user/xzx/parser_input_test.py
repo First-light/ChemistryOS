@@ -19,7 +19,7 @@ from utilities.utility_project import ProjectUtils
 import time
 
 # 宏定义
-ParamTuple.CompoundC_solid_add = 0.5 # 化合物C的添加量
+ParamTuple.CompoundC_solid_add = 1 # 化合物C的添加量
 ParamTuple.HCL_volume_add = 26.8*ParamTuple.CompoundC_solid_add # 浓盐酸
 ParamTuple.KMnO4_volume_add = 53.52*ParamTuple.CompoundC_solid_add # 高锰酸钾添加量 
 ParamTuple.H2O2_volume_add = 20.0*ParamTuple.CompoundC_solid_add # 双氧水添加量
