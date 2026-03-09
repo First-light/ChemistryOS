@@ -32,9 +32,9 @@ ParamTuple.water_volume_wash = 20.0*ParamTuple.CompoundC_solid_add
 ParamTuple.liquid_volume_pump = 200 # ml
 ParamTuple.liquid_2_volume_pump = ParamTuple.HCl_volume_wash + ParamTuple.water_volume_wash 
 
-ParamTuple.HCl_temp = 0
+ParamTuple.HCl_temp = 10
 ParamTuple.KMnO4_temp = 25
-ParamTuple.H2O2_temp = 0
+ParamTuple.H2O2_temp = 10
 ParamTuple.N2H4_temp = 25
 
 ParamTuple.reaction_time_1 = 7200

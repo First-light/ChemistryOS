@@ -3,7 +3,6 @@ sys.path.append('src/chemistry_os/src')
 import serial
 import time
 from facility import Facility
-from utilities.events import event_countdown
 from facilities.flowdisplay import Flowdisplay
 from utilities.utility_param import ParamUtils
 
@@ -49,7 +48,7 @@ class Thermometer(Facility):
             raise ValueError("Invalid bytes data provided")
         
         # 使用struct解包为有符号整数
-        result = int.from_bytes(hex_data[3:5], byteorder='big', signed=False)
+        result = int.from_bytes(hex_data[3:5], byteorder='big', signed=True)
 
         return result/10
 

@@ -21,33 +21,39 @@ import time
 
 # 宏定义
 ParamTuple.CompoundC_solid_add = 1 # 化合物C的添加量
-ParamTuple.HCl_volume_add = 26.8*ParamTuple.CompoundC_solid_add # 浓盐酸
-ParamTuple.KMnO4_volume_add = 53.52*ParamTuple.CompoundC_solid_add # 高锰酸钾添加量 
-ParamTuple.H2O2_volume_add = 20.0*ParamTuple.CompoundC_solid_add # 双氧水添加量
-ParamTuple.N2H4_volume_add = 1.14*ParamTuple.CompoundC_solid_add # 肼添加量
+ParamTuple.HCl_volume_add = 22.73*ParamTuple.CompoundC_solid_add # 浓盐酸
+ParamTuple.KMnO4_volume_add = 45.45*ParamTuple.CompoundC_solid_add # 高锰酸钾添加量 
+ParamTuple.H2O2_volume_add = 11.36*ParamTuple.CompoundC_solid_add # 双氧水添加量
+ParamTuple.N2H4_volume_add = 1.2*ParamTuple.CompoundC_solid_add # 肼添加量
 
-ParamTuple.CH3CN_volume_add = 22.73*ParamTuple.CompoundC_solid_add  # 乙腈添加量
-ParamTuple.HCl_volume_wash = 20.0*ParamTuple.CompoundC_solid_add
-ParamTuple.water_volume_wash = 20.0*ParamTuple.CompoundC_solid_add
+ParamTuple.CH3CN_volume_add = 60.0*ParamTuple.CompoundC_solid_add  # 乙腈添加量
+ParamTuple.HCl_volume_wash = 15.0*ParamTuple.CompoundC_solid_add
+ParamTuple.water_volume_wash = 30.0*ParamTuple.CompoundC_solid_add
 
 ParamTuple.liquid_volume_pump = 200 # ml
 ParamTuple.liquid_2_volume_pump = ParamTuple.HCl_volume_wash + ParamTuple.water_volume_wash 
 
-ParamTuple.HCl_temp = 0
-ParamTuple.KMnO4_temp = 25
-ParamTuple.H2O2_temp = 0
+ParamTuple.HCl_temp = -5
+ParamTuple.KMnO4_temp = -5
+ParamTuple.H2O2_temp = 25
 ParamTuple.N2H4_temp = 25
 
+ParamTuple.reaction_time_0 = 900
+ParamTuple.reaction_time_mix = 300
+ParamTuple.reaction_temp_0 = -5
 ParamTuple.reaction_time_1 = 7200
+ParamTuple.reaction_temp_1 = 25
 ParamTuple.reaction_time_2 = 1200
-ParamTuple.reaction_time_3 = 14400
+ParamTuple.reaction_temp_2 = 25
+ParamTuple.reaction_time_3 = 7200
+ParamTuple.reaction_temp_3 = 25
 ParamTuple.project_name  = "flow_project"
 ParamTuple.init_name = "flow_init"
 
 main_sys = System("os")
 main_parser = CommandParser()
 main_server = TCPServer(test=True)
-filter = Filter("filter",if_test=True)
+filter = Filter("filter",if_test=False)
 add_Liquid=PumpGroup('add_Liquid')
 add_Solid=Add_Solid('add_Solid')
 fr5_C = Fr5Arm("fr5C","192.168.58.3")
@@ -65,7 +71,7 @@ def reset_make_func():
     # ProjectUtils.register_object("fr5C")
     # ProjectUtils.register_object("fr5A")
     # ProjectUtils.register_object('bath')
-    # # ProjectUtils.register_object('thermometer')
+    # ProjectUtils.register_object('thermometer')
     # ProjectUtils.register_object(hn_sdk.name)
 
     # ProjectUtils.register_process(hn_sdk.name,"add_liquid_init")
@@ -85,41 +91,62 @@ def project_make_func():
 
     ProjectUtils.register_process(main_server.name,"open_log")
     ProjectUtils.register_process(hn_sdk.name,"add_liquid_config_init")
+    ProjectUtils.register_process(hn_sdk.name,"add_solid_config_init")
     ProjectUtils.register_process(hn_sdk.name,"temp_start")
     ProjectUtils.register_process(hn_sdk.name,"HN_init")
     ProjectUtils.register_process(hn_sdk.name,"move_shaoping_A2C")
-    ProjectUtils.register_process(hn_sdk.name,"bath_open")
+    ProjectUtils.register_process(hn_sdk.name,"bath_start")
     ProjectUtils.register_sub_process("实验开始")
+    ProjectUtils.register_process(hn_sdk.name,"bath_writetmp",[ParamTuple.reaction_temp_0])
     ProjectUtils.register_process(hn_sdk.name,"add_liquid_bath",['HCl'])
     ProjectUtils.register_sub_process("浓盐酸滴加1")
     ProjectUtils.register_process(hn_sdk.name,"add_solid",[ParamTuple.CompoundC_solid_add, 'test_tube_support', 'beaker_support'])
     ProjectUtils.register_sub_process("化合物C称量和混合")
+    ProjectUtils.register_process(hn_sdk.name,"temp_on")
     ProjectUtils.register_process(hn_sdk.name,"add_liquid_bath",['HCl_wash'])
+    ProjectUtils.register_process(hn_sdk.name,"name_catch_and_put",['test_tube_add_place', 'test_tube_support', 1, 0])
+    ProjectUtils.register_process(hn_sdk.name,"interactable_countdown",[ParamTuple.reaction_time_0])
     ProjectUtils.register_sub_process("浓盐酸滴加2")
     ProjectUtils.register_process(hn_sdk.name,"add_liquid_bath",['KMnO4'])
+    ProjectUtils.register_process(hn_sdk.name,"interactable_countdown",[ParamTuple.reaction_time_0])
     ProjectUtils.register_sub_process("高锰酸钾的滴加")
+    ProjectUtils.register_process(hn_sdk.name,"bath_writetmp",[ParamTuple.reaction_temp_1])
     ProjectUtils.register_process(hn_sdk.name,"interactable_countdown",[ParamTuple.reaction_time_1])
     ProjectUtils.register_sub_process("持续反应过程1")
     ProjectUtils.register_process(hn_sdk.name,"add_liquid_bath",['H2O2'])
     ProjectUtils.register_sub_process("双氧水滴加")
+    # ProjectUtils.register_process(hn_sdk.name,"bath_writetmp",[ParamTuple.reaction_temp_2])
     ProjectUtils.register_process(hn_sdk.name,"interactable_countdown",[ParamTuple.reaction_time_2])
     ProjectUtils.register_sub_process("持续反应过程2")
-    ProjectUtils.register_process(hn_sdk.name,"bath_over")
+    # ProjectUtils.register_process(hn_sdk.name,"bath_over")
     ProjectUtils.register_process(hn_sdk.name,"bath_update")
+    ProjectUtils.register_process(hn_sdk.name,"temp_off")
     ProjectUtils.register_process(hn_sdk.name,"bath_catch",['bath_fr5_catch'])
     ProjectUtils.register_process(hn_sdk.name,"move_wash",['sanjinshaoping_wash_1', 0])
-    ProjectUtils.register_process(hn_sdk.name,"move_wash",['sanjinshaoping_wash_2', 1])
+    # ProjectUtils.register_process(hn_sdk.name,"move_wash",['sanjinshaoping_wash_2', 1])
     ProjectUtils.register_process(hn_sdk.name,"move_wash",['sanjinshaoping_wash_3', 2])
+    ProjectUtils.register_process(hn_sdk.name,"bath_mix")
+    ProjectUtils.register_process(hn_sdk.name,"move_wash",['sanjinshaoping_wash_1', 0])
+    ProjectUtils.register_process(hn_sdk.name,"move_wash",['sanjinshaoping_wash_3', 2])
+    ProjectUtils.register_process(hn_sdk.name,"bath_mix")
+    ProjectUtils.register_process(hn_sdk.name,"move_wash",['sanjinshaoping_wash_1', 0])
+    ProjectUtils.register_process(hn_sdk.name,"move_wash",['sanjinshaoping_wash_2', 1])
     ProjectUtils.register_process(hn_sdk.name,"move_wash",['sanjinshaoping_wash_1', 3])
     ProjectUtils.register_process(hn_sdk.name,"bath_put",['bath_fr5_put'])
     ProjectUtils.register_sub_process("中间产物抽滤和乙腈滴加")
-    ProjectUtils.register_process(hn_sdk.name,"bath_open")
+    # ProjectUtils.register_process(hn_sdk.name,"bath_start")
+    ProjectUtils.register_process(hn_sdk.name,"temp_on")
+    ProjectUtils.register_process(hn_sdk.name,"bath_writetmp",[ParamTuple.reaction_temp_1])
+    ProjectUtils.register_process(hn_sdk.name,"interactable_countdown",[ParamTuple.reaction_time_mix])
     ProjectUtils.register_process(hn_sdk.name,"add_liquid_bath",['N2H4'])
     ProjectUtils.register_sub_process("水合肼滴加")
+    # ProjectUtils.register_process(hn_sdk.name,"bath_writetmp",[ParamTuple.reaction_temp_3])
     ProjectUtils.register_process(hn_sdk.name,"interactable_countdown",[ParamTuple.reaction_time_3])
     ProjectUtils.register_sub_process("持续反应过程3")
     ProjectUtils.register_process(hn_sdk.name,"bath_over")
+    ProjectUtils.register_process(hn_sdk.name,"temp_off")
     ProjectUtils.register_process(hn_sdk.name,"fr5_C_pour")
+    ProjectUtils.register_sub_process("冲洗过滤")
     ProjectUtils.register_process(hn_sdk.name,"move_shaoping_C2A")
     ProjectUtils.register_process(hn_sdk.name,"temp_over")
     ProjectUtils.register_process(main_server.name,"close_log")
@@ -150,7 +177,7 @@ def main_thread_func():
     main_server.register_pkg("facility_state",10, System.facility_state_dict,System.facility_state_dict_update)
     main_server.register_pkg("fr5A_data", 5, fr5_A.data_dict, fr5_A.data_dict_update)
     main_server.register_pkg("fr5C_data", 5, fr5_C.data_dict, fr5_C.data_dict_update)
-    main_server.register_pkg("bath_data", 20, bath.data_dict)
+    main_server.register_pkg("bath_data", 500, bath.data_dict)
     main_server.register_pkg("filter_data", 20, filter.data_dict, filter.data_dict_update)
     main_server.register_pkg("add_Liquid_data", 20, add_Liquid.data_dict)
     main_server.register_pkg("add_Solid_data", 20, add_Solid.data_dict)
